@@ -359,7 +359,7 @@ export default function ActivationScreen({ onActivate }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 AircraftTracker · <a href="#" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
+          <p style={s.leftFooterText}>v1.0.0 · © 2026 AircraftTracker · <a href="https://skyping.xyz/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
         </div>
       </div>
 
