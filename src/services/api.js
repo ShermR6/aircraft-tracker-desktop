@@ -32,6 +32,12 @@ class APIService {
     this.token = null;
   }
 
+  // Version Check
+  async getLatestVersion() {
+    const response = await this.client.get('/api/app/version');
+    return response.data;
+  }
+
   // Auth & License
   async activateLicense(licenseKey, email) {
     const response = await this.client.post('/api/activate', {
