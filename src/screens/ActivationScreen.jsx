@@ -359,7 +359,7 @@ export default function ActivationScreen({ onActivate }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 AircraftTracker · <a href="https://skyping.xyz/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
+          <p style={s.leftFooterText}>v1.0.0 · © 2026 AircraftTracker · <a href="#" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
         </div>
       </div>
 
@@ -379,7 +379,7 @@ export default function ActivationScreen({ onActivate }) {
                 <input
                   style={s.input}
                   type="text"
-                  placeholder="KDTO-XXXX-XXXX-XXXX-XXXX"
+                  placeholder="XXXX-XXXX-XXXX-XXXX"
                   value={licenseKey}
                   onChange={e => setLicenseKey(e.target.value)}
                   onFocus={focusInput}
@@ -423,7 +423,7 @@ export default function ActivationScreen({ onActivate }) {
           <div style={s.purchaseBox}>
             <p style={s.purchaseText}>Get a license key to start tracking your aircraft</p>
             <a
-              href="#"
+              href="https://skyping.xyz/pricing"
               onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }}
               style={s.purchaseBtn}
               onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
