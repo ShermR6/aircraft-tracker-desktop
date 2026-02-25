@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const url = require('url');
 const Store = require('electron-store');
@@ -91,4 +91,9 @@ ipcMain.handle('store-delete', (event, key) => {
 ipcMain.handle('store-clear', () => {
   store.clear();
   return true;
+});
+
+// Open external URLs in default browser
+ipcMain.handle('open-external', (event, url) => {
+  shell.openExternal(url);
 });
