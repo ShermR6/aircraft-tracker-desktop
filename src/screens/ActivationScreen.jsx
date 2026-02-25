@@ -424,7 +424,7 @@ export default function ActivationScreen({ onActivate }) {
             <p style={s.purchaseText}>Get a license key to start tracking your aircraft</p>
             <a
               href="https://skyping.xyz/pricing"
-              onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }}
+              onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz/pricing'); }}
               style={s.purchaseBtn}
               onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
               onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}
