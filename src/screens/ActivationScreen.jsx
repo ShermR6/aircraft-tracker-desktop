@@ -11,8 +11,6 @@ const s = {
     fontFamily: "'Segoe UI', system-ui, sans-serif",
     overflow: 'hidden',
   },
-
-  // Left panel - branding
   left: {
     width: '420px',
     minWidth: '420px',
@@ -136,8 +134,6 @@ const s = {
     color: '#4b5563',
     margin: 0,
   },
-
-  // Right panel - form
   right: {
     flex: 1,
     display: 'flex',
@@ -273,7 +269,7 @@ const s = {
   },
 };
 
-export default function ActivationScreen({ onActivate }) {
+export default function ActivationScreen({ onSuccess }) {
   const [licenseKey, setLicenseKey] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -288,15 +284,28 @@ export default function ActivationScreen({ onActivate }) {
     setLoading(true);
     setError('');
     try {
+      console.log('Step 1: Calling API...');
       const data = await APIService.activateLicense(licenseKey.trim(), email.trim());
+      console.log('Step 2: API response:', JSON.stringify(data));
+
+      console.log('Step 3: Saving token...');
       await StorageService.setToken(data.access_token);
+      console.log('Step 4: Token saved');
+
+      console.log('Step 5: Saving user data...');
       await StorageService.setUserData({
         email: data.email,
         user_id: data.user_id,
         license_tier: data.license_tier,
       });
-      onActivate(data);
+      console.log('Step 6: User data saved');
+
+      console.log('Step 7: Calling onSuccess...');
+      onSuccess(data);
+      console.log('Step 8: Done');
     } catch (err) {
+      console.error('Activation error:', err);
+      console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
       const msg = err.response?.data?.detail || 'Activation failed. Please check your license key and email.';
       setError(msg);
     } finally {
@@ -309,7 +318,6 @@ export default function ActivationScreen({ onActivate }) {
 
   return (
     <div style={s.shell}>
-      {/* Left branding panel */}
       <div style={s.left}>
         <div style={s.leftGlow} />
         <div style={s.leftGlow2} />
@@ -363,7 +371,6 @@ export default function ActivationScreen({ onActivate }) {
         </div>
       </div>
 
-      {/* Right form panel */}
       <div style={s.right}>
         <div style={s.formCard}>
           <h2 style={s.formTitle}>Activate your license</h2>
