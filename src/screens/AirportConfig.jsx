@@ -31,11 +31,10 @@ const s = {
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
 };
 
-export default function AirportConfig() {
-  const [config, setConfig] = useState({
-    airport_code: 'KDTO', latitude: 33.2001, longitude: -97.1998,
-    detection_radius_nm: 100, polling_interval_seconds: 10,
-    quiet_hours_start: '23:00', quiet_hours_end: '06:00'
+const [config, setConfig] = useState({
+    airport_code: '', latitude: '', longitude: '',
+    detection_radius_nm: '', polling_interval_seconds: '',
+    quiet_hours_start: '', quiet_hours_end: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -111,7 +110,7 @@ export default function AirportConfig() {
                 onFocus={focusStyle} onBlur={blurStyle} />
             </div>
           </div>
-          <p style={s.tip}>💡 Tip: Use the airport code (e.g., KDTO for Denton) or enter exact coordinates</p>
+          <p style={s.tip}>💡 Tip: Use the airport code (e.g., KDAL for Dallas) and enter exact coordinates</p>
         </div>
 
         {/* Tracking Settings */}
