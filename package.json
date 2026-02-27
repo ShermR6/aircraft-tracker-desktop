@@ -1,7 +1,7 @@
 {
-  "name": "skyping-tracker",
+  "name": "finalpingapp",
   "version": "1.0.0",
-  "description": "SkyPingTracker Desktop - Real-time aircraft tracking and notifications",
+  "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "scripts": {
   "start": "concurrently \"npm run start:react\" \"wait-on http://localhost:3000 && npm run start:electron\"",
@@ -13,8 +13,8 @@
   "package": "npm run build && npm run copy:electron && npm run build:electron"
 },
 "build": {
-  "appId": "xyz.skyping.tracker",
-  "productName": "SkyPing Tracker",
+  "appId": "com.finalpingapp.tracker",
+  "productName": "FinalPing",
   "asar": true,
   "files": [
     "build/**/*",

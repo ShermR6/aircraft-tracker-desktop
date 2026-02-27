@@ -324,7 +324,7 @@ export default function ActivationScreen({ onSuccess }) {
 
         <div style={s.logoRow}>
           <div style={s.logoIcon}><Plane size={24} color="#fff" /></div>
-          <p style={s.logoText}>SkyPing Tracker</p>
+          <p style={s.logoText}>FinalPing</p>
         </div>
 
         <h1 style={s.heroTitle}>
@@ -367,7 +367,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 SkyPing Tracker · <a href="https://skyping.xyz/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
+          <p style={s.leftFooterText}>v1.0.0 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPing.xyz</a></p>
         </div>
       </div>
 
@@ -430,14 +430,14 @@ export default function ActivationScreen({ onSuccess }) {
           <div style={s.purchaseBox}>
             <p style={s.purchaseText}>Get a license key to start tracking your aircraft</p>
             <a
-              href="https://skyping.xyz/pricing"
-              onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz/pricing'); }}
+              href="https://finalpingapp.com/pricing"
+              onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com/pricing'); }}
               style={s.purchaseBtn}
               onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
               onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}
             >
               <Zap size={13} />
-              Purchase at SkyPing.xyz
+              Purchase at FinalPing.xyz
             </a>
           </div>
 
