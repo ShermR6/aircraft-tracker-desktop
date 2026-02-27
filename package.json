@@ -1,7 +1,7 @@
 {
-  "name": "aircraft-tracker-desktop",
+  "name": "SkyPing Tracker",
   "version": "1.0.0",
-  "description": "AircraftTracker Desktop - Real-time aircraft tracking and notifications",
+  "description": "SkyPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "scripts": {
   "start": "concurrently \"npm run start:react\" \"wait-on http://localhost:3000 && npm run start:electron\"",
@@ -14,7 +14,7 @@
 },
 "build": {
   "appId": "com.aircrafttracker.app",
-  "productName": "AircraftTracker",
+  "productName": "SkyPing Tracker",
   "asar": true,
   "files": [
     "build/**/*",

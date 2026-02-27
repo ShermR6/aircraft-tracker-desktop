@@ -9,6 +9,7 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    title: 'SkyPing Tracker',
     width: 1200,
     height: 800,
     minWidth: 800,
