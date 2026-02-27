@@ -31,6 +31,7 @@ const s = {
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
 };
 
+export default function AirportConfig() {
 const [config, setConfig] = useState({
     airport_code: '', latitude: '', longitude: '',
     detection_radius_nm: '', polling_interval_seconds: '',
