@@ -96,7 +96,7 @@ export default function Dashboard({ onLogout }) {
         <div style={s.logoArea}>
           <div style={s.logoIcon}><Plane size={18} color="#fff" /></div>
           <div style={{ minWidth: 0 }}>
-            <p style={s.logoTitle}>AircraftTracker</p>
+            <p style={s.logoTitle}>SkyPing Tracker</p>
             <p style={s.logoEmail}>{userData?.email}</p>
           </div>
         </div>
