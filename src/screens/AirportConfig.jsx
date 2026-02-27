@@ -94,7 +94,7 @@ const [config, setConfig] = useState({
           <div style={s.grid3}>
             <div>
               <label style={s.label}>Airport Code</label>
-              <input style={s.input} type="text" value={config.airport_code} maxLength={4} placeholder="KDTO"
+              <input style={s.input} type="text" value={config.airport_code} maxLength={4} placeholder="KDFW"
                 onChange={e => set('airport_code', e.target.value.toUpperCase())}
                 onFocus={focusStyle} onBlur={blurStyle} />
             </div>
@@ -111,7 +111,7 @@ const [config, setConfig] = useState({
                 onFocus={focusStyle} onBlur={blurStyle} />
             </div>
           </div>
-          <p style={s.tip}>💡 Tip: Use the airport code (e.g., KDAL for Dallas) and enter exact coordinates</p>
+          <p style={s.tip}>💡 Tip: Use the airport code (e.g., KDFW for Dallas-Fort Worth) and enter exact coordinates</p>
         </div>
 
         {/* Tracking Settings */}

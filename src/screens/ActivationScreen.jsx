@@ -324,7 +324,7 @@ export default function ActivationScreen({ onSuccess }) {
 
         <div style={s.logoRow}>
           <div style={s.logoIcon}><Plane size={24} color="#fff" /></div>
-          <p style={s.logoText}>AircraftTracker</p>
+          <p style={s.logoText}>SkyPing Tracker</p>
         </div>
 
         <h1 style={s.heroTitle}>
@@ -367,7 +367,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 AircraftTracker · <a href="https://skyping.xyz/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
+          <p style={s.leftFooterText}>v1.0.0 · © 2026 SkyPing Tracker · <a href="https://skyping.xyz/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://skyping.xyz'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>SkyPing.xyz</a></p>
         </div>
       </div>
 
