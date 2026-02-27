@@ -367,7 +367,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPing.xyz</a></p>
+          <p style={s.leftFooterText}>v1.0.0 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingapp.com</a></p>
         </div>
       </div>
 
@@ -437,7 +437,7 @@ export default function ActivationScreen({ onSuccess }) {
               onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}
             >
               <Zap size={13} />
-              Purchase at FinalPing.xyz
+              Purchase at FinalPingapp.com
             </a>
           </div>
 
