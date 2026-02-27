@@ -1,5 +1,5 @@
 {
-  "name": "SkyPing Tracker",
+  "name": "skyping-tracker",
   "version": "1.0.0",
   "description": "SkyPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
@@ -13,7 +13,7 @@
   "package": "npm run build && npm run copy:electron && npm run build:electron"
 },
 "build": {
-  "appId": "com.aircrafttracker.app",
+  "appId": "xyz.skyping.tracker",
   "productName": "SkyPing Tracker",
   "asar": true,
   "files": [
