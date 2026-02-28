@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
+  "main": "src/main/main.js",
   "scripts": {
     "start": "concurrently \"npm run start:react\" \"wait-on http://localhost:3000 && npm run start:electron\"",
     "start:react": "react-scripts start",
