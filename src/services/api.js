@@ -59,14 +59,14 @@ class APIService {
     return response.data;
   }
 
-  async addAircraft(tailNumber, icao24, friendlyName = null) {
-    const response = await this.client.post('/api/aircraft', {
-      tail_number: tailNumber,
-      icao24: icao24,
-      friendly_name: friendlyName
-    });
-    return response.data;
-  }
+  async addAircraft({ tail_number, icao24, friendly_name = null }) {
+  const response = await this.client.post('/api/aircraft', {
+    tail_number,
+    icao24,
+    friendly_name,
+  });
+  return response.data;
+}
 
   async deleteAircraft(aircraftId) {
     const response = await this.client.delete(`/api/aircraft/${aircraftId}`);
