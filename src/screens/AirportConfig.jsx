@@ -75,11 +75,6 @@ export default function AirportConfig() {
   const focusStyle = (e) => e.target.style.borderColor = '#3b82f6';
   const blurStyle = (e) => e.target.style.borderColor = '#374151';
 
-  const openLink = (url) => {
-    if (window.electronAPI?.openExternal) window.electronAPI.openExternal(url);
-    else window.open(url, '_blank');
-  };
-
   if (loading) {
     return <div style={s.loading}><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading...</div>;
   }
@@ -131,11 +126,7 @@ export default function AirportConfig() {
 
           <div style={s.coordBox}>
             <strong>How to find your coordinates:</strong><br />
-            1. Open{' '}
-            <span style={s.infoLink} onClick={() => openLink('https://www.google.com/maps')}>
-              Google Maps <ExternalLink size={11} />
-            </span>
-            {' '}and right-click on your location — click the coordinates at the top of the menu to copy them<br />
+            1. Open Google Maps and right-click on your location — click the coordinates at the top of the menu to copy them<br />
             2. The first number is <strong>Latitude</strong>, the second is <strong>Longitude</strong><br />
             3. <strong>Most locations in North/South America, and the UK will have a negative Longitude</strong> — make sure to include the minus sign
           </div>
