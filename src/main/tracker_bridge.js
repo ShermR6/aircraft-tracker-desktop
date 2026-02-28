@@ -97,8 +97,8 @@ async function buildTrackerConfig(token) {
 
     airspace: {
       name: ap.airport_code ? `${ap.airport_code} Airspace` : 'My Airport',
-      center_lat: ap.latitude || 0,
-      center_lon: ap.longitude || 0,
+      center_lat: parseFloat(ap.latitude) || 0,
+      center_lon: parseFloat(ap.longitude) || 0,
       radius_nm: ap.detection_radius_nm || 5,
       field_elevation_ft_msl: fieldElevation,
       floor_ft_agl: 0,
@@ -166,7 +166,7 @@ function getTrackerBinaryPath() {
 
 function getTrackerScriptPath() {
   // Used in dev mode
-  return path.join(__dirname, '..', '..', 'tracker', 'aviation_tracker_discord_bot.py');
+  return path.join(__dirname, '..', 'tracker', 'aviation_tracker_discord_bot.py');
 }
 
 // ─── Push a log line to the renderer ─────────────────────────────────────────

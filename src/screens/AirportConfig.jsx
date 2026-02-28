@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Save, Loader } from 'lucide-react';
+import { MapPin, Save, Loader, ExternalLink } from 'lucide-react';
 import APIService from '../services/api';
 
 const s = {
@@ -13,9 +13,14 @@ const s = {
   grid3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
   label: { display: 'block', fontSize: '12px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' },
+  labelRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' },
+  labelOptional: { fontSize: '10px', color: '#4b5563', fontWeight: '400', textTransform: 'none', letterSpacing: 0 },
   input: { width: '100%', padding: '10px 14px', background: '#111827', border: '1px solid #374151', borderRadius: '8px', color: '#f9fafb', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
   hint: { fontSize: '11px', color: '#6b7280', marginTop: '5px' },
   tip: { fontSize: '13px', color: '#9ca3af', marginTop: '14px' },
+  infoBox: { marginTop: '16px', padding: '14px 16px', background: '#0ea5e910', border: '1px solid #0ea5e930', borderRadius: '10px', fontSize: '13px', color: '#7dd3fc', lineHeight: '1.8' },
+  coordBox: { marginTop: '16px', padding: '14px 16px', background: '#f59e0b10', border: '1px solid #f59e0b30', borderRadius: '10px', fontSize: '13px', color: '#fcd34d', lineHeight: '1.8' },
+  infoLink: { color: '#38bdf8', textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px' },
   alert: (type) => ({
     padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '13px',
     background: type === 'success' ? '#34d39920' : '#ef444420',
@@ -32,7 +37,7 @@ const s = {
 };
 
 export default function AirportConfig() {
-const [config, setConfig] = useState({
+  const [config, setConfig] = useState({
     airport_code: '', latitude: '', longitude: '',
     detection_radius_nm: '', polling_interval_seconds: '',
     quiet_hours_start: '', quiet_hours_end: ''
@@ -69,9 +74,13 @@ const [config, setConfig] = useState({
   };
 
   const set = (field, value) => setConfig(prev => ({ ...prev, [field]: value }));
-
   const focusStyle = (e) => e.target.style.borderColor = '#3b82f6';
   const blurStyle = (e) => e.target.style.borderColor = '#374151';
+
+  const openLink = (url) => {
+    if (window.electronAPI?.openExternal) window.electronAPI.openExternal(url);
+    else window.open(url, '_blank');
+  };
 
   if (loading) {
     return <div style={s.loading}><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading...</div>;
@@ -88,30 +97,50 @@ const [config, setConfig] = useState({
       </div>
 
       <form onSubmit={handleSave}>
-        {/* Airport Location */}
+
+        {/* Location */}
         <div style={s.card}>
-          <p style={s.cardTitle}>Airport Location</p>
+          <p style={s.cardTitle}>Tracking Location</p>
           <div style={s.grid3}>
             <div>
-              <label style={s.label}>Airport Code</label>
-              <input style={s.input} type="text" value={config.airport_code} maxLength={4} placeholder="KDFW"
+              <div style={s.labelRow}>
+                <label style={{ ...s.label, marginBottom: 0 }}>Airport Code</label>
+                <span style={s.labelOptional}>Optional</span>
+              </div>
+              <input style={s.input} type="text" value={config.airport_code} maxLength={4}
+                placeholder="KDFW (optional)"
                 onChange={e => set('airport_code', e.target.value.toUpperCase())}
                 onFocus={focusStyle} onBlur={blurStyle} />
+              <p style={s.hint}>Used for display in alerts only</p>
             </div>
             <div>
               <label style={s.label}>Latitude</label>
               <input style={s.input} type="number" step="0.0001" value={config.latitude} required
+                placeholder="e.g. 33.2006"
                 onChange={e => set('latitude', parseFloat(e.target.value))}
                 onFocus={focusStyle} onBlur={blurStyle} />
+              <p style={s.hint}>Positive = North, Negative = South</p>
             </div>
             <div>
               <label style={s.label}>Longitude</label>
               <input style={s.input} type="number" step="0.0001" value={config.longitude} required
+                placeholder="e.g. -97.1981"
                 onChange={e => set('longitude', parseFloat(e.target.value))}
                 onFocus={focusStyle} onBlur={blurStyle} />
+              <p style={s.hint}>Positive = East, Negative = West</p>
             </div>
           </div>
-          <p style={s.tip}>💡 Tip: Use the airport code (e.g., KDFW for Dallas-Fort Worth) and enter exact coordinates</p>
+
+          <div style={s.coordBox}>
+            <strong>How to find your coordinates:</strong><br />
+            1. Open{' '}
+            <span style={s.infoLink} onClick={() => openLink('https://www.google.com/maps')}>
+              Google Maps <ExternalLink size={11} />
+            </span>
+            {' '}and right-click on your location — click the coordinates at the top of the menu to copy them<br />
+            2. The first number is <strong>Latitude</strong>, the second is <strong>Longitude</strong><br />
+            3. <strong>Most locations in North/South America, and the UK will have a negative Longitude</strong> — make sure to include the minus sign
+          </div>
         </div>
 
         {/* Tracking Settings */}
@@ -123,14 +152,14 @@ const [config, setConfig] = useState({
               <input style={s.input} type="number" min="10" max="200" value={config.detection_radius_nm} required
                 onChange={e => set('detection_radius_nm', parseInt(e.target.value))}
                 onFocus={focusStyle} onBlur={blurStyle} />
-              <p style={s.hint}>How far to scan for aircraft (10-200 nautical miles)</p>
+              <p style={s.hint}>How far to scan for aircraft (10–200 nautical miles)</p>
             </div>
             <div>
               <label style={s.label}>Polling Interval (seconds)</label>
               <input style={s.input} type="number" min="5" max="60" value={config.polling_interval_seconds} required
                 onChange={e => set('polling_interval_seconds', parseInt(e.target.value))}
                 onFocus={focusStyle} onBlur={blurStyle} />
-              <p style={s.hint}>How often to check for aircraft (5-60 seconds)</p>
+              <p style={s.hint}>How often to check for aircraft (5–60 seconds)</p>
             </div>
           </div>
         </div>
@@ -155,10 +184,28 @@ const [config, setConfig] = useState({
           <p style={s.tip}>🌙 No notifications will be sent during quiet hours</p>
         </div>
 
-        {message.text && <div style={s.alert(message.type)}>{message.text}</div>}
+        {/* ICAO help */}
+        <div style={s.infoBox}>
+          <strong>How to find your aircraft's ICAO24 hex code:</strong><br />
+          Search your tail number at{' '}
+          <span style={s.infoLink} onClick={() => openLink('https://www.airframes.org')}>
+            airframes.org <ExternalLink size={11} />
+          </span>
+          {' '}or look it up live on{' '}
+          <span style={s.infoLink} onClick={() => openLink('https://globe.adsbexchange.com')}>
+            globe.adsbexchange.com <ExternalLink size={11} />
+          </span>
+          <br />
+          It's a 6-character code made of letters A–F and numbers 0–9 (e.g. <strong>ab0347</strong> or <strong>a7865a</strong>).
+          Every aircraft worldwide has a unique one — it's not the same as the tail number.
+        </div>
 
-        <button type="submit" disabled={saving} style={s.saveBtn(saving)}>
-          {saving ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</> : <><Save size={16} />Save Configuration</>}
+        {message.text && <div style={{ ...s.alert(message.type), marginTop: '16px' }}>{message.text}</div>}
+
+        <button type="submit" disabled={saving} style={{ ...s.saveBtn(saving), marginTop: '16px' }}>
+          {saving
+            ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</>
+            : <><Save size={16} />Save Configuration</>}
         </button>
       </form>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
