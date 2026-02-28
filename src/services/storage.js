@@ -8,7 +8,7 @@ class StorageService {
 
   async get(key) {
     if (this.isElectron) {
-      return await window.electronAPI.store.get(key);
+      return await window.electronAPI.storeGet(key);
     } else {
       const value = localStorage.getItem(key);
       return value ? JSON.parse(value) : null;
@@ -17,7 +17,7 @@ class StorageService {
 
   async set(key, value) {
     if (this.isElectron) {
-      return await window.electronAPI.store.set(key, value);
+      return await window.electronAPI.storeSet(key, value);
     } else {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
@@ -26,7 +26,7 @@ class StorageService {
 
   async delete(key) {
     if (this.isElectron) {
-      return await window.electronAPI.store.delete(key);
+      return await window.electronAPI.storeDelete(key);
     } else {
       localStorage.removeItem(key);
       return true;
@@ -35,7 +35,7 @@ class StorageService {
 
   async clear() {
     if (this.isElectron) {
-      return await window.electronAPI.store.clear();
+      return await window.electronAPI.storeClear();
     } else {
       localStorage.clear();
       return true;
