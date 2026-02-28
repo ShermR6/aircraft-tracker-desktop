@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
-const tracker = require('./src/main/tracker_bridge');
+const tracker = require('./tracker_bridge');
 
 const store = new Store();
 
