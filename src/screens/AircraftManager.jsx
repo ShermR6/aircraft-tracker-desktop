@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plane, Plus, Trash2, Edit2, X, Check, AlertCircle, Loader } from 'lucide-react';
+import { Plane, Plus, Trash2, Edit2, X, Check, AlertCircle, Loader, ExternalLink } from 'lucide-react';
 import APIService from '../services/api';
 
 const s = {
@@ -85,6 +85,8 @@ const s = {
     color: type === 'error' ? '#fca5a5' : '#6ee7b7',
   }),
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
+  infoBox: { marginTop: '16px', padding: '14px 16px', background: '#0ea5e910', border: '1px solid #0ea5e930', borderRadius: '10px', fontSize: '13px', color: '#7dd3fc', lineHeight: '1.8' },
+  infoLink: { color: '#38bdf8', textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px' },
 };
 
 const emptyForm = { tail_number: '', icao24: '', friendly_name: '' };
@@ -273,6 +275,22 @@ export default function AircraftManager() {
               {saving ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}
               {saving ? 'Saving...' : editingId ? 'Update Aircraft' : 'Add Aircraft'}
             </button>
+          </div>
+
+          {/* ICAO24 help */}
+          <div style={s.infoBox}>
+            <strong>How to find your ICAO24 hex code:</strong><br />
+            Search your tail number at{' '}
+            <span style={s.infoLink} onClick={() => window.electronAPI?.openExternal('https://www.airframes.org') || window.open('https://www.airframes.org', '_blank')}>
+              airframes.org <ExternalLink size={11} />
+            </span>
+            {' '}or find your aircraft live on{' '}
+            <span style={s.infoLink} onClick={() => window.electronAPI?.openExternal('https://globe.adsbexchange.com') || window.open('https://globe.adsbexchange.com', '_blank')}>
+              globe.adsbexchange.com <ExternalLink size={11} />
+            </span>
+            <br />
+            It's a 6-character code using letters A–F and numbers 0–9 (e.g. <strong>ab0347</strong>).
+            Every aircraft worldwide has a unique one — it's different from the tail number.
           </div>
         </div>
       )}
