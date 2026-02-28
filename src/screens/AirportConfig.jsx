@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Save, Loader, ExternalLink } from 'lucide-react';
+import { MapPin, Save, Loader } from 'lucide-react';
 import APIService from '../services/api';
 
 const s = {
@@ -18,9 +18,7 @@ const s = {
   input: { width: '100%', padding: '10px 14px', background: '#111827', border: '1px solid #374151', borderRadius: '8px', color: '#f9fafb', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
   hint: { fontSize: '11px', color: '#6b7280', marginTop: '5px' },
   tip: { fontSize: '13px', color: '#9ca3af', marginTop: '14px' },
-  infoBox: { marginTop: '16px', padding: '14px 16px', background: '#0ea5e910', border: '1px solid #0ea5e930', borderRadius: '10px', fontSize: '13px', color: '#7dd3fc', lineHeight: '1.8' },
   coordBox: { marginTop: '16px', padding: '14px 16px', background: '#f59e0b10', border: '1px solid #f59e0b30', borderRadius: '10px', fontSize: '13px', color: '#fcd34d', lineHeight: '1.8' },
-  infoLink: { color: '#38bdf8', textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px' },
   alert: (type) => ({
     padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '13px',
     background: type === 'success' ? '#34d39920' : '#ef444420',
@@ -182,22 +180,6 @@ export default function AirportConfig() {
             </div>
           </div>
           <p style={s.tip}>🌙 No notifications will be sent during quiet hours</p>
-        </div>
-
-        {/* ICAO help */}
-        <div style={s.infoBox}>
-          <strong>How to find your aircraft's ICAO24 hex code:</strong><br />
-          Search your tail number at{' '}
-          <span style={s.infoLink} onClick={() => openLink('https://www.airframes.org')}>
-            airframes.org <ExternalLink size={11} />
-          </span>
-          {' '}or look it up live on{' '}
-          <span style={s.infoLink} onClick={() => openLink('https://globe.adsbexchange.com')}>
-            globe.adsbexchange.com <ExternalLink size={11} />
-          </span>
-          <br />
-          It's a 6-character code made of letters A–F and numbers 0–9 (e.g. <strong>ab0347</strong> or <strong>a7865a</strong>).
-          Every aircraft worldwide has a unique one — it's not the same as the tail number.
         </div>
 
         {message.text && <div style={{ ...s.alert(message.type), marginTop: '16px' }}>{message.text}</div>}
