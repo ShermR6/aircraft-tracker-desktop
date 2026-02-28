@@ -166,7 +166,7 @@ function getTrackerBinaryPath() {
 
 function getTrackerScriptPath() {
   // Used in dev mode
-  return path.join(__dirname, '..', 'tracker', 'aviation_tracker_discord_bot.py');
+  return path.join(__dirname, '..', '..', '..', 'tracker', 'aviation_tracker_discord_bot.py');
 }
 
 // ─── Push a log line to the renderer ─────────────────────────────────────────
