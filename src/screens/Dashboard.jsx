@@ -7,6 +7,7 @@ import AlertSettings from './AlertSettings';
 import Integrations from './Integrations';
 import AccountDashboard from './AccountDashboard';
 import AircraftManager from './AircraftManager';
+import TrackerStatus from './TrackerStatus';
 
 const s = {
   shell: {
@@ -23,7 +24,7 @@ const s = {
   },
   logoIcon: {
     width: '38px', height: '38px',
-    background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+    background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
     borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   logoTitle: { fontSize: '15px', fontWeight: '700', color: '#f9fafb', margin: 0 },
@@ -37,7 +38,7 @@ const s = {
     padding: '9px 12px', borderRadius: '8px', textDecoration: 'none',
     fontSize: '13px', fontWeight: active ? '600' : '500',
     color: active ? '#fff' : '#9ca3af',
-    background: active ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+    background: active ? 'linear-gradient(135deg, #0ea5e9, #0284c7)' : 'transparent',
     transition: 'all 0.15s',
   }),
   sidebarBottom: { padding: '12px 10px', borderTop: '1px solid #1f2937' },
@@ -46,7 +47,7 @@ const s = {
     marginBottom: '8px', border: '1px solid #1f2937',
   },
   tierLabel: { fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' },
-  tierValue: { fontSize: '13px', fontWeight: '600', color: '#a78bfa', textTransform: 'capitalize' },
+  tierValue: { fontSize: '13px', fontWeight: '600', color: '#0ea5e9', textTransform: 'capitalize' },
   logoutBtn: {
     display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
     padding: '9px 12px', background: 'none', border: 'none', borderRadius: '8px',
@@ -55,6 +56,16 @@ const s = {
   main: { flex: 1, overflow: 'auto', background: '#0f1117' },
   content: { padding: '32px' },
 };
+
+// Dashboard home — tracker panel + account info
+function DashboardHome() {
+  return (
+    <>
+      <TrackerStatus />
+      <AccountDashboard />
+    </>
+  );
+}
 
 export default function Dashboard({ onLogout }) {
   const [userData, setUserData] = useState(null);
@@ -76,6 +87,8 @@ export default function Dashboard({ onLogout }) {
 
   const handleLogout = async () => {
     if (window.confirm('Are you sure you want to log out?')) {
+      // Stop tracker on logout
+      if (window.electronAPI) await window.electronAPI.trackerStop();
       await onLogout();
     }
   };
@@ -129,7 +142,7 @@ export default function Dashboard({ onLogout }) {
       <div style={s.main}>
         <div style={s.content}>
           <Routes>
-            <Route path="/" element={<AccountDashboard />} />
+            <Route path="/" element={<DashboardHome />} />
             <Route path="/aircraft" element={<AircraftManager />} />
             <Route path="/airport" element={<AirportConfig />} />
             <Route path="/alerts" element={<AlertSettings />} />

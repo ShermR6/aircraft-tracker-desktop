@@ -4,33 +4,43 @@
   "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "scripts": {
-  "start": "concurrently \"npm run start:react\" \"wait-on http://localhost:3000 && npm run start:electron\"",
-  "start:react": "react-scripts start",
-  "start:electron": "electron .",
-  "build": "react-scripts build",
-  "copy:electron": "node -e \"const fs=require('fs'); fs.copyFileSync('src/main/main.js','build/electron.js'); fs.copyFileSync('src/main/preload.js','build/preload.js'); console.log('✅ Electron files copied')\"",
-  "build:electron": "electron-builder",
-  "package": "npm run build && npm run copy:electron && npm run build:electron"
-},
-"build": {
-  "appId": "com.finalpingapp.tracker",
-  "productName": "FinalPing",
-  "asar": true,
-  "files": [
-    "build/**/*",
-    "node_modules/**/*",
-    "package.json"
-  ],
-  "directories": {
-    "buildResources": "assets",
-    "output": "dist"
+    "start": "concurrently \"npm run start:react\" \"wait-on http://localhost:3000 && npm run start:electron\"",
+    "start:react": "react-scripts start",
+    "start:electron": "electron .",
+    "build": "react-scripts build",
+    "copy:electron": "node -e \"const fs=require('fs'); fs.copyFileSync('src/main/main.js','build/electron.js'); fs.copyFileSync('src/main/preload.js','build/preload.js'); fs.copyFileSync('src/main/tracker_bridge.js','build/tracker_bridge.js'); console.log('✅ Electron files copied')\"",
+    "build:electron": "electron-builder",
+    "build:tracker": "python build_tracker.py",
+    "package": "npm run build && npm run copy:electron && npm run build:tracker && npm run build:electron"
   },
-  "extraMetadata": {
-    "main": "build/electron.js"
-  },
-  "win": {
-    "target": "nsis"
-  },
+  "build": {
+    "appId": "com.finalpingapp.tracker",
+    "productName": "FinalPing",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    },
+    "extraMetadata": {
+      "main": "build/electron.js"
+    },
+    "extraResources": [
+      {
+        "from": "resources/tracker.exe",
+        "to": "tracker.exe"
+      },
+      {
+        "from": "resources/tracker",
+        "to": "tracker"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
     "mac": {
       "target": "dmg",
       "category": "public.app-category.utilities"
@@ -39,10 +49,7 @@
       "target": ["AppImage", "deb"],
       "category": "Utility"
     },
-    "asar": false,
-    "extraMetadata": {
-      "main": "build/electron.js"
-    }
+    "asar": false
   },
   "dependencies": {
     "react": "^18.2.0",
