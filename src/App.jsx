@@ -6,7 +6,7 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
-const CURRENT_VERSION = process.env.REACT_APP_VERSION || '1.0.1';
+const CURRENT_VERSION = process.env.REACT_APP_VERSION || '1.0.0';
 
 function UpdateBanner({ latestVersion, onDismiss }) {
   return (
@@ -30,10 +30,8 @@ function UpdateBanner({ latestVersion, onDismiss }) {
       <span>
         🚀 A new version of FinalPing is available (v{latestVersion}). You're on v{CURRENT_VERSION}.
       </span>
-      <a
-        href="https://finalpingapp.com/download"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/download')}
         style={{
           padding: '5px 14px',
           borderRadius: 999,
@@ -41,12 +39,13 @@ function UpdateBanner({ latestVersion, onDismiss }) {
           color: '#3b82f6',
           fontWeight: 700,
           fontSize: 12,
-          textDecoration: 'none',
+          border: 'none',
+          cursor: 'pointer',
           flexShrink: 0,
         }}
       >
         Download Update
-      </a>
+      </button>
       <button
         onClick={onDismiss}
         style={{
