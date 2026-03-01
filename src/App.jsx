@@ -6,7 +6,7 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = process.env.npm_package_version;
 
 function UpdateBanner({ latestVersion, onDismiss }) {
   return (
