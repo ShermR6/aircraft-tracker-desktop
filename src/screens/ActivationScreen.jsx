@@ -267,6 +267,31 @@ const s = {
     fontSize: '12px',
     color: '#4b5563',
   },
+  tosRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+    margin: '16px 0 12px 0',
+  },
+  checkbox: {
+    marginTop: '2px',
+    width: '15px',
+    height: '15px',
+    flexShrink: 0,
+    accentColor: '#3b82f6',
+    cursor: 'pointer',
+  },
+  tosLabel: {
+    fontSize: '13px',
+    color: '#9ca3af',
+    lineHeight: '1.5',
+    cursor: 'default',
+  },
+  tosLink: {
+    color: '#60a5fa',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+  },
 };
 
 export default function ActivationScreen({ onSuccess }) {
@@ -274,11 +299,21 @@ export default function ActivationScreen({ onSuccess }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [agreed, setAgreed] = useState(false);
+
+  const openLink = (url) => {
+    if (window.electronAPI?.openExternal) window.electronAPI.openExternal(url);
+    else window.open(url, '_blank');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!licenseKey.trim() || !email.trim()) {
       setError('Please enter both your license key and email address.');
+      return;
+    }
+    if (!agreed) {
+      setError('You must agree to the Terms of Service and Privacy Policy to continue.');
       return;
     }
     setLoading(true);
@@ -367,7 +402,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingapp.com</a></p>
+          <p style={s.leftFooterText}>v1.0.0 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingApp.com</a></p>
         </div>
       </div>
 
@@ -414,7 +449,24 @@ export default function ActivationScreen({ onSuccess }) {
               </div>
             </div>
 
-            <button type="submit" style={s.submitBtn(loading)} disabled={loading}>
+            {/* ToS Checkbox */}
+            <div style={s.tosRow}>
+              <input
+                type="checkbox"
+                id="agree"
+                checked={agreed}
+                onChange={e => setAgreed(e.target.checked)}
+                style={s.checkbox}
+              />
+              <label htmlFor="agree" style={s.tosLabel}>
+                I agree to the{' '}
+                <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/terms')}>Terms of Service</span>
+                {' '}and{' '}
+                <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/privacy')}>Privacy Policy</span>
+              </label>
+            </div>
+
+            <button type="submit" style={s.submitBtn(loading || !agreed)} disabled={loading || !agreed}>
               {loading
                 ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Activating...</>
                 : <><ArrowRight size={16} />Activate License</>}
@@ -437,7 +489,7 @@ export default function ActivationScreen({ onSuccess }) {
               onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}
             >
               <Zap size={13} />
-              Purchase at FinalPingapp.com
+              Purchase at FinalPingApp.com
             </a>
           </div>
 
