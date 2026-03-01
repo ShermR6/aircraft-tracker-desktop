@@ -100,6 +100,7 @@ const s = {
     textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
   },
   infoLink: { color: '#38bdf8', textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px' },
+  infoBox: { marginTop: '16px', padding: '14px 16px', background: '#0ea5e910', border: '1px solid #0ea5e930', borderRadius: '10px', fontSize: '13px', color: '#7dd3fc', lineHeight: '1.8' },
 };
 
 const emptyForm = { tail_number: '', icao24: '', friendly_name: '' };
