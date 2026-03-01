@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link as LinkIcon, Save, Trash2, Send, Loader, Check, X } from 'lucide-react';
+import { Link as LinkIcon, Save, Trash2, Send, Loader, Check, X, Lock } from 'lucide-react';
 import APIService from '../services/api';
+import StorageService from '../services/storage';
+import { getLimits, getLimitDisplay } from '../config/tierLimits';
 
 const INTEGRATION_TYPES = [
   { type: 'discord', name: 'Discord', color: '#5865f2', placeholder: 'https://discord.com/api/webhooks/...', icon: '💬' },
@@ -47,6 +49,18 @@ const s = {
     color: type === 'success' ? '#6ee7b7' : '#fca5a5',
   }),
   infoBox: { marginTop: '20px', padding: '14px 16px', background: '#3b82f610', border: '1px solid #3b82f630', borderRadius: '10px', fontSize: '13px', color: '#93c5fd', lineHeight: '1.7' },
+  upgradeBox: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '14px 18px', background: '#f59e0b10', border: '1px solid #f59e0b30',
+    borderRadius: '12px', marginBottom: '20px', gap: '12px',
+  },
+  upgradeText: { fontSize: '13px', color: '#fcd34d', margin: 0 },
+  upgradeLink: {
+    fontSize: '12px', fontWeight: '700', color: '#f59e0b',
+    background: '#f59e0b15', border: '1px solid #f59e0b30',
+    borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
+    whiteSpace: 'nowrap', flexShrink: 0,
+  },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
 };
 
@@ -64,8 +78,12 @@ export default function Integrations() {
   const [testing, setTesting] = useState(null);
   const [testResults, setTestResults] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [tier, setTier] = useState('starter');
 
-  useEffect(() => { loadIntegrations(); }, []);
+  useEffect(() => {
+    loadIntegrations();
+    StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
+  }, []);
 
   const loadIntegrations = async () => {
     try {
@@ -80,6 +98,12 @@ export default function Integrations() {
 
   const handleAdd = (type) => {
     if (integrations.some(i => i.type === type)) return;
+    const limits = getLimits(tier);
+    if (integrations.length >= limits.integrations) {
+      setMessage({ type: 'error', text: `Your ${tier} plan allows up to ${getLimitDisplay(limits.integrations)} notification channel${limits.integrations === 1 ? '' : 's'}. Upgrade to add more.` });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      return;
+    }
     setIntegrations(prev => [...prev, { id: `temp-${Date.now()}`, type, config: { webhook_url: '' }, enabled: true, isNew: true }]);
   };
 
@@ -130,6 +154,8 @@ export default function Integrations() {
   if (loading) return <div style={s.loading}><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading...</div>;
 
   const hasIntegration = (type) => integrations.some(i => i.type === type);
+  const limits = getLimits(tier);
+  const atLimit = integrations.length >= limits.integrations;
 
   return (
     <div style={s.page}>
@@ -137,23 +163,47 @@ export default function Integrations() {
         <div style={s.headerIcon}><LinkIcon size={22} color="#60a5fa" /></div>
         <div>
           <h2 style={s.headerTitle}>Integrations</h2>
-          <p style={s.headerSub}>Connect notification channels</p>
+          <p style={s.headerSub}>
+            {integrations.length} / {getLimitDisplay(limits.integrations)} channels connected
+            <span style={{ marginLeft: '8px', fontSize: '11px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {tier}
+            </span>
+          </p>
         </div>
       </div>
 
       {message.text && <div style={s.alert(message.type)}>{message.text}</div>}
 
+      {/* Upgrade banner */}
+      {atLimit && (
+        <div style={s.upgradeBox}>
+          <p style={s.upgradeText}>
+            🔒 You've reached the <strong>{tier}</strong> plan limit of <strong>{getLimitDisplay(limits.integrations)} channel{limits.integrations === 1 ? '' : 's'}</strong>. Upgrade to add more.
+          </p>
+          <span
+            style={s.upgradeLink}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
+          >
+            Upgrade Plan →
+          </span>
+        </div>
+      )}
+
       {/* Add buttons */}
       <div style={s.addGrid}>
-        {INTEGRATION_TYPES.map(t => (
-          <div key={t.type} style={s.addCard(hasIntegration(t.type))} onClick={() => handleAdd(t.type)}
-            onMouseEnter={e => { if (!hasIntegration(t.type)) e.currentTarget.style.borderColor = '#3b82f6'; }}
-            onMouseLeave={e => { if (!hasIntegration(t.type)) e.currentTarget.style.borderColor = '#374151'; }}>
-            <div style={s.addIcon}>{t.icon}</div>
-            <p style={s.addName}>{t.name}</p>
-            <p style={s.addStatus}>{hasIntegration(t.type) ? 'Already added' : 'Click to add'}</p>
-          </div>
-        ))}
+        {INTEGRATION_TYPES.map(t => {
+          const alreadyAdded = hasIntegration(t.type);
+          const disabled = alreadyAdded || atLimit;
+          return (
+            <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
+              onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
+              onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
+              <div style={s.addIcon}>{atLimit && !alreadyAdded ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
+              <p style={s.addName}>{t.name}</p>
+              <p style={s.addStatus}>{alreadyAdded ? 'Already added' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Integration cards */}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plane, Plus, Trash2, Edit2, X, Check, AlertCircle, Loader, ExternalLink } from 'lucide-react';
+import { Plane, Plus, Trash2, Edit2, X, Check, AlertCircle, Loader, ExternalLink, Lock } from 'lucide-react';
 import APIService from '../services/api';
+import StorageService from '../services/storage';
+import { getLimits, getLimitDisplay } from '../config/tierLimits';
 
 const s = {
   page: { maxWidth: '900px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
@@ -85,7 +87,18 @@ const s = {
     color: type === 'error' ? '#fca5a5' : '#6ee7b7',
   }),
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
-  infoBox: { marginTop: '16px', padding: '14px 16px', background: '#0ea5e910', border: '1px solid #0ea5e930', borderRadius: '10px', fontSize: '13px', color: '#7dd3fc', lineHeight: '1.8' },
+  upgradeBox: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '14px 18px', background: '#f59e0b10', border: '1px solid #f59e0b30',
+    borderRadius: '12px', marginBottom: '20px', gap: '12px',
+  },
+  upgradeText: { fontSize: '13px', color: '#fcd34d', margin: 0 },
+  upgradeLink: {
+    fontSize: '12px', fontWeight: '700', color: '#f59e0b',
+    background: '#f59e0b15', border: '1px solid #f59e0b30',
+    borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
+    textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
+  },
   infoLink: { color: '#38bdf8', textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px' },
 };
 
@@ -100,8 +113,12 @@ export default function AircraftManager() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [message, setMessage] = useState(null);
+  const [tier, setTier] = useState('starter');
 
-  useEffect(() => { loadAircraft(); }, []);
+  useEffect(() => {
+    loadAircraft();
+    StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
+  }, []);
 
   const loadAircraft = async () => {
     try {
@@ -120,6 +137,11 @@ export default function AircraftManager() {
   };
 
   const openAdd = () => {
+    const limits = getLimits(tier);
+    if (aircraft.length >= limits.aircraft) {
+      showMessage('error', `Your ${tier} plan allows up to ${getLimitDisplay(limits.aircraft)} aircraft. Upgrade to add more.`);
+      return;
+    }
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(true);
@@ -194,22 +216,49 @@ export default function AircraftManager() {
     );
   }
 
+  const limits = getLimits(tier);
+  const atLimit = aircraft.length >= limits.aircraft;
+
   return (
     <div style={s.page}>
       {/* Header */}
       <div style={s.header}>
         <div>
           <h2 style={s.headerTitle}>Your Aircraft</h2>
-          <p style={s.headerSub}>{aircraft.length} aircraft being tracked</p>
+          <p style={s.headerSub}>
+            {aircraft.length} / {getLimitDisplay(limits.aircraft)} aircraft tracked
+            <span style={{ marginLeft: '8px', fontSize: '11px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {tier}
+            </span>
+          </p>
         </div>
         {!showForm && (
-          <button style={s.addBtn} onClick={openAdd}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            <Plus size={16} /> Add Aircraft
+          <button
+            style={{ ...s.addBtn, opacity: atLimit ? 0.5 : 1, cursor: atLimit ? 'not-allowed' : 'pointer' }}
+            onClick={openAdd}
+            onMouseEnter={e => { if (!atLimit) e.currentTarget.style.opacity = '0.85'; }}
+            onMouseLeave={e => e.currentTarget.style.opacity = atLimit ? '0.5' : '1'}
+          >
+            {atLimit ? <Lock size={15} /> : <Plus size={16} />}
+            {atLimit ? 'Limit Reached' : 'Add Aircraft'}
           </button>
         )}
       </div>
+
+      {/* Upgrade banner */}
+      {atLimit && (
+        <div style={s.upgradeBox}>
+          <p style={s.upgradeText}>
+            🔒 You've reached the <strong>{tier}</strong> plan limit of <strong>{getLimitDisplay(limits.aircraft)} aircraft</strong>. Upgrade to track more.
+          </p>
+          <span
+            style={s.upgradeLink}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
+          >
+            Upgrade Plan →
+          </span>
+        </div>
+      )}
 
       {/* Alert message */}
       {message && (
