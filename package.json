@@ -1,6 +1,6 @@
 {
   "name": "finalpingapp",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "main": "src/main/main.js",
@@ -9,6 +9,7 @@
     "start:react": "react-scripts start",
     "start:electron": "electron .",
     "build": "react-scripts build",
+    "prebuild": "node -e \"const fs=require('fs'); const pkg=require('./package.json'); const env=fs.existsSync('.env.local')?fs.readFileSync('.env.local','utf8'):''; fs.writeFileSync('.env.local', env.replace(/REACT_APP_VERSION=.*/,'')+'\\nREACT_APP_VERSION='+pkg.version);\"",
     "copy:electron": "node -e \"const fs=require('fs'); fs.copyFileSync('src/main/main.js','build/electron.js'); fs.copyFileSync('src/main/preload.js','build/preload.js'); fs.copyFileSync('src/main/tracker_bridge.js','build/tracker_bridge.js'); console.log('✅ Electron files copied')\"",
     "build:electron": "electron-builder",
     "build:tracker": "python build_tracker.py",
