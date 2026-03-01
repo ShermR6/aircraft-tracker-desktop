@@ -28,10 +28,10 @@ function UpdateBanner({ latestVersion, onDismiss }) {
       boxShadow: '0 2px 12px rgba(59,130,246,0.3)',
     }}>
       <span>
-        🚀 A new version of SkyPing is available (v{latestVersion}). You're on v{CURRENT_VERSION}.
+        🚀 A new version of FinalPing is available (v{latestVersion}). You're on v{CURRENT_VERSION}.
       </span>
       <a
-        href="https://skyping.xyz/download"
+        href="https://finalpingapp.com/download"
         target="_blank"
         rel="noopener noreferrer"
         style={{
