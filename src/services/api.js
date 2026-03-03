@@ -59,14 +59,14 @@ class APIService {
     return response.data;
   }
 
-  async addAircraft({ tail_number, icao24, friendly_name = null }) {
-  const response = await this.client.post('/api/aircraft', {
-    tail_number,
-    icao24,
-    friendly_name,
-  });
-  return response.data;
-}
+  async addAircraft(tailNumber, icao24, friendlyName = null) {
+    const response = await this.client.post('/api/aircraft', {
+      tail_number: tailNumber,
+      icao24: icao24,
+      friendly_name: friendlyName
+    });
+    return response.data;
+  }
 
   async deleteAircraft(aircraftId) {
     const response = await this.client.delete(`/api/aircraft/${aircraftId}`);
@@ -140,6 +140,16 @@ class APIService {
   // Health Check
   async healthCheck() {
     const response = await this.client.get('/health');
+    return response.data;
+  }
+
+  async getRecentNotifications(limit = 8) {
+    const response = await this.client.get(`/api/notifications/recent?limit=${limit}`);
+    return response.data;
+  }
+
+  async getNotificationStats() {
+    const response = await this.client.get('/api/notifications/stats');
     return response.data;
   }
 }
