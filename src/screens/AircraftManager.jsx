@@ -187,7 +187,11 @@ export default function AircraftManager() {
       await loadAircraft();
       cancel();
     } catch (err) {
-      showMessage('error', err.response?.data?.detail || 'Failed to save aircraft');
+      const detail = err.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+        : (typeof detail === 'string' ? detail : 'Failed to save aircraft');
+      showMessage('error', msg);
     } finally {
       setSaving(false);
     }
