@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map } from 'lucide-react';
 import StorageService from '../services/storage';
 import AirportConfig from './AirportConfig';
 import AlertSettings from './AlertSettings';
@@ -8,6 +8,7 @@ import Integrations from './Integrations';
 import AccountDashboard from './AccountDashboard';
 import AircraftManager from './AircraftManager';
 import TrackerStatus from './TrackerStatus';
+import LiveMap from './LiveMap';
 
 const s = {
   shell: {
@@ -169,6 +170,7 @@ export default function Dashboard({ onLogout }) {
           <div style={s.navSection}>Menu</div>
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" active={path === '/dashboard' || path === '/dashboard/'} />
           <NavItem to="/dashboard/aircraft" icon={Plane} label="Aircraft" active={path === '/dashboard/aircraft'} />
+          <NavItem to="/dashboard/map" icon={Map} label="Live Map" active={path === '/dashboard/map'} />
           <NavItem to="/dashboard/airport" icon={MapPin} label="Airport Config" active={path === '/dashboard/airport'} />
           <NavItem to="/dashboard/alerts" icon={Bell} label="Alerts" active={path === '/dashboard/alerts'} />
           <NavItem to="/dashboard/integrations" icon={LinkIcon} label="Integrations" active={path === '/dashboard/integrations'} />
@@ -203,6 +205,7 @@ export default function Dashboard({ onLogout }) {
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/aircraft" element={<AircraftManager />} />
+            <Route path="/map" element={<LiveMap />} />
             <Route path="/airport" element={<AirportConfig />} />
             <Route path="/alerts" element={<AlertSettings />} />
             <Route path="/integrations" element={<Integrations />} />
