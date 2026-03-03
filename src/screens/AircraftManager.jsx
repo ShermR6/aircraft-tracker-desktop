@@ -170,28 +170,24 @@ export default function AircraftManager() {
       if (editingId) {
         // Edit: delete old and re-add (API pattern)
         await APIService.deleteAircraft(editingId);
-        await APIService.addAircraft({
-          tail_number: form.tail_number.toUpperCase(),
-          icao24: form.icao24.toLowerCase() || undefined,
-          friendly_name: form.friendly_name || undefined,
-        });
+        await APIService.addAircraft(
+          form.tail_number.toUpperCase(),
+          form.icao24.trim().toLowerCase() || null,
+          form.friendly_name.trim() || null,
+        );
         showMessage('success', `${form.tail_number.toUpperCase()} updated successfully`);
       } else {
-        await APIService.addAircraft({
-          tail_number: form.tail_number.toUpperCase(),
-          icao24: form.icao24.toLowerCase() || undefined,
-          friendly_name: form.friendly_name || undefined,
-        });
+        await APIService.addAircraft(
+          form.tail_number.toUpperCase(),
+          form.icao24.trim().toLowerCase() || null,
+          form.friendly_name.trim() || null,
+        );
         showMessage('success', `${form.tail_number.toUpperCase()} added successfully`);
       }
       await loadAircraft();
       cancel();
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      const msg = Array.isArray(detail)
-        ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
-        : (typeof detail === 'string' ? detail : 'Failed to save aircraft');
-      showMessage('error', msg);
+      showMessage('error', err.response?.data?.detail || 'Failed to save aircraft');
     } finally {
       setSaving(false);
     }
