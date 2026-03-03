@@ -105,7 +105,7 @@ export default function LiveMap() {
     setLoading(false);
     fetchAircraft(map);
 
-  }, [leafletLoaded, airportConfig]);
+  }, [airportConfig]);
 
   const fetchAircraft = useCallback(async (mapInstance) => {
     const map = mapInstance || mapRef.current;
