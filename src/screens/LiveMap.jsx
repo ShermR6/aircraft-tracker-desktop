@@ -1,21 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plane, MapPin, RefreshCw, Loader, Navigation } from 'lucide-react';
+import { Plane, RefreshCw, Loader, Navigation } from 'lucide-react';
 import APIService from '../services/api';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// Leaflet CSS injected inline so we don't need a separate import
-const LEAFLET_CSS = `
-  .leaflet-container { background: #0d1117; font-family: 'Segoe UI', sans-serif; }
-  .leaflet-tile { filter: brightness(0.55) saturate(0.6) hue-rotate(190deg); }
-  .leaflet-control-zoom a { background: #1e2538 !important; color: #9ca3af !important; border-color: #2d3748 !important; }
-  .leaflet-control-zoom a:hover { background: #2d3748 !important; color: #f9fafb !important; }
-  .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: #4b5563 !important; font-size: 10px !important; }
-  .leaflet-control-attribution a { color: #6b7280 !important; }
-  .leaflet-popup-content-wrapper { background: #1e2538 !important; border: 1px solid #2d3748 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; color: #f9fafb !important; }
-  .leaflet-popup-tip { background: #1e2538 !important; }
-  .leaflet-popup-content { margin: 14px 16px !important; }
-  .fp-aircraft-icon { display: flex; align-items: center; justify-content: center; }
-  @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
-`;
+// Fix Leaflet default marker icon paths broken by webpack
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
 
 const STATUS_COLORS = {
   in_airspace: '#38bdf8',
@@ -38,7 +33,6 @@ export default function LiveMap() {
   const trailDataRef = useRef({});
   const ringsRef = useRef([]);
   const airportMarkerRef = useRef(null);
-  const leafletRef = useRef(null);
   const intervalRef = useRef(null);
 
   const [airportConfig, setAirportConfig] = useState(null);
@@ -46,26 +40,6 @@ export default function LiveMap() {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [error, setError] = useState(null);
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
-
-  // Load Leaflet dynamically
-  useEffect(() => {
-    if (window.L) { leafletRef.current = window.L; setLeafletLoaded(true); return; }
-
-    // Inject CSS
-    const style = document.createElement('style');
-    style.textContent = LEAFLET_CSS;
-    document.head.appendChild(style);
-
-    // Load Leaflet JS
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => { leafletRef.current = window.L; setLeafletLoaded(true); };
-    script.onerror = () => setError('Failed to load map library. Check your internet connection.');
-    document.head.appendChild(script);
-
-    return () => {};
-  }, []);
 
   // Load airport config once
   useEffect(() => {
@@ -74,11 +48,10 @@ export default function LiveMap() {
       .catch(() => setError('No airport configured. Please set up your location in Airport Config first.'));
   }, []);
 
-  // Init map once Leaflet + config are ready
+  // Init map once config is ready
   useEffect(() => {
-    if (!leafletLoaded || !airportConfig || mapRef.current) return;
+    if (!airportConfig || mapRef.current) return;
 
-    const L = leafletRef.current;
     const lat = parseFloat(airportConfig.latitude);
     const lng = parseFloat(airportConfig.longitude);
 
@@ -134,7 +107,6 @@ export default function LiveMap() {
   const fetchAircraft = useCallback(async (mapInstance) => {
     const map = mapInstance || mapRef.current;
     if (!map) return;
-    const L = leafletRef.current;
 
     try {
       const data = await APIService.getLiveAircraft();
@@ -238,7 +210,7 @@ export default function LiveMap() {
     if (!mapRef.current) return;
     intervalRef.current = setInterval(() => fetchAircraft(), 15000);
     return () => clearInterval(intervalRef.current);
-  }, [fetchAircraft, leafletLoaded, airportConfig]);
+  }, [fetchAircraft, airportConfig]);
 
   // Cleanup map on unmount
   useEffect(() => {
@@ -360,7 +332,19 @@ export default function LiveMap() {
         ))}
       </div>
 
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
+        .leaflet-container { background: #0d1117 !important; }
+        .leaflet-tile { filter: brightness(0.55) saturate(0.6) hue-rotate(190deg); }
+        .leaflet-control-zoom a { background: #1e2538 !important; color: #9ca3af !important; border-color: #2d3748 !important; }
+        .leaflet-control-zoom a:hover { background: #2d3748 !important; color: #f9fafb !important; }
+        .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: #4b5563 !important; font-size: 10px !important; }
+        .leaflet-control-attribution a { color: #6b7280 !important; }
+        .leaflet-popup-content-wrapper { background: #1e2538 !important; border: 1px solid #2d3748 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; color: #f9fafb !important; }
+        .leaflet-popup-tip { background: #1e2538 !important; }
+        .leaflet-popup-content { margin: 14px 16px !important; }
+      `}</style>
     </div>
   );
 }
