@@ -153,15 +153,10 @@ export default function LiveMap() {
         // Aircraft icon
         const rotation = ac.heading || 0;
         const iconHtml = `
-          <div class="fp-aircraft-icon" style="position:relative;width:32px;height:32px;">
-            ${status === 'in_airspace' || status === 'approaching' ? `
-              <div style="position:absolute;inset:0;border-radius:50%;border:2px solid ${dotColor};opacity:0.4;animation:pulse-ring 2s ease-out infinite;"></div>
-            ` : ''}
-            <div style="width:32px;height:32px;background:${dotColor}20;border:1.5px solid ${dotColor};border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(${rotation}deg);box-shadow:0 0 10px ${dotColor}60;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="${dotColor}" stroke="none">
-                <path d="M12 2L8 10H4l4 4-1.5 6L12 17l5.5 3L16 14l4-4h-4L12 2z"/>
-              </svg>
-            </div>
+          <div style="width:28px;height:28px;background:#38bdf820;border:1.5px solid #38bdf8;border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(${rotation}deg);box-shadow:0 0 8px #38bdf840;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#38bdf8" stroke="none">
+              <path d="M12 2L8 10H4l4 4-1.5 6L12 17l5.5 3L16 14l4-4h-4L12 2z"/>
+            </svg>
           </div>`;
 
         const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
@@ -278,7 +273,7 @@ export default function LiveMap() {
           <Plane size={14} color="#9ca3af" />
           Aircraft in Range
           <span style={{ fontSize: '11px', fontWeight: '400', color: '#4b5563', marginLeft: '4px' }}>
-            ({aircraft.filter(a => a.status !== 'outside').length} active)
+            ({aircraft.length} detected)
           </span>
         </p>
 
@@ -287,9 +282,6 @@ export default function LiveMap() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
             {aircraft.map((ac, idx) => {
-              const color = TRAIL_COLORS[idx % TRAIL_COLORS.length];
-              const status = ac.is_approaching ? 'approaching' : (ac.status || 'outside');
-              const dotColor = STATUS_COLORS[status] || '#6b7280';
               return (
                 <div
                   key={ac.tail_number}
@@ -299,40 +291,23 @@ export default function LiveMap() {
                       markersRef.current[ac.tail_number]?.openPopup();
                     }
                   }}
-                  style={{ background: '#111827', border: `1px solid ${dotColor}30`, borderRadius: '10px', padding: '12px', cursor: 'pointer', transition: 'border-color 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = dotColor + '60'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = dotColor + '30'}
+                  style={{ background: '#111827', border: '1px solid #38bdf830', borderRadius: '10px', padding: '12px', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#38bdf860'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#38bdf830'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: dotColor, boxShadow: `0 0 6px ${dotColor}`, flexShrink: 0 }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#38bdf8', flexShrink: 0 }} />
                     <span style={{ fontSize: '14px', fontWeight: '700', color: '#f9fafb' }}>{ac.tail_number}</span>
                   </div>
                   <div style={{ fontSize: '11px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span>{ac.distance_nm?.toFixed(1) || '—'} nm away</span>
                     <span>{ac.altitude_ft_agl != null ? Math.round(ac.altitude_ft_agl) + ' ft AGL' : 'On ground'}</span>
-                    <span style={{ color: dotColor, fontWeight: '600', textTransform: 'capitalize' }}>{status.replace('_', ' ')}</span>
                   </div>
                 </div>
               );
             })}
           </div>
         )}
-      </div>
-
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: '16px', marginTop: '12px', flexWrap: 'wrap' }}>
-        {[
-          { color: '#38bdf8', label: 'In airspace' },
-          { color: '#f59e0b', label: 'Approaching' },
-          { color: '#34d399', label: 'On ground' },
-          { color: '#6b7280', label: 'Outside range' },
-          { color: '#0ea5e9', label: 'Airport' },
-        ].map(({ color, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6b7280' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
-            {label}
-          </div>
-        ))}
       </div>
 
       <style>{`
