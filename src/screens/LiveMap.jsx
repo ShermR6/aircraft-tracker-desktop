@@ -203,10 +203,10 @@ export default function LiveMap() {
     }
   }, []);
 
-  // Poll every 15 seconds
+  // Poll every 5 seconds
   useEffect(() => {
     if (!mapRef.current) return;
-    intervalRef.current = setInterval(() => fetchAircraft(), 15000);
+    intervalRef.current = setInterval(() => fetchAircraft(), 5000);
     return () => clearInterval(intervalRef.current);
   }, [fetchAircraft, airportConfig]);
 
@@ -230,7 +230,7 @@ export default function LiveMap() {
         <div>
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Live Map</h2>
           <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
-            Real-time aircraft positions · Updates every 15s
+            Real-time aircraft positions · Updates every 5s
             {lastUpdate && <span style={{ marginLeft: '8px', color: '#4b5563' }}>· Last update: {lastUpdate.toLocaleTimeString()}</span>}
           </p>
         </div>
