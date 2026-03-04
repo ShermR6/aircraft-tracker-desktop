@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Calendar, Plane, Zap, RefreshCw, Bell, AlertTriangle, Clock } from 'lucide-react';
+import { User, Shield, Calendar, Plane, Zap, RefreshCw, Bell, AlertTriangle, Clock, CreditCard, ExternalLink } from 'lucide-react';
 import APIService from '../services/api';
 import StorageService from '../services/storage';
 
@@ -65,6 +65,7 @@ export default function AccountDashboard() {
   const [expiresAt, setExpiresAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -105,6 +106,21 @@ export default function AccountDashboard() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleBillingPortal = async () => {
+    setBillingLoading(true);
+    try {
+      const data = await APIService.client.post('/api/billing/portal');
+      if (data.data?.url) {
+        window.electronAPI?.openExternal(data.data.url);
+      }
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Could not open billing portal.';
+      alert(msg);
+    } finally {
+      setBillingLoading(false);
     }
   };
 
@@ -235,6 +251,24 @@ export default function AccountDashboard() {
             <span style={{ ...s.rowValue, fontSize: '12px', color: expiryWarning?.urgent ? '#f87171' : '#e5e7eb' }}>
               {expiresAt ? expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
             </span>
+          </div>
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1f2937' }}>
+            <button
+              onClick={handleBillingPortal}
+              disabled={billingLoading}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: '10px', borderRadius: '10px', border: '1px solid #3b82f630',
+                background: '#3b82f610', color: '#60a5fa', fontSize: '13px', fontWeight: '600',
+                cursor: billingLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => !billingLoading && (e.currentTarget.style.background = '#3b82f620')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#3b82f610')}
+            >
+              <CreditCard size={14} />
+              {billingLoading ? 'Opening...' : 'Manage Subscription'}
+              <ExternalLink size={12} color="#4b5563" />
+            </button>
           </div>
         </div>
       </div>
