@@ -59,6 +59,7 @@ function integrationIcon(type) {
 export default function AccountDashboard() {
   const [user, setUser] = useState(null);
   const [aircraft, setAircraft] = useState([]);
+  const [liveAircraft, setLiveAircraft] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState(null);
   const [expiresAt, setExpiresAt] = useState(null);
@@ -76,6 +77,12 @@ export default function AccountDashboard() {
       ]);
       setUser(userData);
       setAircraft(aircraftData || []);
+
+      // Fetch live status (non-critical)
+      try {
+        const liveData = await APIService.getLiveAircraft();
+        setLiveAircraft(liveData || []);
+      } catch { /* silently skip */ }
 
       // Load notifications and stats (non-critical)
       try {
@@ -267,26 +274,36 @@ export default function AccountDashboard() {
               No aircraft added yet. Go to the Aircraft tab to add one.
             </p>
           ) : (
-            aircraft.map((a, i) => (
-              <div key={a.id} style={i < aircraft.length - 1 ? s.row : s.rowLast}>
-                <span style={s.rowLabel}>
-                  <div style={s.statusDot('#34d399')} />
-                  <div>
-                    <div style={{ fontSize: '13px', color: '#e5e7eb', fontWeight: '600' }}>{a.tail_number}</div>
-                    {a.friendly_name && <div style={{ fontSize: '11px', color: '#6b7280' }}>{a.friendly_name}</div>}
+            aircraft.map((a, i) => {
+              const live = liveAircraft.find(l => l.icao24 === a.icao24 || l.tail_number === a.tail_number);
+              const isAirborne = live && live.status === 'in_airspace' && !live.on_ground;
+              const isOnGround = live && (live.status === 'on_ground' || live.on_ground);
+              const dotColor = isAirborne ? '#34d399' : isOnGround ? '#f87171' : '#6b7280';
+              const statusLabel = isAirborne ? 'Airborne' : isOnGround ? 'On Ground' : 'Not Detected';
+              return (
+                <div key={a.id} style={i < aircraft.length - 1 ? s.row : s.rowLast}>
+                  <span style={s.rowLabel}>
+                    <div style={{ ...s.statusDot(dotColor), animation: isAirborne ? 'acPulse 2s ease-in-out infinite' : 'none' }} />
+                    <div>
+                      <div style={{ fontSize: '13px', color: '#e5e7eb', fontWeight: '600' }}>{a.tail_number}</div>
+                      {a.friendly_name && <div style={{ fontSize: '11px', color: '#6b7280' }}>{a.friendly_name}</div>}
+                    </div>
+                  </span>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>{a.icao24 || 'No ICAO'}</div>
+                    <div style={{ fontSize: '11px', color: dotColor, marginTop: '2px', fontWeight: '600' }}>{statusLabel}</div>
                   </div>
-                </span>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>{a.icao24 || 'No ICAO'}</div>
-                  <div style={{ fontSize: '11px', color: '#34d399', marginTop: '2px' }}>Active</div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
 
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes acPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      `}</style>
     </div>
   );
 }
