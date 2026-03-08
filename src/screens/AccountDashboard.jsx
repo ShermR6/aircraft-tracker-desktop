@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Calendar, Plane, Zap, RefreshCw } from 'lucide-react';
+import { User, Shield, Calendar, Plane, Zap, RefreshCw, Bell, AlertTriangle, Clock, CreditCard, ExternalLink } from 'lucide-react';
 import APIService from '../services/api';
+import StorageService from '../services/storage';
 
 const s = {
   page: { maxWidth: '900px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
-  header: { marginBottom: '32px' },
+  header: { marginBottom: '24px' },
   headerTitle: { fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' },
   headerSub: { fontSize: '14px', color: '#9ca3af', margin: 0 },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' },
+  grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' },
+  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' },
   card: { background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)', border: '1px solid #2d3748', borderRadius: '16px', padding: '24px' },
   cardAccent: (color) => ({ background: `linear-gradient(135deg, ${color}15 0%, #1a2030 100%)`, border: `1px solid ${color}30`, borderRadius: '16px', padding: '24px' }),
   cardTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
@@ -19,20 +21,51 @@ const s = {
   rowLast: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' },
   rowLabel: { fontSize: '13px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '8px' },
   rowValue: { fontSize: '13px', fontWeight: '600', color: '#e5e7eb' },
-  sectionTitle: { fontSize: '16px', fontWeight: '600', color: '#f9fafb', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' },
+  sectionTitle: { fontSize: '15px', fontWeight: '600', color: '#f9fafb', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' },
   statusDot: (color) => ({ width: '8px', height: '8px', borderRadius: '50%', background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }),
   refreshBtn: { background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px' },
-  tierColors: { enterprise: '#a78bfa', school: '#34d399', single: '#60a5fa' },
+  alertRow: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 0', borderBottom: '1px solid #1f2937' },
+  alertRowLast: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 0' },
+  alertIcon: (type) => ({ width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0, background: type === 'landing' ? '#34d39920' : '#38bdf820', display: 'flex', alignItems: 'center', justifyContent: 'center' }),
+  alertTail: { fontSize: '13px', fontWeight: '700', color: '#f9fafb', marginBottom: '2px' },
+  alertType: { fontSize: '11px', color: '#6b7280' },
+  alertTime: { fontSize: '11px', color: '#4b5563', marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 },
+  emptyLog: { textAlign: 'center', padding: '24px', color: '#4b5563', fontSize: '13px' },
 };
 
-const tierColor = (tier) => s.tierColors[tier] || '#60a5fa';
+function timeAgo(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(mins / 60);
+  const days = Math.floor(hours / 24);
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (mins > 0) return `${mins}m ago`;
+  return 'Just now';
+}
+
+function alertTypeLabel(type) {
+  if (type === 'landing') return 'Landed';
+  if (type?.includes('nm')) return `${type} alert`;
+  return type || 'Alert';
+}
+
+function integrationIcon(type) {
+  const icons = { discord: '🎮', slack: '💬', teams: '🟦', email: '📧' };
+  return icons[type] || '🔔';
+}
 
 export default function AccountDashboard() {
   const [user, setUser] = useState(null);
   const [aircraft, setAircraft] = useState([]);
+  const [liveAircraft, setLiveAircraft] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -45,6 +78,29 @@ export default function AccountDashboard() {
       ]);
       setUser(userData);
       setAircraft(aircraftData || []);
+
+      // Fetch live status (non-critical)
+      try {
+        const liveData = await APIService.getLiveAircraft();
+        setLiveAircraft(liveData || []);
+      } catch { /* silently skip */ }
+
+      // Load notifications and stats (non-critical)
+      try {
+        const [notifData, statsData] = await Promise.all([
+          APIService.getRecentNotifications(8),
+          APIService.getNotificationStats(),
+        ]);
+        setNotifications(notifData || []);
+        setStats(statsData || null);
+      } catch {
+        // Silently skip if endpoints not available yet
+      }
+
+      // Load expiry from local storage
+      const stored = await StorageService.getUserData();
+      if (stored?.expires_at) setExpiresAt(new Date(stored.expires_at));
+
     } catch (err) {
       console.error('Failed to load dashboard:', err);
     } finally {
@@ -53,15 +109,39 @@ export default function AccountDashboard() {
     }
   };
 
+  const handleBillingPortal = async () => {
+    setBillingLoading(true);
+    try {
+      const data = await APIService.client.post('/api/billing/portal');
+      if (data.data?.url) {
+        window.electronAPI?.openExternal(data.data.url);
+      }
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Could not open billing portal.';
+      alert(msg);
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   if (loading) return <div style={s.loading}>Loading your dashboard...</div>;
 
-  const color = tierColor(user?.license_tier);
+  const color = '#60a5fa';
   const joinDate = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
 
+  // Expiry warning
+  let expiryWarning = null;
+  if (expiresAt) {
+    const daysLeft = Math.ceil((expiresAt - Date.now()) / (1000 * 60 * 60 * 24));
+    if (daysLeft <= 0) expiryWarning = { daysLeft: 0, urgent: true, expired: true };
+    else if (daysLeft <= 7) expiryWarning = { daysLeft, urgent: daysLeft <= 2 };
+  }
+
   return (
     <div style={s.page}>
+      {/* Header */}
       <div style={{ ...s.header, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <h2 style={s.headerTitle}>Account Dashboard</h2>
@@ -75,7 +155,32 @@ export default function AccountDashboard() {
         </button>
       </div>
 
-      <div style={s.grid}>
+      {/* Expiry warning banner */}
+      {expiryWarning && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '12px',
+          padding: '12px 16px', borderRadius: '12px', marginBottom: '16px',
+          background: expiryWarning.urgent ? '#ef444415' : '#f59e0b10',
+          border: `1px solid ${expiryWarning.urgent ? '#ef444430' : '#f59e0b30'}`,
+        }}>
+          <AlertTriangle size={16} color={expiryWarning.urgent ? '#f87171' : '#fbbf24'} />
+          <p style={{ fontSize: '13px', color: expiryWarning.urgent ? '#fca5a5' : '#fcd34d', margin: 0, flex: 1 }}>
+            {expiryWarning.expired
+              ? 'Your license has expired. Renew to continue receiving alerts.'
+              : `Your license expires in ${expiryWarning.daysLeft} day${expiryWarning.daysLeft !== 1 ? 's' : ''}. Renew soon to avoid interruption.`
+            }
+          </p>
+          <span
+            style={{ fontSize: '12px', fontWeight: '700', color: expiryWarning.urgent ? '#f87171' : '#fbbf24', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
+          >
+            Renew →
+          </span>
+        </div>
+      )}
+
+      {/* Top stats row */}
+      <div style={s.grid3}>
         <div style={s.cardAccent(color)}>
           <div style={s.cardTop}>
             <div style={s.iconBox(color)}><Shield size={20} color={color} /></div>
@@ -109,51 +214,131 @@ export default function AccountDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      {/* Alert stats + Account details */}
+      <div style={s.grid2}>
         <div style={s.card}>
-          <p style={s.sectionTitle}><User size={16} color="#9ca3af" />Account Details</p>
+          <p style={s.sectionTitle}><Bell size={15} color="#9ca3af" />Alert Activity</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {[
+              { label: 'Today', value: stats?.today ?? '—' },
+              { label: 'This Week', value: stats?.this_week ?? '—' },
+              { label: 'All Time', value: stats?.total ?? '—' },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ background: '#111827', borderRadius: '10px', padding: '14px', textAlign: 'center', border: '1px solid #1f2937' }}>
+                <p style={{ fontSize: '22px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>{value}</p>
+                <p style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={s.card}>
+          <p style={s.sectionTitle}><User size={15} color="#9ca3af" />Account Details</p>
           <div style={s.row}>
             <span style={s.rowLabel}>Email</span>
             <span style={{ ...s.rowValue, color: '#a5b4fc', fontSize: '12px' }}>{user?.email || '—'}</span>
           </div>
           <div style={s.row}>
-            <span style={s.rowLabel}>User ID</span>
-            <span style={{ ...s.rowValue, fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>
-              {user?.id ? user.id.slice(0, 8) + '...' : '—'}
-            </span>
-          </div>
-          <div style={s.row}>
             <span style={s.rowLabel}><Calendar size={13} />Member Since</span>
             <span style={s.rowValue}>{joinDate}</span>
           </div>
-          <div style={s.rowLast}>
-            <span style={s.rowLabel}>License Tier</span>
+          <div style={s.row}>
+            <span style={s.rowLabel}>License</span>
             <span style={{ ...s.rowValue, color }}>{user?.license_tier || '—'}</span>
           </div>
+          <div style={s.rowLast}>
+            <span style={s.rowLabel}><Clock size={13} />Expires</span>
+            <span style={{ ...s.rowValue, fontSize: '12px', color: expiryWarning?.urgent ? '#f87171' : '#e5e7eb' }}>
+              {expiresAt ? expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+            </span>
+          </div>
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1f2937' }}>
+            <button
+              onClick={handleBillingPortal}
+              disabled={billingLoading}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: '10px', borderRadius: '10px', border: '1px solid #3b82f630',
+                background: '#3b82f610', color: '#60a5fa', fontSize: '13px', fontWeight: '600',
+                cursor: billingLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => !billingLoading && (e.currentTarget.style.background = '#3b82f620')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#3b82f610')}
+            >
+              <CreditCard size={14} />
+              {billingLoading ? 'Opening...' : 'Manage Subscription'}
+              <ExternalLink size={12} color="#4b5563" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent alerts + Aircraft list */}
+      <div style={s.grid2}>
+        <div style={s.card}>
+          <p style={s.sectionTitle}><Bell size={15} color="#9ca3af" />Recent Alerts</p>
+          {notifications.length === 0 ? (
+            <div style={s.emptyLog}>
+              <Bell size={24} color="#2d3748" style={{ marginBottom: '8px', display: 'block', margin: '0 auto 8px' }} />
+              <p style={{ margin: 0 }}>No alerts sent yet</p>
+              <p style={{ margin: '4px 0 0', fontSize: '12px' }}>Alerts will appear here once the tracker runs</p>
+            </div>
+          ) : (
+            notifications.map((n, i) => (
+              <div key={n.id} style={i < notifications.length - 1 ? s.alertRow : s.alertRowLast}>
+                <div style={s.alertIcon(n.alert_type)}>
+                  <Plane size={14} color={n.alert_type === 'landing' ? '#34d399' : '#38bdf8'} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={s.alertTail}>{n.aircraft_tail}</div>
+                  <div style={s.alertType}>
+                    {alertTypeLabel(n.alert_type)} · {integrationIcon(n.integration_type)} {n.integration_type}
+                  </div>
+                </div>
+                <div style={s.alertTime}>{timeAgo(n.sent_at)}</div>
+              </div>
+            ))
+          )}
         </div>
 
         <div style={s.card}>
-          <p style={s.sectionTitle}><Plane size={16} color="#9ca3af" />Tracked Aircraft</p>
+          <p style={s.sectionTitle}><Plane size={15} color="#9ca3af" />Tracked Aircraft</p>
           {aircraft.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '13px', marginTop: '8px' }}>
               No aircraft added yet. Go to the Aircraft tab to add one.
             </p>
           ) : (
-            aircraft.map((a, i) => (
-              <div key={a.id} style={i < aircraft.length - 1 ? s.row : s.rowLast}>
-                <span style={s.rowLabel}>
-                  <div style={s.statusDot('#34d399')} />
-                  {a.tail_number}
-                </span>
-                <span style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>
-                  {a.icao24 || 'No ICAO'}
-                </span>
-              </div>
-            ))
+            aircraft.map((a, i) => {
+              const live = liveAircraft.find(l => l.icao24 === a.icao24 || l.tail_number === a.tail_number);
+              const hasPosition = live && (live.latitude || live.distance_nm > 0);
+              const isOnGround = live && live.on_ground;
+              const isAirborne = hasPosition && !isOnGround;
+              const dotColor = isAirborne ? '#34d399' : isOnGround ? '#f87171' : '#6b7280';
+              const statusLabel = isAirborne ? 'Airborne' : isOnGround ? 'On Ground' : 'Not Detected';
+              return (
+                <div key={a.id} style={i < aircraft.length - 1 ? s.row : s.rowLast}>
+                  <span style={s.rowLabel}>
+                    <div style={{ ...s.statusDot(dotColor), animation: isAirborne ? 'acPulse 2s ease-in-out infinite' : 'none' }} />
+                    <div>
+                      <div style={{ fontSize: '13px', color: '#e5e7eb', fontWeight: '600' }}>{a.tail_number}</div>
+                      {a.friendly_name && <div style={{ fontSize: '11px', color: '#6b7280' }}>{a.friendly_name}</div>}
+                    </div>
+                  </span>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>{a.icao24 || 'No ICAO'}</div>
+                    <div style={{ fontSize: '11px', color: dotColor, marginTop: '2px', fontWeight: '600' }}>{statusLabel}</div>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes acPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      `}</style>
     </div>
   );
 }

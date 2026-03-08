@@ -52,19 +52,13 @@ function createWindow() {
 
   mainWindow.on('closed', () => { mainWindow = null; });
 
-  // Force ALL new windows / target="_blank" links to open in system browser
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: 'deny' };
+  // Fix Electron input focus bug - restore focus when window is clicked or focused
+  mainWindow.on('focus', () => {
+    mainWindow.webContents.focus();
   });
 
-  // Also intercept any navigation away from the app itself
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    const appUrl = app.isPackaged ? 'file://' : 'http://localhost:3000';
-    if (!url.startsWith(appUrl)) {
-      event.preventDefault();
-      shell.openExternal(url);
-    }
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.focus();
   });
 
   // Push tracker status updates to the renderer
