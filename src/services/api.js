@@ -68,6 +68,15 @@ class APIService {
     return response.data;
   }
 
+  async updateAircraft(aircraftId, tailNumber, icao24, friendlyName = null) {
+    const response = await this.client.put(`/api/aircraft/${aircraftId}`, {
+      tail_number: tailNumber,
+      icao24: icao24,
+      friendly_name: friendlyName
+    });
+    return response.data;
+  }
+
   async deleteAircraft(aircraftId) {
     const response = await this.client.delete(`/api/aircraft/${aircraftId}`);
     return response.data;

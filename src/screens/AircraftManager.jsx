@@ -168,9 +168,8 @@ export default function AircraftManager() {
     setSaving(true);
     try {
       if (editingId) {
-        // Edit: delete old and re-add (API pattern)
-        await APIService.deleteAircraft(editingId);
-        await APIService.addAircraft(
+        await APIService.updateAircraft(
+          editingId,
           form.tail_number.toUpperCase(),
           form.icao24.trim().toLowerCase() || null,
           form.friendly_name.trim() || null,
