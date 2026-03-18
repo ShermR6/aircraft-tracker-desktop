@@ -249,7 +249,7 @@ export default function AccountDashboard() {
           <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1f2937' }}>
             <button
               onClick={handleBillingPortal}
-              disabled={billingLoading}
+              disabled={false}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '10px', borderRadius: '10px', border: '1px solid #3b82f630',
