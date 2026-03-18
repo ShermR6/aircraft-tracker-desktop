@@ -6,7 +6,7 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
-const CURRENT_VERSION = process.env.REACT_APP_VERSION || require('../../package.json').version;
+const CURRENT_VERSION = '1.0.3';
 
 function UpdateBanner({ latestVersion, onDismiss }) {
   return (
@@ -83,8 +83,13 @@ function App() {
   const checkForUpdates = async () => {
     try {
       const data = await APIService.getLatestVersion();
-      if (data?.latest_version && data.latest_version !== CURRENT_VERSION) {
-        setUpdateAvailable(data.latest_version);
+      if (data?.latest_version) {
+        const latest = data.latest_version.split('.').map(Number);
+        const current = CURRENT_VERSION.split('.').map(Number);
+        const isNewer = latest[0] > current[0] ||
+          (latest[0] === current[0] && latest[1] > current[1]) ||
+          (latest[0] === current[0] && latest[1] === current[1] && latest[2] > current[2]);
+        if (isNewer) setUpdateAvailable(data.latest_version);
       }
     } catch (err) {
       // Silently fail — don't block the app if version check fails

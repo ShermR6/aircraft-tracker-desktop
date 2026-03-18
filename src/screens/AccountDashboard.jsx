@@ -65,7 +65,6 @@ export default function AccountDashboard() {
   const [expiresAt, setExpiresAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [billingLoading, setBillingLoading] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -78,6 +77,14 @@ export default function AccountDashboard() {
       ]);
       setUser(userData);
       setAircraft(aircraftData || []);
+
+      // Set expiry from API response (most up to date)
+      if (userData?.expires_at) setExpiresAt(new Date(userData.expires_at));
+      else {
+        // Fallback to local storage
+        const stored = await StorageService.getUserData();
+        if (stored?.expires_at) setExpiresAt(new Date(stored.expires_at));
+      }
 
       // Fetch live status (non-critical)
       try {
@@ -97,9 +104,7 @@ export default function AccountDashboard() {
         // Silently skip if endpoints not available yet
       }
 
-      // Load expiry from local storage
-      const stored = await StorageService.getUserData();
-      if (stored?.expires_at) setExpiresAt(new Date(stored.expires_at));
+
 
     } catch (err) {
       console.error('Failed to load dashboard:', err);
@@ -110,18 +115,7 @@ export default function AccountDashboard() {
   };
 
   const handleBillingPortal = async () => {
-    setBillingLoading(true);
-    try {
-      const data = await APIService.client.post('/api/billing/portal');
-      if (data.data?.url) {
-        window.electronAPI?.openExternal(data.data.url);
-      }
-    } catch (err) {
-      const msg = err.response?.data?.detail || 'Could not open billing portal.';
-      alert(msg);
-    } finally {
-      setBillingLoading(false);
-    }
+    window.electronAPI?.openExternal('https://finalpingapp.com/dashboard');
   };
 
   if (loading) return <div style={s.loading}>Loading your dashboard...</div>;
@@ -244,7 +238,7 @@ export default function AccountDashboard() {
           </div>
           <div style={s.row}>
             <span style={s.rowLabel}>License</span>
-            <span style={{ ...s.rowValue, color }}>{user?.license_tier || '—'}</span>
+            <span style={{ ...s.rowValue, color }}>{user?.license_tier ? user.license_tier.charAt(0).toUpperCase() + user.license_tier.slice(1) : '—'}</span>
           </div>
           <div style={s.rowLast}>
             <span style={s.rowLabel}><Clock size={13} />Expires</span>
@@ -255,18 +249,18 @@ export default function AccountDashboard() {
           <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1f2937' }}>
             <button
               onClick={handleBillingPortal}
-              disabled={billingLoading}
+              disabled={false}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '10px', borderRadius: '10px', border: '1px solid #3b82f630',
                 background: '#3b82f610', color: '#60a5fa', fontSize: '13px', fontWeight: '600',
-                cursor: billingLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s',
+                cursor: 'pointer', transition: 'background 0.2s',
               }}
-              onMouseEnter={e => !billingLoading && (e.currentTarget.style.background = '#3b82f620')}
+              onMouseEnter={e => (e.currentTarget.style.background = '#3b82f620')}
               onMouseLeave={e => (e.currentTarget.style.background = '#3b82f610')}
             >
               <CreditCard size={14} />
-              {billingLoading ? 'Opening...' : 'Manage Subscription'}
+              Manage Subscription
               <ExternalLink size={12} color="#4b5563" />
             </button>
           </div>
