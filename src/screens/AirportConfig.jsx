@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Save, Loader } from 'lucide-react';
 import APIService from '../services/api';
+import StorageService from '../services/storage';
 
 const s = {
   page: { maxWidth: '860px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
@@ -49,9 +50,22 @@ export default function AirportConfig() {
   const loadConfig = async () => {
     try {
       const data = await APIService.getAirportConfig();
-      if (data) setConfig(data);
+      if (data) {
+        // Map backend field names to frontend field names
+        const mapped = {
+          ...data,
+          detection_radius_nm: data.query_radius_nm || data.detection_radius_nm || '',
+        };
+        // Load polling interval from local storage since backend doesn't store it
+        const stored = await StorageService.get('polling_interval_seconds');
+        mapped.polling_interval_seconds = stored || '';
+        setConfig(mapped);
+      }
     } catch (error) {
       console.log('No existing config, using defaults');
+      // Still try to load polling interval
+      const stored = await StorageService.get('polling_interval_seconds');
+      if (stored) setConfig(prev => ({ ...prev, polling_interval_seconds: stored }));
     } finally {
       setLoading(false);
     }
@@ -63,6 +77,10 @@ export default function AirportConfig() {
     setMessage({ type: '', text: '' });
     try {
       await APIService.updateAirportConfig(config);
+      // Save polling interval to local storage since backend doesn't store it
+      if (config.polling_interval_seconds) {
+        await StorageService.set('polling_interval_seconds', config.polling_interval_seconds);
+      }
       setMessage({ type: 'success', text: 'Configuration saved successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to save configuration' });
