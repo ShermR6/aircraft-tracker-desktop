@@ -6,7 +6,7 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
-const CURRENT_VERSION = process.env.REACT_APP_VERSION || require('../../package.json').version;
+const CURRENT_VERSION = '1.0.3';
 
 function UpdateBanner({ latestVersion, onDismiss }) {
   return (
