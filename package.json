@@ -24,7 +24,7 @@
     ],
     "directories": {
       "buildResources": "assets",
-      "output": "dist"
+      "output": "C:\\Users\\Sherman\\Desktop\\FinalPing-Builds"
     },
     "extraMetadata": {
       "main": "build/electron.js"
