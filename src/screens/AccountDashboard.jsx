@@ -238,7 +238,7 @@ export default function AccountDashboard() {
           </div>
           <div style={s.row}>
             <span style={s.rowLabel}>License</span>
-            <span style={{ ...s.rowValue, color }}>{user?.license_tier || '—'}</span>
+            <span style={{ ...s.rowValue, color }}>{user?.license_tier ? user.license_tier.charAt(0).toUpperCase() + user.license_tier.slice(1) : '—'}</span>
           </div>
           <div style={s.rowLast}>
             <span style={s.rowLabel}><Clock size={13} />Expires</span>
