@@ -64,9 +64,10 @@ export default function LiveMap() {
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 18,
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19,
     }).addTo(map);
 
     mapRef.current = map;
@@ -314,7 +315,7 @@ export default function LiveMap() {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
         .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { filter: brightness(0.55) saturate(0.6) hue-rotate(190deg); }
+        .leaflet-tile { }
         .leaflet-control-zoom a { background: #1e2538 !important; color: #9ca3af !important; border-color: #2d3748 !important; }
         .leaflet-control-zoom a:hover { background: #2d3748 !important; color: #f9fafb !important; }
         .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: #4b5563 !important; font-size: 10px !important; }
