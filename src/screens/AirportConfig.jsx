@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Save, Loader } from 'lucide-react';
 import APIService from '../services/api';
 
@@ -43,6 +43,32 @@ export default function AirportConfig() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const elevationTimerRef = useRef(null);
+
+  // Auto-fetch elevation when lat/lon changes
+  useEffect(() => {
+    const lat = parseFloat(config.latitude);
+    const lon = parseFloat(config.longitude);
+    if (!lat || !lon || isNaN(lat) || isNaN(lon)) return;
+
+    // Debounce — wait 1 second after user stops typing
+    if (elevationTimerRef.current) clearTimeout(elevationTimerRef.current);
+    elevationTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`);
+        const data = await res.json();
+        const elevationM = data?.results?.[0]?.elevation;
+        if (elevationM != null) {
+          const elevationFt = Math.round(elevationM * 3.28084);
+          setConfig(prev => ({ ...prev, elevation_ft_msl: elevationFt }));
+        }
+      } catch {
+        // Silently fail — elevation lookup is best-effort
+      }
+    }, 1000);
+
+    return () => clearTimeout(elevationTimerRef.current);
+  }, [config.latitude, config.longitude]);
 
   useEffect(() => { loadConfig(); }, []);
 
