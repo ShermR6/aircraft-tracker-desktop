@@ -64,10 +64,9 @@ export default function LiveMap() {
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap contributors © CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19,
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18,
     }).addTo(map);
 
     mapRef.current = map;
@@ -169,7 +168,7 @@ export default function LiveMap() {
             <div style="display:flex;flex-direction:column;gap:4px;">
               <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Status</span><span style="color:#e5e7eb;font-weight:600;">${status.replace('_', ' ')}</span></div>
               <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Distance</span><span style="color:#e5e7eb;font-weight:600;">${ac.distance_nm?.toFixed(1) || '—'} nm</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Altitude</span><span style="color:#e5e7eb;font-weight:600;">${ac.altitude_ft_agl != null ? Math.round(ac.altitude_ft_agl) + ' ft AGL' : '—'}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Altitude</span><span style="color:#e5e7eb;font-weight:600;">${ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft MSL' : '—'}</span></div>
               <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Speed</span><span style="color:#e5e7eb;font-weight:600;">${ac.velocity_kts != null ? Math.round(ac.velocity_kts) + ' kts' : '—'}</span></div>
             </div>
           </div>`;
@@ -302,7 +301,7 @@ export default function LiveMap() {
                   </div>
                   <div style={{ fontSize: '11px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span>{ac.distance_nm?.toFixed(1) || '—'} nm away</span>
-                    <span>{ac.altitude_ft_agl != null ? Math.round(ac.altitude_ft_agl) + ' ft AGL' : 'On ground'}</span>
+                    <span>{ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft MSL' : 'On Ground'}</span>
                   </div>
                 </div>
               );
@@ -315,7 +314,7 @@ export default function LiveMap() {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
         .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { }
+        .leaflet-tile { filter: brightness(0.55) saturate(0.6) hue-rotate(190deg); }
         .leaflet-control-zoom a { background: #1e2538 !important; color: #9ca3af !important; border-color: #2d3748 !important; }
         .leaflet-control-zoom a:hover { background: #2d3748 !important; color: #f9fafb !important; }
         .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: #4b5563 !important; font-size: 10px !important; }
