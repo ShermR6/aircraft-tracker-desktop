@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, RefreshCw, ChevronLeft, ChevronRight, Filter, CheckCircle, XCircle, Plane } from 'lucide-react';
+import { Bell, RefreshCw, ChevronLeft, ChevronRight, Filter, CheckCircle, XCircle, Plane, Download } from 'lucide-react';
 import APIService from '../services/api';
 
 const s = {
@@ -131,6 +131,42 @@ export default function Logs() {
     setPage(1);
   };
 
+  const downloadLogs = async () => {
+    try {
+      // Fetch all logs without pagination for export
+      const params = new URLSearchParams({ page: 1, limit: 10000 });
+      if (filters.aircraft) params.append('aircraft', filters.aircraft);
+      if (filters.alert_type) params.append('alert_type', filters.alert_type);
+      if (filters.integration) params.append('integration', filters.integration);
+      const data = await APIService.client.get(`/api/notifications/logs?${params}`);
+      const allLogs = data.data.logs || [];
+
+      const lines = [
+        'Aircraft,Alert Type,Channel,Message,Status,Time',
+        ...allLogs.map(log =>
+          [
+            log.aircraft_tail,
+            log.alert_type,
+            log.integration_type,
+            `"${log.message.replace(/"/g, '""')}"`,
+            log.status,
+            new Date(log.sent_at).toLocaleString(),
+          ].join(',')
+        )
+      ];
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `finalpingapp-alert-logs-${new Date().toISOString().slice(0, 10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download logs:', err);
+    }
+  };
+
   return (
     <div style={s.page}>
       {/* Header */}
@@ -139,12 +175,19 @@ export default function Logs() {
           <h2 style={s.title}>Alert Logs</h2>
           <p style={s.sub}>Full history of every notification sent · {total} total</p>
         </div>
-        <button style={s.refreshBtn} onClick={() => loadLogs(page, filters, true)}
-          onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
-          <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-          Refresh
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button style={s.refreshBtn} onClick={downloadLogs}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
+            <Download size={12} /> Export .txt
+          </button>
+          <button style={s.refreshBtn} onClick={() => loadLogs(page, filters, true)}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
+            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
