@@ -9,6 +9,8 @@ const INTEGRATION_TYPES = [
   { type: 'slack', name: 'Slack', color: '#4a154b', placeholder: 'https://hooks.slack.com/services/...', icon: '📱', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
   { type: 'teams', name: 'Microsoft Teams', color: '#6264a7', placeholder: 'https://outlook.office.com/webhook/...', icon: '👥', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
   { type: 'email', name: 'Email', color: '#0ea5e9', placeholder: 'you@example.com', icon: '✉️', field: 'to_email', label: 'Recipient Email', inputType: 'email' },
+  { type: 'sms', name: 'SMS', color: '#10b981', placeholder: '+11234567890', icon: '📲', field: 'to_phone', label: 'Phone Number', inputType: 'tel' },
+  { type: 'whatsapp', name: 'WhatsApp', color: '#25d366', placeholder: '+11234567890', icon: '🟢', field: 'to_phone', label: 'Phone Number', inputType: 'tel' },
 ];
 
 const s = {
@@ -17,7 +19,7 @@ const s = {
   headerIcon: { width: '48px', height: '48px', background: '#3b82f620', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   headerTitle: { fontSize: '26px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' },
   headerSub: { fontSize: '13px', color: '#9ca3af', margin: 0 },
-  addGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px', marginBottom: '24px' },
+  addGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '24px' },
   addCard: (disabled) => ({
     padding: '20px', borderRadius: '12px', border: `2px dashed ${disabled ? '#2d3748' : '#374151'}`,
     background: disabled ? '#1a2030' : 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
@@ -105,7 +107,9 @@ export default function Integrations() {
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       return;
     }
-    const emptyConfig = type === 'email' ? { to_email: '' } : { webhook_url: '' };
+    const emptyConfig = type === 'email' ? { to_email: '' } : 
+                        (type === 'sms' || type === 'whatsapp') ? { to_phone: '' } : 
+                        { webhook_url: '' };
     setIntegrations(prev => [...prev, { id: `temp-${Date.now()}`, type, config: emptyConfig, enabled: true, isNew: true }]);
   };
 
@@ -221,7 +225,10 @@ export default function Integrations() {
           const t = INTEGRATION_TYPES.find(t => t.type === integration.type);
           const testResult = testResults[integration.id];
           const isEmailType = integration.type === 'email';
-          const fieldValue = isEmailType ? integration.config.to_email : integration.config.webhook_url;
+          const isPhoneType = integration.type === 'sms' || integration.type === 'whatsapp';
+          const fieldValue = isEmailType ? integration.config.to_email : 
+                             isPhoneType ? integration.config.to_phone :
+                             integration.config.webhook_url;
           const isTestDisabled = testing === integration.id || integration.isNew || !fieldValue;
 
           return (
@@ -231,7 +238,7 @@ export default function Integrations() {
                   <div style={s.typeIcon(t.color)}>{t.icon}</div>
                   <div>
                     <p style={s.typeName}>{t.name}</p>
-                    <p style={s.typeDesc}>{isEmailType ? 'Send alert emails to an inbox' : `Send notifications to a ${t.name} channel`}</p>
+                    <p style={s.typeDesc}>{isEmailType ? 'Send alert emails to an inbox' : isPhoneType ? `Send alerts via ${t.name}` : `Send notifications to a ${t.name} channel`}</p>
                   </div>
                 </div>
                 <div style={s.cardTopRight}>
@@ -246,12 +253,14 @@ export default function Integrations() {
 
               <label style={s.label}>{t.label}</label>
               <input
-                style={{ ...s.input, fontFamily: isEmailType ? "'Segoe UI', sans-serif" : 'monospace' }}
+                style={{ ...s.input, fontFamily: (isEmailType || isPhoneType) ? "'Segoe UI', sans-serif" : 'monospace' }}
                 type={t.inputType}
                 value={fieldValue}
                 placeholder={t.placeholder}
                 onChange={e => isEmailType
                   ? handleUpdateEmail(integration.id, e.target.value)
+                  : isPhoneType
+                  ? setIntegrations(prev => prev.map(i => i.id === integration.id ? { ...i, config: { ...i.config, to_phone: e.target.value } } : i))
                   : handleUpdateWebhook(integration.id, e.target.value)}
                 onFocus={e => e.target.style.borderColor = '#3b82f6'}
                 onBlur={e => e.target.style.borderColor = '#374151'}
@@ -278,7 +287,8 @@ export default function Integrations() {
         <strong>Discord:</strong> Server Settings → Integrations → Webhooks → New Webhook<br />
         <strong>Slack:</strong> App Directory → Incoming Webhooks → Add to Slack<br />
         <strong>Teams:</strong> Channel → Connectors → Incoming Webhook → Configure<br />
-        <strong>Email:</strong> Enter any email address — alerts will be sent from noreply@finalpingapp.com
+        <strong>Email:</strong> Enter any email address — alerts will be sent from noreply@finalpingapp.com<br />
+        <strong>SMS & WhatsApp:</strong> Enter your phone number with country code (e.g. +11234567890) — powered by Twilio
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

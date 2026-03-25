@@ -358,8 +358,11 @@ export default function ActivationScreen({ onSuccess }) {
         <div style={s.leftGlow2} />
 
         <div style={s.logoRow}>
-          <div style={s.logoIcon}><Plane size={24} color="#fff" /></div>
-          <p style={s.logoText}>FinalPing</p>
+          <div>
+            <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#6b7280', lineHeight: 1, marginBottom: '2px' }}>Aircraft Alerts</div>
+            <div style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f9fafb', lineHeight: 1.1 }}>FinalPing</div>
+            <div style={{ width: '40px', height: '2px', background: 'linear-gradient(90deg, #0ea5e9, transparent)', borderRadius: '999px', marginTop: '4px' }} />
+          </div>
         </div>
 
         <h1 style={s.heroTitle}>
@@ -402,7 +405,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.0 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingApp.com</a></p>
+          <p style={s.leftFooterText}>v1.0.3 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingApp.com</a></p>
         </div>
       </div>
 

@@ -11,7 +11,7 @@
     "build": "react-scripts build",
     "copy:electron": "node -e \"const fs=require('fs'); fs.copyFileSync('src/main/main.js','build/electron.js'); fs.copyFileSync('src/main/preload.js','build/preload.js'); fs.copyFileSync('src/main/tracker_bridge.js','build/tracker_bridge.js'); console.log('✅ Electron files copied')\"",
     "build:electron": "electron-builder",
-    "build:tracker": "python build_tracker.py",
+    "build:tracker": "python3 build_tracker.py || python build_tracker.py",
     "package": "npm run build && npm run copy:electron && npm run build:tracker && npm run build:electron"
   },
   "build": {
