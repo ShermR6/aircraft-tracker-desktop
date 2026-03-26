@@ -141,25 +141,25 @@ export default function Logs() {
       const data = await APIService.client.get(`/api/notifications/logs?${params}`);
       const allLogs = data.data.logs || [];
 
-      const lines = [
-        'Aircraft,Alert Type,Channel,Message,Status,Time',
-        ...allLogs.map(log =>
-          [
-            log.aircraft_tail,
-            log.alert_type,
-            log.integration_type,
-            `"${log.message.replace(/"/g, '""')}"`,
-            log.status,
-            new Date(log.sent_at).toLocaleString(),
-          ].join(',')
-        )
-      ];
+      const formatTime = (iso) => new Date(iso).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+      });
 
-      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const header = 'FinalPing Alert History Export\n' +
+        `Exported: ${new Date().toLocaleString()}\n` +
+        `Total Alerts: ${allLogs.length}\n` +
+        '='.repeat(80) + '\n\n';
+
+      const rows = allLogs.map(log =>
+        `[${formatTime(log.sent_at)}] ${log.aircraft_tail} — ${log.alert_type} — ${log.integration_type} — ${log.status}\n  ${log.message}`
+      ).join('\n\n');
+
+      const blob = new Blob([header + rows], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `finalpingapp-alert-logs-${new Date().toISOString().slice(0, 10)}.txt`;
+      a.download = `finalping-alerts-${new Date().toISOString().slice(0, 10)}.txt`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
