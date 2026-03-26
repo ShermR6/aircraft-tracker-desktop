@@ -79,11 +79,13 @@ export default function AccountDashboard() {
       setAircraft(aircraftData || []);
 
       // Set expiry from API response (most up to date)
-      if (userData?.expires_at) setExpiresAt(new Date(userData.expires_at));
+      const expiryValue = userData?.expires_at || userData?.expiry_date || userData?.license_expires_at || userData?.expiry;
+      if (expiryValue) setExpiresAt(new Date(expiryValue));
       else {
         // Fallback to local storage
         const stored = await StorageService.getUserData();
-        if (stored?.expires_at) setExpiresAt(new Date(stored.expires_at));
+        const storedExpiry = stored?.expires_at || stored?.expiry_date || stored?.license_expires_at;
+        if (storedExpiry) setExpiresAt(new Date(storedExpiry));
       }
 
       // Fetch live status (non-critical)
@@ -178,7 +180,7 @@ export default function AccountDashboard() {
         <div style={s.cardAccent(color)}>
           <div style={s.cardTop}>
             <div style={s.iconBox(color)}><Shield size={20} color={color} /></div>
-            <span style={s.badge(color)}>{user?.license_tier || 'unknown'}</span>
+            <span style={s.badge(color)}>{user?.license_tier ? user.license_tier.charAt(0).toUpperCase() + user.license_tier.slice(1) : 'Unknown'}</span>
           </div>
           <p style={s.cardLabel}>License Tier</p>
           <p style={{ ...s.cardValue, color }}>
