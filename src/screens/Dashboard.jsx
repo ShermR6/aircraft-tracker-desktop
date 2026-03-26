@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, Layers } from 'lucide-react';
 import StorageService from '../services/storage';
+import api from '../services/api';
+
+const CURRENT_VERSION = '1.0.3';
 import AirportConfig from './AirportConfig';
 import AlertSettings from './AlertSettings';
 import Integrations from './Integrations';
@@ -110,6 +113,20 @@ const s = {
     background: 'radial-gradient(ellipse 100% 50% at 50% -10%, #0d1f2d 0%, #0b0b0b 60%)',
   },
   content: { padding: '32px', maxWidth: '960px' },
+  updateBanner: {
+    position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+    background: 'linear-gradient(90deg, #0ea5e9, #0284c7)',
+    padding: '10px 20px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+  },
+  updateBannerText: {
+    color: '#fff', fontSize: '13px', fontWeight: '600',
+  },
+  updateBannerBtn: {
+    background: '#fff', color: '#0284c7',
+    padding: '4px 12px', borderRadius: '6px',
+    fontSize: '12px', fontWeight: '700', textDecoration: 'none',
+  },
 };
 
 function DashboardHome() {
@@ -124,9 +141,26 @@ function DashboardHome() {
 export default function Dashboard({ onLogout }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [latestVersion, setLatestVersion] = useState(null);
   const location = useLocation();
 
   useEffect(() => { loadUserData(); }, []);
+
+  useEffect(() => {
+    const checkForUpdate = async () => {
+      try {
+        const data = await api.getLatestVersion();
+        if (data.latest_version && data.latest_version !== CURRENT_VERSION) {
+          setLatestVersion(data.latest_version);
+          setUpdateAvailable(true);
+        }
+      } catch (err) {
+        console.error('Version check failed:', err);
+      }
+    };
+    checkForUpdate();
+  }, []);
 
   const loadUserData = async () => {
     try {
@@ -157,7 +191,22 @@ export default function Dashboard({ onLogout }) {
   const path = location.pathname;
 
   return (
-    <div style={s.shell}>
+    <div style={{ ...s.shell, paddingTop: updateAvailable ? '40px' : '0' }}>
+      {updateAvailable && (
+        <div style={s.updateBanner}>
+          <span style={s.updateBannerText}>
+            ⬆ FinalPing {latestVersion} is available — you're on {CURRENT_VERSION}
+          </span>
+          <a
+            href="https://finalpingapp.com/download"
+            target="_blank"
+            rel="noreferrer"
+            style={s.updateBannerBtn}
+          >
+            Download Update
+          </a>
+        </div>
+      )}
       <div style={s.sidebar}>
         <div style={s.sidebarGlow} />
 
