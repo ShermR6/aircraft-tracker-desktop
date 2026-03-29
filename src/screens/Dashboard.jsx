@@ -201,6 +201,9 @@ export default function Dashboard({ onLogout }) {
           >
             <LogOut size={14} /> Logout
           </button>
+          <div style={{ fontSize: '10px', color: '#374151', textAlign: 'center', marginTop: '8px', letterSpacing: '0.05em' }}>
+            v1.0.4
+          </div>
         </div>
       </div>
 
