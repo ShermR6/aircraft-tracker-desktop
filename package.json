@@ -1,6 +1,6 @@
 {
   "name": "finalpingapp",
-  "version": "1.0.6",
+  "version": "1.0.4",
   "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "main": "src/main/main.js",
@@ -24,7 +24,7 @@
     ],
     "directories": {
       "buildResources": "assets",
-      "output": "../../FinalPing-Builds"
+      "output": "../FinalPing-Builds"
     },
     "extraMetadata": {
       "main": "build/electron.js"
