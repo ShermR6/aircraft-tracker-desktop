@@ -26,8 +26,6 @@ autoUpdater.on('error', (err) => {
   console.error('Auto-updater error:', err.message);
 });
 
-const store = new Store();
-
 let mainWindow;
 
 function createWindow() {
