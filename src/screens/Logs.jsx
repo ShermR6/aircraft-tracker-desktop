@@ -81,12 +81,13 @@ function LocalTime({ iso }) {
   const [formatted, setFormatted] = React.useState('—');
   React.useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const utcIso = iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z';
     try {
       setFormatted(new Intl.DateTimeFormat('en-US', {
         month: 'short', day: 'numeric',
         hour: 'numeric', minute: '2-digit', hour12: true,
         timeZone: tz,
-      }).format(new Date(iso)));
+      }).format(new Date(utcIso)));
     } catch {
       setFormatted(iso);
     }
