@@ -132,22 +132,23 @@ function createWindow() {
     e.preventDefault();
     dialog.showMessageBox(mainWindow, {
       type: 'question',
-      buttons: ['Minimize to Tray', 'Close'],
+      buttons: ['Minimize to Tray', 'Exit', 'Cancel'],
       defaultId: 0,
-      cancelId: 1,
-      title: 'Close FinalPing?',
-      message: 'Close FinalPing?',
+      cancelId: 2,
+      title: 'Exit FinalPing?',
+      message: 'Exit FinalPing?',
       detail: 'Your cloud tracker will continue running and sending alerts even after closing. Minimize to tray to keep the app accessible from the taskbar.',
     }).then(({ response }) => {
       if (response === 0) {
         // Minimize to tray
         mainWindow.hide();
-      } else {
+      } else if (response === 1) {
         // Exit
         forceQuit = true;
         tracker.stopTracker();
         app.quit();
       }
+      // response === 2 (Cancel) or X clicked — do nothing, return to app
     });
   });
 
