@@ -132,12 +132,12 @@ function createWindow() {
     e.preventDefault();
     dialog.showMessageBox(mainWindow, {
       type: 'question',
-      buttons: ['Minimize to Tray', 'Exit'],
+      buttons: ['Minimize to Tray', 'Close'],
       defaultId: 0,
       cancelId: 1,
-      title: 'FinalPing',
-      message: 'What would you like to do?',
-      detail: 'Minimizing to tray keeps the cloud tracker running in the background.',
+      title: 'Close FinalPing?',
+      message: 'Close FinalPing?',
+      detail: 'Your cloud tracker will continue running and sending alerts even after closing. Minimize to tray to keep the app accessible from the taskbar.',
     }).then(({ response }) => {
       if (response === 0) {
         // Minimize to tray
