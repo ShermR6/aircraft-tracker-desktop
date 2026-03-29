@@ -120,6 +120,8 @@ ipcMain.handle('update-restart', () => {
   autoUpdater.quitAndInstall();
 });
 
+ipcMain.handle('get-app-version', () => app.getVersion());
+
 // ─── Tracker IPC ──────────────────────────────────────────────────────────────
 ipcMain.handle('tracker-start', async (event, token) => {
   return tracker.startTracker(token);
