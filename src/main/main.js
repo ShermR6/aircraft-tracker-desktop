@@ -2,6 +2,29 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
+const { autoUpdater } = require('electron-updater');
+
+const store = new Store();
+
+// ─── Auto-updater config ──────────────────────────────────────────────────────
+autoUpdater.autoDownload = true;        // download silently in background
+autoUpdater.autoInstallOnAppQuit = true; // install when app quits normally
+
+autoUpdater.on('update-available', (info) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-available', info.version);
+  }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-downloaded', info.version);
+  }
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Auto-updater error:', err.message);
+});
 
 const store = new Store();
 
@@ -59,6 +82,10 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
+    // Check for updates after app loads (only in packaged build)
+    if (app.isPackaged) {
+      setTimeout(() => autoUpdater.checkForUpdates(), 3000);
+    }
   });
 
   // Push tracker status updates to the renderer
@@ -89,6 +116,11 @@ ipcMain.handle('store-clear', () => { store.clear(); return true; });
 
 // ─── External URLs ─────────────────────────────────────────────────────────────
 ipcMain.handle('open-external', (event, url) => shell.openExternal(url));
+
+// ─── Auto-updater IPC ─────────────────────────────────────────────────────────
+ipcMain.handle('update-restart', () => {
+  autoUpdater.quitAndInstall();
+});
 
 // ─── Tracker IPC ──────────────────────────────────────────────────────────────
 ipcMain.handle('tracker-start', async (event, token) => {
