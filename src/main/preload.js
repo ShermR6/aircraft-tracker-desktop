@@ -22,4 +22,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   offTrackerStatus: () => {
     ipcRenderer.removeAllListeners('tracker-status');
   },
+
+  // Auto-updater
+  onUpdateAvailable: (callback) => {
+    ipcRenderer.on('update-available', (event, version) => callback(version));
+  },
+  onUpdateDownloaded: (callback) => {
+    ipcRenderer.on('update-downloaded', (event, version) => callback(version));
+  },
+  restartAndInstall: () => ipcRenderer.invoke('update-restart'),
 });

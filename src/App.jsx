@@ -6,57 +6,42 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
-const CURRENT_VERSION = '1.0.4';
-
-function UpdateBanner({ latestVersion, onDismiss }) {
+function UpdateBanner({ version, downloaded, onDismiss }) {
   return (
     <div style={{
       position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
+      top: 0, left: 0, right: 0,
       zIndex: 9999,
       background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
       padding: '10px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 16,
-      fontSize: 13,
-      fontWeight: 600,
-      color: '#fff',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      gap: 16, fontSize: 13, fontWeight: 600, color: '#fff',
       boxShadow: '0 2px 12px rgba(59,130,246,0.3)',
     }}>
       <span>
-        🚀 A new version of FinalPing is available (v{latestVersion}). You're on v{CURRENT_VERSION}.
+        {downloaded
+          ? `✅ FinalPing v${version} is ready to install.`
+          : `⬇ Downloading FinalPing v${version}...`}
       </span>
-      <button
-        onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/download')}
-        style={{
-          padding: '5px 14px',
-          borderRadius: 999,
-          background: '#fff',
-          color: '#3b82f6',
-          fontWeight: 700,
-          fontSize: 12,
-          border: 'none',
-          cursor: 'pointer',
-          flexShrink: 0,
-        }}
-      >
-        Download Update
-      </button>
+      {downloaded && (
+        <button
+          onClick={() => window.electronAPI?.restartAndInstall()}
+          style={{
+            padding: '5px 14px', borderRadius: 999,
+            background: '#fff', color: '#3b82f6',
+            fontWeight: 700, fontSize: 12, border: 'none',
+            cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          Restart & Install
+        </button>
+      )}
       <button
         onClick={onDismiss}
         style={{
-          background: 'none',
-          border: 'none',
-          color: 'rgba(255,255,255,0.7)',
-          fontSize: 18,
-          cursor: 'pointer',
-          padding: '0 4px',
-          lineHeight: 1,
-          flexShrink: 0,
+          background: 'none', border: 'none',
+          color: 'rgba(255,255,255,0.7)', fontSize: 18,
+          cursor: 'pointer', padding: '0 4px', lineHeight: 1, flexShrink: 0,
         }}
         title="Dismiss"
       >
@@ -69,7 +54,8 @@ function UpdateBanner({ latestVersion, onDismiss }) {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [updateAvailable, setUpdateAvailable] = useState(null);
+  const [updateVersion, setUpdateVersion] = useState(null);
+  const [updateDownloaded, setUpdateDownloaded] = useState(false);
 
   useEffect(() => {
     checkAuth().catch((err) => {
@@ -77,25 +63,16 @@ function App() {
       setLoading(false);
     });
 
-    checkForUpdates();
+    // Listen for auto-updater events from main process
+    window.electronAPI?.onUpdateAvailable((version) => {
+      setUpdateVersion(version);
+      setUpdateDownloaded(false);
+    });
+    window.electronAPI?.onUpdateDownloaded((version) => {
+      setUpdateVersion(version);
+      setUpdateDownloaded(true);
+    });
   }, []);
-
-  const checkForUpdates = async () => {
-    try {
-      const data = await APIService.getLatestVersion();
-      if (data?.latest_version) {
-        const latest = data.latest_version.split('.').map(Number);
-        const current = CURRENT_VERSION.split('.').map(Number);
-        const isNewer = latest[0] > current[0] ||
-          (latest[0] === current[0] && latest[1] > current[1]) ||
-          (latest[0] === current[0] && latest[1] === current[1] && latest[2] > current[2]);
-        if (isNewer) setUpdateAvailable(data.latest_version);
-      }
-    } catch (err) {
-      // Silently fail — don't block the app if version check fails
-      console.log('Version check skipped:', err.message);
-    }
-  };
 
   const checkAuth = async () => {
     try {
@@ -141,10 +118,11 @@ function App() {
 
   return (
     <Router>
-      {updateAvailable && (
+      {updateVersion && (
         <UpdateBanner
-          latestVersion={updateAvailable}
-          onDismiss={() => setUpdateAvailable(null)}
+          version={updateVersion}
+          downloaded={updateDownloaded}
+          onDismiss={() => setUpdateVersion(null)}
         />
       )}
       <Routes>
