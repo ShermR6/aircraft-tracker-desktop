@@ -66,9 +66,32 @@ function alertTypeLabel(type) {
 }
 
 function formatTime(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
-    ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+function LocalTime({ iso }) {
+  const [formatted, setFormatted] = React.useState('—');
+  React.useEffect(() => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    try {
+      setFormatted(new Intl.DateTimeFormat('en-US', {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true,
+        timeZone: tz,
+      }).format(new Date(iso)));
+    } catch {
+      setFormatted(iso);
+    }
+  }, [iso]);
+  return React.createElement(React.Fragment, null, formatted);
 }
 
 export default function Logs() {
@@ -295,7 +318,7 @@ export default function Logs() {
                     </span>
                   </td>
                   <td style={{ ...s.td, color: '#6b7280', fontSize: '12px', whiteSpace: 'nowrap' }}>
-                    {formatTime(log.sent_at)}
+                    <LocalTime iso={log.sent_at} />
                   </td>
                 </tr>
               ))}
