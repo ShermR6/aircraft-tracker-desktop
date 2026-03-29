@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog, nativeImage } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
@@ -6,9 +6,13 @@ const { autoUpdater } = require('electron-updater');
 
 const store = new Store();
 
+let mainWindow;
+let tray = null;
+let forceQuit = false;
+
 // ─── Auto-updater config ──────────────────────────────────────────────────────
-autoUpdater.autoDownload = true;        // download silently in background
-autoUpdater.autoInstallOnAppQuit = true; // install when app quits normally
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
 
 autoUpdater.on('update-available', (info) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -26,7 +30,58 @@ autoUpdater.on('error', (err) => {
   console.error('Auto-updater error:', err.message);
 });
 
-let mainWindow;
+// ─── Tray ─────────────────────────────────────────────────────────────────────
+function createTray() {
+  // Use the app icon — falls back to empty image if not found
+  let trayIcon;
+  try {
+    const iconPath = app.isPackaged
+      ? path.join(process.resourcesPath, 'app', 'build', 'favicon.ico')
+      : path.join(__dirname, '..', 'public', 'favicon.ico');
+    trayIcon = nativeImage.createFromPath(iconPath);
+    if (trayIcon.isEmpty()) trayIcon = nativeImage.createEmpty();
+  } catch {
+    trayIcon = nativeImage.createEmpty();
+  }
+
+  tray = new Tray(trayIcon);
+  tray.setToolTip('FinalPing — Aircraft Alerts');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show FinalPing',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        forceQuit = true;
+        tracker.stopTracker();
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  // Single click on tray icon restores window
+  tray.on('click', () => {
+    if (mainWindow) {
+      if (mainWindow.isVisible()) {
+        mainWindow.focus();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    }
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -71,16 +126,40 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
+  // Intercept close button — ask user what to do
+  mainWindow.on('close', (e) => {
+    if (forceQuit) return; // allow quit from tray menu or update restart
+    e.preventDefault();
+    dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['Minimize to Tray', 'Exit'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'FinalPing',
+      message: 'What would you like to do?',
+      detail: 'Minimizing to tray keeps the cloud tracker running in the background.',
+    }).then(({ response }) => {
+      if (response === 0) {
+        // Minimize to tray
+        mainWindow.hide();
+      } else {
+        // Exit
+        forceQuit = true;
+        tracker.stopTracker();
+        app.quit();
+      }
+    });
+  });
+
   mainWindow.on('closed', () => { mainWindow = null; });
 
-  // Fix Electron input focus bug - restore focus when window is clicked or focused
+  // Fix Electron input focus bug
   mainWindow.on('focus', () => {
     mainWindow.webContents.focus();
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
-    // Check for updates after app loads (only in packaged build)
     if (app.isPackaged) {
       setTimeout(() => autoUpdater.checkForUpdates(), 3000);
     }
@@ -95,15 +174,32 @@ function createWindow() {
 }
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
-app.on('ready', createWindow);
+app.on('ready', () => {
+  // Enable launch at startup
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    openAsHidden: true, // start minimized to tray on login
+  });
+
+  createWindow();
+  createTray();
+});
 
 app.on('window-all-closed', () => {
-  tracker.stopTracker(); // clean up process on quit
-  if (process.platform !== 'darwin') app.quit();
+  // Don't quit when all windows closed — keep running in tray
+  // Only quit if forceQuit is set
+  if (forceQuit) {
+    tracker.stopTracker();
+    if (process.platform !== 'darwin') app.quit();
+  }
 });
 
 app.on('activate', () => {
   if (mainWindow === null) createWindow();
+});
+
+app.on('before-quit', () => {
+  forceQuit = true;
 });
 
 // ─── Secure store IPC ─────────────────────────────────────────────────────────
@@ -117,6 +213,7 @@ ipcMain.handle('open-external', (event, url) => shell.openExternal(url));
 
 // ─── Auto-updater IPC ─────────────────────────────────────────────────────────
 ipcMain.handle('update-restart', () => {
+  forceQuit = true;
   autoUpdater.quitAndInstall();
 });
 
