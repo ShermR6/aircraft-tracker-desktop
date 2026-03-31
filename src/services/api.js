@@ -39,6 +39,15 @@ class APIService {
   }
 
   // Auth & License
+  async login(email, password) {
+    const response = await this.client.post('/api/auth/login', {
+      email: email,
+      password: password,
+    });
+    this.setToken(response.data.access_token);
+    return response.data;
+  }
+
   async activateLicense(licenseKey, email) {
     const response = await this.client.post('/api/activate', {
       license_key: licenseKey,
