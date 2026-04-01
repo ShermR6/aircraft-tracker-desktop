@@ -1,6 +1,6 @@
 {
   "name": "finalpingapp",
-  "version": "1.0.6",
+  "version": "1.0.4",
   "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "main": "src/main/main.js",
@@ -47,6 +47,9 @@
     "mac": {
       "target": "dmg",
       "category": "public.app-category.utilities"
+    },
+    "dmg": {
+      "artifactName": "FinalPingSetup.dmg"
     },
     "linux": {
       "target": ["AppImage", "deb"],
