@@ -49,7 +49,7 @@
       "category": "public.app-category.utilities"
     },
     "dmg": {
-      "artifactName": "FinalPingSetup.dmg"
+      "artifactName": "FinalPingSetup-v1.0.4M.dmg"
     },
     "linux": {
       "target": ["AppImage", "deb"],
