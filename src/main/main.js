@@ -13,6 +13,10 @@ let forceQuit = false;
 // ─── Auto-updater config ──────────────────────────────────────────────────────
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
+// Skip signature verification — app is not code signed
+if (process.platform === 'darwin') {
+  autoUpdater.verifyUpdateCodeSignature = false;
+}
 
 autoUpdater.on('update-available', (info) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
