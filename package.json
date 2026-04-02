@@ -1,6 +1,6 @@
 {
   "name": "finalpingapp",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "FinalPingTracker Desktop - Real-time aircraft tracking and notifications",
   "homepage": ".",
   "main": "src/main/main.js",
