@@ -75,7 +75,7 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-export default function Integrations() {
+export default function Integrations({ isViewOnly = false }) {
   const [integrations, setIntegrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(null);
@@ -272,22 +272,24 @@ export default function Integrations() {
         </div>
       )}
 
-      {/* Add buttons */}
-      <div style={s.addGrid}>
-        {INTEGRATION_TYPES.map(t => {
-          const alreadyAdded = hasIntegration(t.type);
-          const disabled = alreadyAdded || atLimit;
-          return (
-            <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
-              onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
-              onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
-              <div style={s.addIcon}>{atLimit && !alreadyAdded ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
-              <p style={s.addName}>{t.name}</p>
-              <p style={s.addStatus}>{alreadyAdded ? 'Already added' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
-            </div>
-          );
-        })}
-      </div>
+      {/* Add buttons — hidden for view-only */}
+      {!isViewOnly && (
+        <div style={s.addGrid}>
+          {INTEGRATION_TYPES.map(t => {
+            const alreadyAdded = hasIntegration(t.type);
+            const disabled = alreadyAdded || atLimit;
+            return (
+              <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
+                onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
+                onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
+                <div style={s.addIcon}>{atLimit && !alreadyAdded ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
+                <p style={s.addName}>{t.name}</p>
+                <p style={s.addStatus}>{alreadyAdded ? 'Already added' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Integration cards */}
       {integrations.length === 0 ? (
@@ -318,12 +320,16 @@ export default function Integrations() {
                   </div>
                 </div>
                 <div style={s.cardTopRight}>
-                  <Toggle checked={integration.enabled} onChange={v => handleUpdate(integration.id, 'enabled', v)} />
-                  <button style={s.deleteBtn} onClick={() => handleDelete(integration)}
-                    onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}>
-                    <Trash2 size={14} />
-                  </button>
+                  {!isViewOnly && (
+                    <>
+                      <Toggle checked={integration.enabled} onChange={v => handleUpdate(integration.id, 'enabled', v)} />
+                      <button style={s.deleteBtn} onClick={() => handleDelete(integration)}
+                        onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}>
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -342,15 +348,19 @@ export default function Integrations() {
                 onBlur={e => e.target.style.borderColor = '#374151'}
               />
 
-              <div style={s.btnRow}>
-                <button style={s.saveBtn} onClick={() => handleSave(integration)}>
-                  <Save size={14} /> Save
-                </button>
-                <button style={s.testBtn(isTestDisabled)} onClick={() => !isTestDisabled && handleTest(integration)} disabled={isTestDisabled}>
-                  {testing === integration.id ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Testing...</>
-                    : testResult === 'success' ? <><Check size={14} color="#34d399" /><span style={{ color: '#34d399' }}>Success!</span></>
-                    : testResult === 'error' ? <><X size={14} color="#f87171" /><span style={{ color: '#f87171' }}>Failed</span></>
-                    : <><Send size={14} />Test</>}
+              {!isViewOnly && (
+                <div style={s.btnRow}>
+                  <button style={s.saveBtn} onClick={() => handleSave(integration)}>
+                    <Save size={14} /> Save
+                  </button>
+                  <button style={s.testBtn(isTestDisabled)} onClick={() => !isTestDisabled && handleTest(integration)} disabled={isTestDisabled}>
+                    {testing === integration.id ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Testing...</>
+                      : testResult === 'success' ? <><Check size={14} color="#34d399" /><span style={{ color: '#34d399' }}>Success!</span></>
+                      : testResult === 'error' ? <><X size={14} color="#f87171" /><span style={{ color: '#f87171' }}>Failed</span></>
+                      : <><Send size={14} />Test</>}
+                  </button>
+                </div>
+              )}
                 </button>
               </div>
             </div>

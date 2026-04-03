@@ -63,7 +63,7 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-export default function AlertSettings() {
+export default function AlertSettings({ isViewOnly = false }) {
   const [alerts, setAlerts] = useState([
     { id: 1, distance: 10, enabled: true, message: '✈️ {tail_number} detected {distance}nm from {airport}' },
     { id: 2, distance: 5, enabled: true, message: '🛬 {tail_number} approaching - {distance}nm from {airport}' },
@@ -136,6 +136,7 @@ export default function AlertSettings() {
           </div>
         </div>
         <button style={s.addBtn} onClick={handleAddAlert}
+          hidden={isViewOnly}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
           <Plus size={15} /> Add Alert
@@ -159,7 +160,7 @@ export default function AlertSettings() {
                   <span style={s.nmLabel}>nm</span>
                 </div>
               </div>
-              {alerts.length > 1 && (
+              {alerts.length > 1 && !isViewOnly && (
                 <button style={s.deleteBtn} onClick={() => handleRemove(alert.id)}
                   onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
                   onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}>
@@ -205,9 +206,11 @@ export default function AlertSettings() {
 
       {message.text && <div style={s.alert(message.type)}>{message.text}</div>}
 
-      <button style={s.saveBtn(saving)} onClick={handleSave} disabled={saving}>
-        {saving ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</> : <><Save size={16} />Save Alert Settings</>}
-      </button>
+      {!isViewOnly && (
+        <button style={s.saveBtn(saving)} onClick={handleSave} disabled={saving}>
+          {saving ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</> : <><Save size={16} />Save Alert Settings</>}
+        </button>
+      )}
 
       <div style={s.infoBox}>
         <strong>💡 How variables work:</strong> Type {'{tail_number}'}, {'{airport}'}, {'{distance}'}, or {'{altitude}'} in your messages. The system automatically replaces them with real data when sending notifications.

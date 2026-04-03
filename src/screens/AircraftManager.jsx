@@ -105,7 +105,7 @@ const s = {
 
 const emptyForm = { tail_number: '', icao24: '', friendly_name: '' };
 
-export default function AircraftManager() {
+export default function AircraftManager({ isViewOnly = false }) {
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -232,7 +232,7 @@ export default function AircraftManager() {
             </span>
           </p>
         </div>
-        {!showForm && (
+        {!showForm && !isViewOnly && (
           <button
             style={{ ...s.addBtn, opacity: atLimit ? 0.5 : 1, cursor: atLimit ? 'not-allowed' : 'pointer' }}
             onClick={openAdd}
@@ -349,10 +349,12 @@ export default function AircraftManager() {
         <div style={s.emptyState}>
           <div style={s.emptyIcon}><Plane size={28} color="#4b5563" /></div>
           <p style={s.emptyTitle}>No aircraft yet</p>
-          <p style={s.emptyText}>Add your first aircraft to start receiving tracking alerts</p>
-          <button style={s.addBtn} onClick={openAdd}>
-            <Plus size={16} /> Add Your First Aircraft
-          </button>
+          <p style={s.emptyText}>{isViewOnly ? 'Purchase a license to start adding aircraft' : 'Add your first aircraft to start receiving tracking alerts'}</p>
+          {!isViewOnly && (
+            <button style={s.addBtn} onClick={openAdd}>
+              <Plus size={16} /> Add Your First Aircraft
+            </button>
+          )}
         </div>
       ) : (
         aircraft.map(a => (
@@ -369,22 +371,26 @@ export default function AircraftManager() {
             </div>
             <div style={s.rowRight}>
               <span style={s.statusBadge}>Active</span>
-              <button style={s.iconBtn('#60a5fa')} onClick={() => openEdit(a)}
-                onMouseEnter={e => e.currentTarget.style.background = '#60a5fa25'}
-                onMouseLeave={e => e.currentTarget.style.background = '#60a5fa15'}
-                title="Edit">
-                <Edit2 size={14} />
-              </button>
-              <button style={s.iconBtn('#ef4444')}
-                onClick={() => handleDelete(a.id, a.tail_number)}
-                disabled={deleting === a.id}
-                onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
-                onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}
-                title="Remove">
-                {deleting === a.id
-                  ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                  : <Trash2 size={14} />}
-              </button>
+              {!isViewOnly && (
+                <>
+                  <button style={s.iconBtn('#60a5fa')} onClick={() => openEdit(a)}
+                    onMouseEnter={e => e.currentTarget.style.background = '#60a5fa25'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#60a5fa15'}
+                    title="Edit">
+                    <Edit2 size={14} />
+                  </button>
+                  <button style={s.iconBtn('#ef4444')}
+                    onClick={() => handleDelete(a.id, a.tail_number)}
+                    disabled={deleting === a.id}
+                    onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}
+                    title="Remove">
+                    {deleting === a.id
+                      ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                      : <Trash2 size={14} />}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))

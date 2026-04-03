@@ -288,7 +288,7 @@ const s = {
   content: { padding: '32px', maxWidth: '960px' },
 };
 
-function DashboardHome() {
+function DashboardHome({ isViewOnly }) {
   return (
     <>
       <TrackerStatus />
@@ -381,6 +381,8 @@ export default function Dashboard({ onLogout }) {
 
   const path = location.pathname;
 
+  const isViewOnly = !userData?.license_tier || userData.license_tier === 'free';
+
   return (
     <div style={s.shell}>
       {showOnboarding && (
@@ -389,6 +391,30 @@ export default function Dashboard({ onLogout }) {
           onNavigate={(route) => { navigate(route); }}
           completedSteps={completedSteps}
         />
+      )}
+
+      {/* View-only banner for free accounts */}
+      {isViewOnly && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9997,
+          background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+          borderBottom: '1px solid rgba(245,158,11,0.3)',
+          padding: '8px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 16, fontSize: 12, color: '#d1d5db',
+        }}>
+          <span>👀 You&apos;re in <strong style={{ color: '#f59e0b' }}>view-only mode</strong> — purchase a license to start tracking aircraft.</span>
+          <button
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
+            style={{
+              padding: '4px 14px', borderRadius: 999,
+              background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)',
+              color: '#f59e0b', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            View Plans →
+          </button>
+        </div>
       )}
       <div style={s.sidebar}>
         <div style={s.sidebarGlow} />
@@ -439,16 +465,16 @@ export default function Dashboard({ onLogout }) {
         </div>
       </div>
 
-      <div style={s.main}>
+      <div style={{ ...s.main, paddingTop: isViewOnly ? 36 : 0 }}>
         <div style={s.content}>
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="/aircraft" element={<AircraftManager />} />
+            <Route path="/" element={<DashboardHome isViewOnly={isViewOnly} />} />
+            <Route path="/aircraft" element={<AircraftManager isViewOnly={isViewOnly} />} />
             <Route path="/map" element={<LiveMap />} />
-            <Route path="/airport" element={<AirportConfig />} />
-            <Route path="/locations" element={<SavedLocations />} />
-            <Route path="/alerts" element={<AlertSettings />} />
-            <Route path="/integrations" element={<Integrations />} />
+            <Route path="/airport" element={<AirportConfig isViewOnly={isViewOnly} />} />
+            <Route path="/locations" element={<SavedLocations isViewOnly={isViewOnly} />} />
+            <Route path="/alerts" element={<AlertSettings isViewOnly={isViewOnly} />} />
+            <Route path="/integrations" element={<Integrations isViewOnly={isViewOnly} />} />
             <Route path="/logs" element={<Logs />} />
           </Routes>
         </div>
