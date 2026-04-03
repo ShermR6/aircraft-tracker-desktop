@@ -361,11 +361,10 @@ export default function Integrations({ isViewOnly = false }) {
                   </button>
                 </div>
               )}
-                </button>
-              </div>
             </div>
-          );
-        })
+          </div>
+        );
+      })
       )}
 
       <div style={s.infoBox}>
