@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, Layers } from 'lucide-react';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, Layers, CheckCircle, Circle, ArrowRight, X } from 'lucide-react';
 import StorageService from '../services/storage';
 import AirportConfig from './AirportConfig';
 import AlertSettings from './AlertSettings';
@@ -11,6 +11,169 @@ import TrackerStatus from './TrackerStatus';
 import LiveMap from './LiveMap';
 import Logs from './Logs';
 import SavedLocations from './SavedLocations';
+
+const ONBOARDING_STEPS = [
+  {
+    key: 'location',
+    icon: '📍',
+    title: 'Set your location',
+    desc: 'Configure your airport or FBO coordinates so FinalPing knows where to watch for aircraft.',
+    action: 'Go to Airport Config',
+    route: '/dashboard/airport',
+  },
+  {
+    key: 'aircraft',
+    icon: '✈️',
+    title: 'Add your first aircraft',
+    desc: 'Enter a tail number and ICAO24 code for each aircraft you want to track.',
+    action: 'Go to Aircraft',
+    route: '/dashboard/aircraft',
+  },
+  {
+    key: 'integration',
+    icon: '🔔',
+    title: 'Connect a notification channel',
+    desc: 'Link Discord, Slack, Teams, email, or SMS so alerts reach you instantly.',
+    action: 'Go to Integrations',
+    route: '/dashboard/integrations',
+  },
+];
+
+function OnboardingModal({ onClose, onNavigate }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const step = ONBOARDING_STEPS[currentStep];
+  const isLast = currentStep === ONBOARDING_STEPS.length - 1;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backdropFilter: 'blur(4px)',
+    }}>
+      <div style={{
+        background: '#0f1117', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 20, width: 480, maxWidth: '90%',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '24px 24px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#0ea5e9', marginBottom: 4 }}>
+              Welcome to FinalPing
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#f9fafb' }}>
+              Get set up in 3 steps
+            </div>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', color: '#4b5563',
+            cursor: 'pointer', padding: 4, borderRadius: 6,
+          }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Step indicators */}
+        <div style={{ display: 'flex', padding: '16px 24px 0', gap: 8 }}>
+          {ONBOARDING_STEPS.map((s, i) => (
+            <div key={s.key} style={{
+              flex: 1, height: 3, borderRadius: 999,
+              background: i <= currentStep ? '#0ea5e9' : 'rgba(255,255,255,0.08)',
+              transition: 'background 0.3s',
+            }} />
+          ))}
+        </div>
+
+        {/* Step content */}
+        <div style={{ padding: '24px 24px 8px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>{step.icon}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#f9fafb', marginBottom: 8 }}>
+            Step {currentStep + 1} — {step.title}
+          </div>
+          <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, marginBottom: 24 }}>
+            {step.desc}
+          </p>
+
+          {/* All steps list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {ONBOARDING_STEPS.map((s, i) => (
+              <div key={s.key} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderRadius: 10,
+                background: i === currentStep ? 'rgba(14,165,233,0.08)' : 'transparent',
+                border: `1px solid ${i === currentStep ? 'rgba(14,165,233,0.2)' : 'transparent'}`,
+              }}>
+                {i < currentStep
+                  ? <CheckCircle size={16} color="#22d3a3" />
+                  : i === currentStep
+                    ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #0ea5e9', flexShrink: 0 }} />
+                    : <Circle size={16} color="#374151" />
+                }
+                <span style={{
+                  fontSize: 13, fontWeight: i === currentStep ? 600 : 400,
+                  color: i < currentStep ? '#22d3a3' : i === currentStep ? '#e0f2fe' : '#4b5563',
+                }}>
+                  {s.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ padding: '0 24px 24px', display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => { onNavigate(step.route); onClose(); }}
+            style={{
+              flex: 1, padding: '12px', borderRadius: 10,
+              background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+              border: 'none', color: '#fff', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: 8,
+              boxShadow: '0 4px 16px rgba(14,165,233,0.3)',
+            }}
+          >
+            {step.action} <ArrowRight size={14} />
+          </button>
+          {!isLast && (
+            <button
+              onClick={() => setCurrentStep(s => s + 1)}
+              style={{
+                padding: '12px 16px', borderRadius: 10,
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                color: '#6b7280', fontSize: 14, cursor: 'pointer',
+              }}
+            >
+              Next
+            </button>
+          )}
+          {isLast && (
+            <button
+              onClick={onClose}
+              style={{
+                padding: '12px 16px', borderRadius: 10,
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                color: '#6b7280', fontSize: 14, cursor: 'pointer',
+              }}
+            >
+              Done
+            </button>
+          )}
+        </div>
+
+        <div style={{ textAlign: 'center', paddingBottom: 16, fontSize: 11, color: '#374151' }}>
+          You can always find these in the sidebar
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const s = {
   shell: {
@@ -125,7 +288,9 @@ export default function Dashboard({ onLogout }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [appVersion, setAppVersion] = useState('');
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => { loadUserData(); }, []);
 
@@ -137,11 +302,22 @@ export default function Dashboard({ onLogout }) {
     try {
       const data = await StorageService.getUserData();
       setUserData(data);
+
+      // Check if this is the first time the user has logged in
+      const onboardingDone = await window.electronAPI?.storeGet('onboardingComplete');
+      if (!onboardingDone) {
+        setShowOnboarding(true);
+      }
     } catch (error) {
       console.error('Failed to load user data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseOnboarding = async () => {
+    await window.electronAPI?.storeSet('onboardingComplete', true);
+    setShowOnboarding(false);
   };
 
   const handleLogout = async () => {
@@ -163,6 +339,12 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <div style={s.shell}>
+      {showOnboarding && (
+        <OnboardingModal
+          onClose={handleCloseOnboarding}
+          onNavigate={(route) => { navigate(route); }}
+        />
+      )}
       <div style={s.sidebar}>
         <div style={s.sidebarGlow} />
 
