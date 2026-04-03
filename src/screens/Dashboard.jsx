@@ -39,10 +39,11 @@ const ONBOARDING_STEPS = [
   },
 ];
 
-function OnboardingModal({ onClose, onNavigate }) {
+function OnboardingModal({ onClose, onNavigate, completedSteps }) {
   const [currentStep, setCurrentStep] = useState(0);
   const step = ONBOARDING_STEPS[currentStep];
   const isLast = currentStep === ONBOARDING_STEPS.length - 1;
+  const stepComplete = completedSteps.includes(step.key);
 
   return (
     <div style={{
@@ -109,7 +110,7 @@ function OnboardingModal({ onClose, onNavigate }) {
                 background: i === currentStep ? 'rgba(14,165,233,0.08)' : 'transparent',
                 border: `1px solid ${i === currentStep ? 'rgba(14,165,233,0.2)' : 'transparent'}`,
               }}>
-                {i < currentStep
+                {completedSteps.includes(s.key)
                   ? <CheckCircle size={16} color="#22d3a3" />
                   : i === currentStep
                     ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #0ea5e9', flexShrink: 0 }} />
@@ -117,10 +118,13 @@ function OnboardingModal({ onClose, onNavigate }) {
                 }
                 <span style={{
                   fontSize: 13, fontWeight: i === currentStep ? 600 : 400,
-                  color: i < currentStep ? '#22d3a3' : i === currentStep ? '#e0f2fe' : '#4b5563',
+                  color: completedSteps.includes(s.key) ? '#22d3a3' : i === currentStep ? '#e0f2fe' : '#4b5563',
                 }}>
                   {s.title}
                 </span>
+                {completedSteps.includes(s.key) && (
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#22d3a3' }}>Done ✓</span>
+                )}
               </div>
             ))}
           </div>
@@ -129,7 +133,7 @@ function OnboardingModal({ onClose, onNavigate }) {
         {/* Actions */}
         <div style={{ padding: '0 24px 24px', display: 'flex', gap: 10 }}>
           <button
-            onClick={() => { onNavigate(step.route); onClose(); }}
+            onClick={() => onNavigate(step.route)}
             style={{
               flex: 1, padding: '12px', borderRadius: 10,
               background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
@@ -139,16 +143,21 @@ function OnboardingModal({ onClose, onNavigate }) {
               boxShadow: '0 4px 16px rgba(14,165,233,0.3)',
             }}
           >
-            {step.action} <ArrowRight size={14} />
+            {stepComplete ? 'Go again' : step.action} <ArrowRight size={14} />
           </button>
           {!isLast && (
             <button
               onClick={() => setCurrentStep(s => s + 1)}
+              disabled={!stepComplete}
               style={{
                 padding: '12px 16px', borderRadius: 10,
-                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-                color: '#6b7280', fontSize: 14, cursor: 'pointer',
+                background: 'transparent',
+                border: `1px solid ${stepComplete ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
+                color: stepComplete ? '#9ca3af' : '#374151',
+                fontSize: 14, cursor: stepComplete ? 'pointer' : 'not-allowed',
+                transition: 'all 0.15s',
               }}
+              title={stepComplete ? '' : 'Complete this step first'}
             >
               Next
             </button>
@@ -156,13 +165,17 @@ function OnboardingModal({ onClose, onNavigate }) {
           {isLast && (
             <button
               onClick={onClose}
+              disabled={!stepComplete}
               style={{
                 padding: '12px 16px', borderRadius: 10,
-                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-                color: '#6b7280', fontSize: 14, cursor: 'pointer',
+                background: 'transparent',
+                border: `1px solid ${stepComplete ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
+                color: stepComplete ? '#9ca3af' : '#374151',
+                fontSize: 14, cursor: stepComplete ? 'pointer' : 'not-allowed',
               }}
+              title={stepComplete ? '' : 'Complete this step first'}
             >
-              Done
+              Finish
             </button>
           )}
         </div>
@@ -289,8 +302,36 @@ export default function Dashboard({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [appVersion, setAppVersion] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [visitedRoutes, setVisitedRoutes] = useState(new Set());
+  const onboardingChecked = React.useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Track visited routes and mark steps complete when user returns to dashboard
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // Record which step routes have been visited
+    ONBOARDING_STEPS.forEach(step => {
+      if (currentPath === step.route) {
+        setVisitedRoutes(prev => new Set([...prev, step.key]));
+      }
+    });
+
+    // When user returns to dashboard, mark any visited step routes as complete
+    if (currentPath === '/dashboard' || currentPath === '/dashboard/') {
+      setVisitedRoutes(prev => {
+        if (prev.size > 0) {
+          setCompletedSteps(current => {
+            const newCompleted = [...new Set([...current, ...prev])];
+            return newCompleted;
+          });
+        }
+        return prev;
+      });
+    }
+  }, [location.pathname]);
 
   useEffect(() => { loadUserData(); }, []);
 
@@ -303,10 +344,13 @@ export default function Dashboard({ onLogout }) {
       const data = await StorageService.getUserData();
       setUserData(data);
 
-      // Check if this is the first time the user has logged in
-      const onboardingDone = await window.electronAPI?.storeGet('onboardingComplete');
-      if (!onboardingDone) {
-        setShowOnboarding(true);
+      // Only check onboarding once per session using a ref
+      if (!onboardingChecked.current) {
+        onboardingChecked.current = true;
+        const onboardingDone = await window.electronAPI?.storeGet('onboardingComplete');
+        if (!onboardingDone) {
+          setShowOnboarding(true);
+        }
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
@@ -343,6 +387,7 @@ export default function Dashboard({ onLogout }) {
         <OnboardingModal
           onClose={handleCloseOnboarding}
           onNavigate={(route) => { navigate(route); }}
+          completedSteps={completedSteps}
         />
       )}
       <div style={s.sidebar}>
