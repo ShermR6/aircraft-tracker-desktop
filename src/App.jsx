@@ -51,10 +51,10 @@ function UpdateBanner({ version, downloaded, onDismiss }) {
   );
 }
 
-function LicenseExpiredOverlay() {
-  const openBilling = () => {
+function LicenseExpiredOverlay({ onActivateNew }) {
+  const openPricing = () => {
     if (window.electronAPI?.openExternal) {
-      window.electronAPI.openExternal('https://finalpingapp.com/dashboard?tab=billing');
+      window.electronAPI.openExternal('https://finalpingapp.com/pricing');
     }
   };
 
@@ -75,22 +75,38 @@ function LicenseExpiredOverlay() {
           Your License Has Expired
         </h2>
         <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, margin: '0 0 28px 0' }}>
-          Your FinalPing license has expired. Aircraft tracking and alerts have been paused. Renew your subscription to restore full access.
+          Your FinalPing license has expired. Aircraft tracking and alerts have been paused. Purchase a new license to restore full access — your new key will be emailed to you instantly.
         </p>
+
+        {/* Primary — buy new license */}
         <button
-          onClick={openBilling}
+          onClick={openPricing}
           style={{
             width: '100%', padding: '13px',
             background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
             border: 'none', borderRadius: 10, color: '#fff',
             fontSize: 15, fontWeight: 600, cursor: 'pointer',
-            boxShadow: '0 4px 20px #3b82f640', marginBottom: 12,
+            boxShadow: '0 4px 20px #3b82f640', marginBottom: 10,
           }}
         >
-          Renew License →
+          Purchase New License →
         </button>
-        <p style={{ fontSize: 12, color: '#4b5563', margin: 0 }}>
-          Already renewed? Restart FinalPing to restore access.
+
+        {/* Secondary — already have a new key */}
+        <button
+          onClick={onActivateNew}
+          style={{
+            width: '100%', padding: '12px',
+            background: 'transparent',
+            border: '1px solid #374151', borderRadius: 10, color: '#9ca3af',
+            fontSize: 14, fontWeight: 500, cursor: 'pointer',
+          }}
+        >
+          Already have a license key? Activate it
+        </button>
+
+        <p style={{ fontSize: 12, color: '#4b5563', margin: '16px 0 0 0' }}>
+          Your new license key will be sent to your email after purchase.
         </p>
       </div>
     </div>
@@ -174,7 +190,16 @@ function App() {
 
   return (
     <Router>
-      {licenseExpired && <LicenseExpiredOverlay />}
+      {licenseExpired && (
+        <LicenseExpiredOverlay
+          onActivateNew={async () => {
+            await StorageService.logout();
+            APIService.clearToken();
+            setIsAuthenticated(false);
+            setLicenseExpired(false);
+          }}
+        />
+      )}
       {updateVersion && (
         <UpdateBanner
           version={updateVersion}
