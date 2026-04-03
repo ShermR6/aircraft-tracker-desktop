@@ -362,7 +362,6 @@ export default function Integrations({ isViewOnly = false }) {
                 </div>
               )}
             </div>
-          </div>
         );
       })
       )}
