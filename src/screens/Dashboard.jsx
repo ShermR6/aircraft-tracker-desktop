@@ -387,7 +387,7 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <div style={s.shell}>
-      {showOnboarding && (
+      {showOnboarding && (path === '/dashboard' || path === '/dashboard/') && (
         <OnboardingModal
           onClose={handleCloseOnboarding}
           onNavigate={(route) => { navigate(route); }}
