@@ -68,7 +68,7 @@ const s = {
 
 const EMPTY_FORM = { name: '', airport_code: '', latitude: '', longitude: '', elevation_ft_msl: '' };
 
-export default function SavedLocations() {
+export default function SavedLocations({ isViewOnly = false }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -181,7 +181,7 @@ export default function SavedLocations() {
           <h2 style={s.title}>Saved Locations</h2>
           <p style={s.sub}>Manage your tracking locations — one is active at a time</p>
         </div>
-        {!showForm && !atLimit && (
+        {!showForm && !atLimit && !isViewOnly && (
           <button style={s.addBtn} onClick={() => { setShowForm(true); setEditingId(null); setForm(EMPTY_FORM); setError(''); }}>
             <Plus size={14} /> Add Location
           </button>
@@ -286,17 +286,21 @@ export default function SavedLocations() {
                 {loc.elevation_ft_msl > 0 && <span style={{ ...s.locCoords, marginLeft: '12px' }}>{loc.elevation_ft_msl} ft MSL</span>}
               </div>
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                {!loc.is_active && (
-                  <button style={s.actionBtn('#34d399')} onClick={() => handleActivate(loc.id)} disabled={activating === loc.id}>
-                    <Check size={12} /> {activating === loc.id ? '...' : 'Set Active'}
-                  </button>
+                {!isViewOnly && (
+                  <>
+                    {!loc.is_active && (
+                      <button style={s.actionBtn('#34d399')} onClick={() => handleActivate(loc.id)} disabled={activating === loc.id}>
+                        <Check size={12} /> {activating === loc.id ? '...' : 'Set Active'}
+                      </button>
+                    )}
+                    <button style={s.actionBtn('#60a5fa')} onClick={() => handleEdit(loc)}>
+                      <Edit2 size={12} /> Edit
+                    </button>
+                    <button style={s.actionBtn('#f87171')} onClick={() => handleDelete(loc.id)}>
+                      <Trash2 size={12} />
+                    </button>
+                  </>
                 )}
-                <button style={s.actionBtn('#60a5fa')} onClick={() => handleEdit(loc)}>
-                  <Edit2 size={12} /> Edit
-                </button>
-                <button style={s.actionBtn('#f87171')} onClick={() => handleDelete(loc.id)}>
-                  <Trash2 size={12} />
-                </button>
               </div>
             </div>
           ))}

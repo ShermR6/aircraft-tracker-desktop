@@ -34,7 +34,7 @@ const s = {
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
 };
 
-export default function AirportConfig() {
+export default function AirportConfig({ isViewOnly = false }) {
   const [config, setConfig] = useState({
     airport_code: '', latitude: '', longitude: '',
     detection_radius_nm: '', polling_interval_seconds: '',
@@ -115,7 +115,7 @@ export default function AirportConfig() {
         </div>
       </div>
 
-      <form onSubmit={handleSave}>
+      <form onSubmit={isViewOnly ? e => e.preventDefault() : handleSave}>
 
         {/* Location */}
         <div style={s.card}>
@@ -201,11 +201,13 @@ export default function AirportConfig() {
 
         {message.text && <div style={{ ...s.alert(message.type), marginTop: '16px' }}>{message.text}</div>}
 
-        <button type="submit" disabled={saving} style={{ ...s.saveBtn(saving), marginTop: '16px' }}>
-          {saving
-            ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</>
-            : <><Save size={16} />Save Configuration</>}
-        </button>
+        {!isViewOnly && (
+          <button type="submit" disabled={saving} style={{ ...s.saveBtn(saving), marginTop: '16px' }}>
+            {saving
+              ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</>
+              : <><Save size={16} />Save Configuration</>}
+          </button>
+        )}
       </form>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

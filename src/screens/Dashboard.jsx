@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, Layers } from 'lucide-react';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, Layers, CheckCircle, Circle, ArrowRight, X } from 'lucide-react';
 import StorageService from '../services/storage';
 import AirportConfig from './AirportConfig';
 import AlertSettings from './AlertSettings';
@@ -11,6 +11,182 @@ import TrackerStatus from './TrackerStatus';
 import LiveMap from './LiveMap';
 import Logs from './Logs';
 import SavedLocations from './SavedLocations';
+
+const ONBOARDING_STEPS = [
+  {
+    key: 'location',
+    icon: '📍',
+    title: 'Set your location',
+    desc: 'Configure your airport or FBO coordinates so FinalPing knows where to watch for aircraft.',
+    action: 'Go to Airport Config',
+    route: '/dashboard/airport',
+  },
+  {
+    key: 'aircraft',
+    icon: '✈️',
+    title: 'Add your first aircraft',
+    desc: 'Enter a tail number and ICAO24 code for each aircraft you want to track.',
+    action: 'Go to Aircraft',
+    route: '/dashboard/aircraft',
+  },
+  {
+    key: 'integration',
+    icon: '🔔',
+    title: 'Connect a notification channel',
+    desc: 'Link Discord, Slack, Teams, email, or SMS so alerts reach you instantly.',
+    action: 'Go to Integrations',
+    route: '/dashboard/integrations',
+  },
+];
+
+function OnboardingModal({ onClose, onNavigate, completedSteps }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const step = ONBOARDING_STEPS[currentStep];
+  const isLast = currentStep === ONBOARDING_STEPS.length - 1;
+  const stepComplete = completedSteps.includes(step.key);
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backdropFilter: 'blur(4px)',
+    }}>
+      <div style={{
+        background: '#0f1117', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 20, width: 480, maxWidth: '90%',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '24px 24px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#0ea5e9', marginBottom: 4 }}>
+              Welcome to FinalPing
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#f9fafb' }}>
+              Get set up in 3 steps
+            </div>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', color: '#4b5563',
+            cursor: 'pointer', padding: 4, borderRadius: 6,
+          }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Step indicators */}
+        <div style={{ display: 'flex', padding: '16px 24px 0', gap: 8 }}>
+          {ONBOARDING_STEPS.map((s, i) => (
+            <div key={s.key} style={{
+              flex: 1, height: 3, borderRadius: 999,
+              background: i <= currentStep ? '#0ea5e9' : 'rgba(255,255,255,0.08)',
+              transition: 'background 0.3s',
+            }} />
+          ))}
+        </div>
+
+        {/* Step content */}
+        <div style={{ padding: '24px 24px 8px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>{step.icon}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#f9fafb', marginBottom: 8 }}>
+            Step {currentStep + 1} — {step.title}
+          </div>
+          <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, marginBottom: 24 }}>
+            {step.desc}
+          </p>
+
+          {/* All steps list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {ONBOARDING_STEPS.map((s, i) => (
+              <div key={s.key} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderRadius: 10,
+                background: i === currentStep ? 'rgba(14,165,233,0.08)' : 'transparent',
+                border: `1px solid ${i === currentStep ? 'rgba(14,165,233,0.2)' : 'transparent'}`,
+              }}>
+                {completedSteps.includes(s.key)
+                  ? <CheckCircle size={16} color="#22d3a3" />
+                  : i === currentStep
+                    ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #0ea5e9', flexShrink: 0 }} />
+                    : <Circle size={16} color="#374151" />
+                }
+                <span style={{
+                  fontSize: 13, fontWeight: i === currentStep ? 600 : 400,
+                  color: completedSteps.includes(s.key) ? '#22d3a3' : i === currentStep ? '#e0f2fe' : '#4b5563',
+                }}>
+                  {s.title}
+                </span>
+                {completedSteps.includes(s.key) && (
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#22d3a3' }}>Done ✓</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ padding: '0 24px 24px', display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => onNavigate(step.route)}
+            style={{
+              flex: 1, padding: '12px', borderRadius: 10,
+              background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+              border: 'none', color: '#fff', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: 8,
+              boxShadow: '0 4px 16px rgba(14,165,233,0.3)',
+            }}
+          >
+            {stepComplete ? 'Go again' : step.action} <ArrowRight size={14} />
+          </button>
+          {!isLast && (
+            <button
+              onClick={() => setCurrentStep(s => s + 1)}
+              disabled={!stepComplete}
+              style={{
+                padding: '12px 16px', borderRadius: 10,
+                background: 'transparent',
+                border: `1px solid ${stepComplete ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
+                color: stepComplete ? '#9ca3af' : '#374151',
+                fontSize: 14, cursor: stepComplete ? 'pointer' : 'not-allowed',
+                transition: 'all 0.15s',
+              }}
+              title={stepComplete ? '' : 'Complete this step first'}
+            >
+              Next
+            </button>
+          )}
+          {isLast && (
+            <button
+              onClick={onClose}
+              disabled={!stepComplete}
+              style={{
+                padding: '12px 16px', borderRadius: 10,
+                background: 'transparent',
+                border: `1px solid ${stepComplete ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
+                color: stepComplete ? '#9ca3af' : '#374151',
+                fontSize: 14, cursor: stepComplete ? 'pointer' : 'not-allowed',
+              }}
+              title={stepComplete ? '' : 'Complete this step first'}
+            >
+              Finish
+            </button>
+          )}
+        </div>
+
+        <div style={{ textAlign: 'center', paddingBottom: 16, fontSize: 11, color: '#374151' }}>
+          You can always find these in the sidebar
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const s = {
   shell: {
@@ -112,7 +288,7 @@ const s = {
   content: { padding: '32px', maxWidth: '960px' },
 };
 
-function DashboardHome() {
+function DashboardHome({ isViewOnly }) {
   return (
     <>
       <TrackerStatus />
@@ -125,7 +301,37 @@ export default function Dashboard({ onLogout }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [appVersion, setAppVersion] = useState('');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [visitedRoutes, setVisitedRoutes] = useState(new Set());
+  const onboardingChecked = React.useRef(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Track visited routes and mark steps complete when user returns to dashboard
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // Record which step routes have been visited
+    ONBOARDING_STEPS.forEach(step => {
+      if (currentPath === step.route) {
+        setVisitedRoutes(prev => new Set([...prev, step.key]));
+      }
+    });
+
+    // When user returns to dashboard, mark any visited step routes as complete
+    if (currentPath === '/dashboard' || currentPath === '/dashboard/') {
+      setVisitedRoutes(prev => {
+        if (prev.size > 0) {
+          setCompletedSteps(current => {
+            const newCompleted = [...new Set([...current, ...prev])];
+            return newCompleted;
+          });
+        }
+        return prev;
+      });
+    }
+  }, [location.pathname]);
 
   useEffect(() => { loadUserData(); }, []);
 
@@ -137,11 +343,25 @@ export default function Dashboard({ onLogout }) {
     try {
       const data = await StorageService.getUserData();
       setUserData(data);
+
+      // Only check onboarding once per session using a ref
+      if (!onboardingChecked.current) {
+        onboardingChecked.current = true;
+        const onboardingDone = await window.electronAPI?.storeGet('onboardingComplete');
+        if (!onboardingDone) {
+          setShowOnboarding(true);
+        }
+      }
     } catch (error) {
       console.error('Failed to load user data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseOnboarding = async () => {
+    await window.electronAPI?.storeSet('onboardingComplete', true);
+    setShowOnboarding(false);
   };
 
   const handleLogout = async () => {
@@ -161,8 +381,41 @@ export default function Dashboard({ onLogout }) {
 
   const path = location.pathname;
 
+  const isViewOnly = !userData?.license_tier || userData.license_tier === 'free';
+
   return (
     <div style={s.shell}>
+      {showOnboarding && (
+        <OnboardingModal
+          onClose={handleCloseOnboarding}
+          onNavigate={(route) => { navigate(route); }}
+          completedSteps={completedSteps}
+        />
+      )}
+
+      {/* View-only banner for free accounts */}
+      {isViewOnly && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9997,
+          background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+          borderBottom: '1px solid rgba(245,158,11,0.3)',
+          padding: '8px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 16, fontSize: 12, color: '#d1d5db',
+        }}>
+          <span>👀 You&apos;re in <strong style={{ color: '#f59e0b' }}>view-only mode</strong> — purchase a license to start tracking aircraft.</span>
+          <button
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
+            style={{
+              padding: '4px 14px', borderRadius: 999,
+              background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)',
+              color: '#f59e0b', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            View Plans →
+          </button>
+        </div>
+      )}
       <div style={s.sidebar}>
         <div style={s.sidebarGlow} />
 
@@ -212,16 +465,16 @@ export default function Dashboard({ onLogout }) {
         </div>
       </div>
 
-      <div style={s.main}>
+      <div style={{ ...s.main, paddingTop: isViewOnly ? 36 : 0 }}>
         <div style={s.content}>
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="/aircraft" element={<AircraftManager />} />
+            <Route path="/" element={<DashboardHome isViewOnly={isViewOnly} />} />
+            <Route path="/aircraft" element={<AircraftManager isViewOnly={isViewOnly} />} />
             <Route path="/map" element={<LiveMap />} />
-            <Route path="/airport" element={<AirportConfig />} />
-            <Route path="/locations" element={<SavedLocations />} />
-            <Route path="/alerts" element={<AlertSettings />} />
-            <Route path="/integrations" element={<Integrations />} />
+            <Route path="/airport" element={<AirportConfig isViewOnly={isViewOnly} />} />
+            <Route path="/locations" element={<SavedLocations isViewOnly={isViewOnly} />} />
+            <Route path="/alerts" element={<AlertSettings isViewOnly={isViewOnly} />} />
+            <Route path="/integrations" element={<Integrations isViewOnly={isViewOnly} />} />
             <Route path="/logs" element={<Logs />} />
           </Routes>
         </div>

@@ -75,13 +75,15 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-export default function Integrations() {
+export default function Integrations({ isViewOnly = false }) {
   const [integrations, setIntegrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(null);
   const [testResults, setTestResults] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
   const [tier, setTier] = useState('starter');
+  const [showChargesModal, setShowChargesModal] = useState(false);
+  const [pendingAddType, setPendingAddType] = useState(null);
 
   useEffect(() => {
     loadIntegrations();
@@ -107,8 +109,18 @@ export default function Integrations() {
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       return;
     }
-    const emptyConfig = type === 'email' ? { to_email: '' } : 
-                        (type === 'sms' || type === 'whatsapp') ? { to_phone: '' } : 
+    // Show charges warning for SMS and WhatsApp before adding
+    if (type === 'sms' || type === 'whatsapp') {
+      setPendingAddType(type);
+      setShowChargesModal(true);
+      return;
+    }
+    addIntegration(type);
+  };
+
+  const addIntegration = (type) => {
+    const emptyConfig = type === 'email' ? { to_email: '' } :
+                        (type === 'sms' || type === 'whatsapp') ? { to_phone: '' } :
                         { webhook_url: '' };
     setIntegrations(prev => [...prev, { id: `temp-${Date.now()}`, type, config: emptyConfig, enabled: true, isNew: true }]);
   };
@@ -166,6 +178,70 @@ export default function Integrations() {
 
   return (
     <div style={s.page}>
+
+      {/* SMS / WhatsApp charges warning modal */}
+      {showChargesModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }}>
+          <div style={{
+            background: '#0f1117', border: '1px solid #2d3748',
+            borderRadius: 16, padding: 32, maxWidth: 440, width: '100%',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+          }}>
+            <div style={{ fontSize: 36, marginBottom: 16, textAlign: 'center' }}>
+              {pendingAddType === 'whatsapp' ? '🟢' : '📲'}
+            </div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f9fafb', margin: '0 0 12px 0', textAlign: 'center' }}>
+              {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} Messaging Charges
+            </h2>
+            <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, margin: '0 0 16px 0' }}>
+              By enabling {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} alerts, you acknowledge that:
+            </p>
+            <ul style={{ fontSize: 13, color: '#9ca3af', lineHeight: 2, margin: '0 0 20px 0', paddingLeft: 20 }}>
+              <li>Standard carrier <strong style={{ color: '#e5e7eb' }}>messaging rates may apply</strong> depending on your mobile plan.</li>
+              <li>FinalPing uses Twilio to deliver messages — <strong style={{ color: '#e5e7eb' }}>message frequency depends on aircraft activity</strong> and your configured alert distances.</li>
+              <li>You are responsible for any charges incurred by your carrier.</li>
+              <li>You can disable {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} alerts at any time from this screen.</li>
+            </ul>
+            <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 24, fontStyle: 'italic' }}>
+              Reply STOP to any message to unsubscribe immediately.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => { setShowChargesModal(false); setPendingAddType(null); }}
+                style={{
+                  flex: 1, padding: '11px', borderRadius: 8,
+                  background: 'transparent', border: '1px solid #374151',
+                  color: '#9ca3af', fontSize: 14, cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  addIntegration(pendingAddType);
+                  setShowChargesModal(false);
+                  setPendingAddType(null);
+                }}
+                style={{
+                  flex: 1, padding: '11px', borderRadius: 8,
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  border: 'none', color: '#fff',
+                  fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  boxShadow: '0 4px 12px #3b82f640',
+                }}
+              >
+                I Understand, Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={s.header}>
         <div style={s.headerIcon}><LinkIcon size={22} color="#60a5fa" /></div>
         <div>
@@ -196,22 +272,24 @@ export default function Integrations() {
         </div>
       )}
 
-      {/* Add buttons */}
-      <div style={s.addGrid}>
-        {INTEGRATION_TYPES.map(t => {
-          const alreadyAdded = hasIntegration(t.type);
-          const disabled = alreadyAdded || atLimit;
-          return (
-            <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
-              onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
-              onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
-              <div style={s.addIcon}>{atLimit && !alreadyAdded ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
-              <p style={s.addName}>{t.name}</p>
-              <p style={s.addStatus}>{alreadyAdded ? 'Already added' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
-            </div>
-          );
-        })}
-      </div>
+      {/* Add buttons — hidden for view-only */}
+      {!isViewOnly && (
+        <div style={s.addGrid}>
+          {INTEGRATION_TYPES.map(t => {
+            const alreadyAdded = hasIntegration(t.type);
+            const disabled = alreadyAdded || atLimit;
+            return (
+              <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
+                onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
+                onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
+                <div style={s.addIcon}>{atLimit && !alreadyAdded ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
+                <p style={s.addName}>{t.name}</p>
+                <p style={s.addStatus}>{alreadyAdded ? 'Already added' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Integration cards */}
       {integrations.length === 0 ? (
@@ -242,12 +320,16 @@ export default function Integrations() {
                   </div>
                 </div>
                 <div style={s.cardTopRight}>
-                  <Toggle checked={integration.enabled} onChange={v => handleUpdate(integration.id, 'enabled', v)} />
-                  <button style={s.deleteBtn} onClick={() => handleDelete(integration)}
-                    onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}>
-                    <Trash2 size={14} />
-                  </button>
+                  {!isViewOnly && (
+                    <>
+                      <Toggle checked={integration.enabled} onChange={v => handleUpdate(integration.id, 'enabled', v)} />
+                      <button style={s.deleteBtn} onClick={() => handleDelete(integration)}
+                        onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}>
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -266,20 +348,22 @@ export default function Integrations() {
                 onBlur={e => e.target.style.borderColor = '#374151'}
               />
 
-              <div style={s.btnRow}>
-                <button style={s.saveBtn} onClick={() => handleSave(integration)}>
-                  <Save size={14} /> Save
-                </button>
-                <button style={s.testBtn(isTestDisabled)} onClick={() => !isTestDisabled && handleTest(integration)} disabled={isTestDisabled}>
-                  {testing === integration.id ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Testing...</>
-                    : testResult === 'success' ? <><Check size={14} color="#34d399" /><span style={{ color: '#34d399' }}>Success!</span></>
-                    : testResult === 'error' ? <><X size={14} color="#f87171" /><span style={{ color: '#f87171' }}>Failed</span></>
-                    : <><Send size={14} />Test</>}
-                </button>
-              </div>
+              {!isViewOnly && (
+                <div style={s.btnRow}>
+                  <button style={s.saveBtn} onClick={() => handleSave(integration)}>
+                    <Save size={14} /> Save
+                  </button>
+                  <button style={s.testBtn(isTestDisabled)} onClick={() => !isTestDisabled && handleTest(integration)} disabled={isTestDisabled}>
+                    {testing === integration.id ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Testing...</>
+                      : testResult === 'success' ? <><Check size={14} color="#34d399" /><span style={{ color: '#34d399' }}>Success!</span></>
+                      : testResult === 'error' ? <><X size={14} color="#f87171" /><span style={{ color: '#f87171' }}>Failed</span></>
+                      : <><Send size={14} />Test</>}
+                  </button>
+                </div>
+              )}
             </div>
-          );
-        })
+        );
+      })
       )}
 
       <div style={s.infoBox}>

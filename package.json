@@ -48,6 +48,9 @@
       "target": "dmg",
       "category": "public.app-category.utilities"
     },
+    "dmg": {
+      "artifactName": "FinalPingSetup.dmg"
+    },
     "linux": {
       "target": ["AppImage", "deb"],
       "category": "Utility"

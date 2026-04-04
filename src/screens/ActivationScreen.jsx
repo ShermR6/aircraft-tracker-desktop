@@ -295,6 +295,15 @@ const s = {
 };
 
 export default function ActivationScreen({ onSuccess }) {
+  const [tab, setTab] = useState('signin'); // 'signin' | 'activate'
+
+  // Sign in state
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  // Activate state
   const [licenseKey, setLicenseKey] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -304,6 +313,31 @@ export default function ActivationScreen({ onSuccess }) {
   const openLink = (url) => {
     if (window.electronAPI?.openExternal) window.electronAPI.openExternal(url);
     else window.open(url, '_blank');
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!loginEmail.trim() || !loginPassword.trim()) {
+      setLoginError('Please enter your email and password.');
+      return;
+    }
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      const data = await APIService.login(loginEmail.trim(), loginPassword);
+      await StorageService.setToken(data.access_token);
+      await StorageService.setUserData({
+        email: data.email,
+        user_id: data.user_id,
+        license_tier: data.license_tier,
+      });
+      onSuccess(data);
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Invalid email or password.';
+      setLoginError(msg);
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -411,94 +445,149 @@ export default function ActivationScreen({ onSuccess }) {
 
       <div style={s.right}>
         <div style={s.formCard}>
-          <h2 style={s.formTitle}>Activate your license</h2>
-          <p style={s.formSub}>Enter your license key and email to get started</p>
 
-          {error && <div style={s.errorBox}>{error}</div>}
-
-          <form onSubmit={handleSubmit}>
-            <div style={s.fieldGroup}>
-              <label style={s.label}>License Key</label>
-              <div style={s.inputWrap}>
-                <div style={s.inputIcon}><Key size={15} color="#4b5563" /></div>
-                <input
-                  style={s.input}
-                  type="text"
-                  placeholder="XXXX-XXXX-XXXX-XXXX"
-                  value={licenseKey}
-                  onChange={e => setLicenseKey(e.target.value)}
-                  onFocus={focusInput}
-                  onBlur={blurInput}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </div>
-            </div>
-
-            <div style={s.fieldGroup}>
-              <label style={s.label}>Email Address</label>
-              <div style={s.inputWrap}>
-                <div style={s.inputIcon}><Mail size={15} color="#4b5563" /></div>
-                <input
-                  style={s.input}
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onFocus={focusInput}
-                  onBlur={blurInput}
-                  autoComplete="email"
-                />
-              </div>
-            </div>
-
-            {/* ToS Checkbox */}
-            <div style={s.tosRow}>
-              <input
-                type="checkbox"
-                id="agree"
-                checked={agreed}
-                onChange={e => setAgreed(e.target.checked)}
-                style={s.checkbox}
-              />
-              <label htmlFor="agree" style={s.tosLabel}>
-                I agree to the{' '}
-                <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/terms')}>Terms of Service</span>
-                {' '}and{' '}
-                <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/privacy')}>Privacy Policy</span>
-              </label>
-            </div>
-
-            <button type="submit" style={s.submitBtn(loading || !agreed)} disabled={loading || !agreed}>
-              {loading
-                ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Activating...</>
-                : <><ArrowRight size={16} />Activate License</>}
-            </button>
-          </form>
-
-          <div style={s.divider}>
-            <div style={s.dividerLine} />
-            <span style={s.dividerText}>Don't have a license?</span>
-            <div style={s.dividerLine} />
+          {/* Tabs */}
+          <div style={{
+            display: 'flex', background: '#1a2030', borderRadius: 12,
+            padding: 4, marginBottom: 32, border: '1px solid #2d3748',
+          }}>
+            {[{ id: 'signin', label: 'Sign In' }, { id: 'activate', label: 'Activate License' }].map(t => (
+              <button key={t.id} onClick={() => { setTab(t.id); setLoginError(''); setError(''); }}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 9, border: 'none',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                  background: tab === t.id ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                  color: tab === t.id ? '#fff' : '#6b7280',
+                  boxShadow: tab === t.id ? '0 2px 8px #3b82f640' : 'none',
+                }}>{t.label}</button>
+            ))}
           </div>
 
-          <div style={s.purchaseBox}>
-            <p style={s.purchaseText}>Get a license key to start tracking your aircraft</p>
-            <a
-              href="https://finalpingapp.com/pricing"
-              onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com/pricing'); }}
-              style={s.purchaseBtn}
-              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}
-            >
-              <Zap size={13} />
-              Purchase at FinalPingApp.com
-            </a>
-          </div>
+          {/* ── Sign In Tab ── */}
+          {tab === 'signin' && (
+            <>
+              <h2 style={s.formTitle}>Welcome back</h2>
+              <p style={s.formSub}>Sign in with your FinalPing account</p>
 
-          <p style={s.formFooter}>
-            Your license key was emailed to you after purchase.
-          </p>
+              {loginError && <div style={s.errorBox}>{loginError}</div>}
+
+              <form onSubmit={handleLogin}>
+                <div style={s.fieldGroup}>
+                  <label style={s.label}>Email Address</label>
+                  <div style={s.inputWrap}>
+                    <div style={s.inputIcon}><Mail size={15} color="#4b5563" /></div>
+                    <input style={s.input} type="email" placeholder="your@email.com"
+                      value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
+                      onFocus={focusInput} onBlur={blurInput} autoComplete="email" />
+                  </div>
+                </div>
+                <div style={s.fieldGroup}>
+                  <label style={s.label}>Password</label>
+                  <div style={s.inputWrap}>
+                    <div style={s.inputIcon}><Shield size={15} color="#4b5563" /></div>
+                    <input style={s.input} type="password" placeholder="••••••••"
+                      value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
+                      onFocus={focusInput} onBlur={blurInput} autoComplete="current-password" />
+                  </div>
+                </div>
+
+                <button type="submit" style={s.submitBtn(loginLoading)} disabled={loginLoading}>
+                  {loginLoading
+                    ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Signing in...</>
+                    : <><ArrowRight size={16} />Sign In</>}
+                </button>
+              </form>
+
+              <div style={s.divider}>
+                <div style={s.dividerLine} />
+                <span style={s.dividerText}>New to FinalPing?</span>
+                <div style={s.dividerLine} />
+              </div>
+
+              <div style={s.purchaseBox}>
+                <p style={s.purchaseText}>Don&apos;t have an account? Get a license key first</p>
+                <a href="https://finalpingapp.com/pricing"
+                  onClick={e => { e.preventDefault(); openLink('https://finalpingapp.com/pricing'); }}
+                  style={s.purchaseBtn}
+                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}>
+                  <Zap size={13} /> Purchase at FinalPingApp.com
+                </a>
+              </div>
+
+              <p style={{ ...s.formFooter, marginTop: 16 }}>
+                <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/login/forgot')}>
+                  Forgot your password?
+                </span>
+              </p>
+            </>
+          )}
+
+          {/* ── Activate Tab ── */}
+          {tab === 'activate' && (
+            <>
+              <h2 style={s.formTitle}>Activate your license</h2>
+              <p style={s.formSub}>Enter your license key and email to get started</p>
+
+              {error && <div style={s.errorBox}>{error}</div>}
+
+              <form onSubmit={handleSubmit}>
+                <div style={s.fieldGroup}>
+                  <label style={s.label}>License Key</label>
+                  <div style={s.inputWrap}>
+                    <div style={s.inputIcon}><Key size={15} color="#4b5563" /></div>
+                    <input style={s.input} type="text" placeholder="XXXX-XXXX-XXXX-XXXX"
+                      value={licenseKey} onChange={e => setLicenseKey(e.target.value)}
+                      onFocus={focusInput} onBlur={blurInput} autoComplete="off" spellCheck={false} />
+                  </div>
+                </div>
+                <div style={s.fieldGroup}>
+                  <label style={s.label}>Email Address</label>
+                  <div style={s.inputWrap}>
+                    <div style={s.inputIcon}><Mail size={15} color="#4b5563" /></div>
+                    <input style={s.input} type="email" placeholder="your@email.com"
+                      value={email} onChange={e => setEmail(e.target.value)}
+                      onFocus={focusInput} onBlur={blurInput} autoComplete="email" />
+                  </div>
+                </div>
+                <div style={s.tosRow}>
+                  <input type="checkbox" id="agree" checked={agreed}
+                    onChange={e => setAgreed(e.target.checked)} style={s.checkbox} />
+                  <label htmlFor="agree" style={s.tosLabel}>
+                    I agree to the{' '}
+                    <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/terms')}>Terms of Service</span>
+                    {' '}and{' '}
+                    <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/privacy')}>Privacy Policy</span>
+                  </label>
+                </div>
+                <button type="submit" style={s.submitBtn(loading || !agreed)} disabled={loading || !agreed}>
+                  {loading
+                    ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Activating...</>
+                    : <><ArrowRight size={16} />Activate License</>}
+                </button>
+              </form>
+
+              <div style={s.divider}>
+                <div style={s.dividerLine} />
+                <span style={s.dividerText}>Don&apos;t have a license?</span>
+                <div style={s.dividerLine} />
+              </div>
+
+              <div style={s.purchaseBox}>
+                <p style={s.purchaseText}>Get a license key to start tracking your aircraft</p>
+                <a href="https://finalpingapp.com/pricing"
+                  onClick={e => { e.preventDefault(); openLink('https://finalpingapp.com/pricing'); }}
+                  style={s.purchaseBtn}
+                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}>
+                  <Zap size={13} /> Purchase at FinalPingApp.com
+                </a>
+              </div>
+
+              <p style={s.formFooter}>Your license key was emailed to you after purchase.</p>
+            </>
+          )}
+
         </div>
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

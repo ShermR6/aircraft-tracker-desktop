@@ -51,11 +51,74 @@ function UpdateBanner({ version, downloaded, onDismiss }) {
   );
 }
 
+function LicenseExpiredOverlay({ onActivateNew }) {
+  const openPricing = () => {
+    if (window.electronAPI?.openExternal) {
+      window.electronAPI.openExternal('https://finalpingapp.com/pricing');
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9998,
+      background: 'rgba(0,0,0,0.85)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backdropFilter: 'blur(4px)',
+    }}>
+      <div style={{
+        background: '#0f1117', border: '1px solid #2d3748',
+        borderRadius: 20, padding: 40, maxWidth: 420, width: '90%',
+        textAlign: 'center', boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#f9fafb', margin: '0 0 12px 0' }}>
+          Your License Has Expired
+        </h2>
+        <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, margin: '0 0 28px 0' }}>
+          Your FinalPing license has expired. Aircraft tracking and alerts have been paused. Purchase a new license to restore full access — your new key will be emailed to you instantly.
+        </p>
+
+        {/* Primary — buy new license */}
+        <button
+          onClick={openPricing}
+          style={{
+            width: '100%', padding: '13px',
+            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            border: 'none', borderRadius: 10, color: '#fff',
+            fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            boxShadow: '0 4px 20px #3b82f640', marginBottom: 10,
+          }}
+        >
+          Purchase New License →
+        </button>
+
+        {/* Secondary — already have a new key */}
+        <button
+          onClick={onActivateNew}
+          style={{
+            width: '100%', padding: '12px',
+            background: 'transparent',
+            border: '1px solid #374151', borderRadius: 10, color: '#9ca3af',
+            fontSize: 14, fontWeight: 500, cursor: 'pointer',
+          }}
+        >
+          Already have a license key? Activate it
+        </button>
+
+        <p style={{ fontSize: 12, color: '#4b5563', margin: '16px 0 0 0' }}>
+          Your new license key will be sent to your email after purchase.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updateVersion, setUpdateVersion] = useState(null);
   const [updateDownloaded, setUpdateDownloaded] = useState(false);
+  const [licenseExpired, setLicenseExpired] = useState(false);
 
   useEffect(() => {
     checkAuth().catch((err) => {
@@ -81,11 +144,20 @@ function App() {
         APIService.setToken(token);
         await APIService.getCurrentUser();
         setIsAuthenticated(true);
+        setLicenseExpired(false);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      await StorageService.logout();
-      setIsAuthenticated(false);
+      const detail = error.response?.data?.detail;
+      if (detail === 'license_expired') {
+        // Keep them authenticated so they can see the app, just show overlay
+        setIsAuthenticated(true);
+        setLicenseExpired(true);
+      } else {
+        await StorageService.logout();
+        setIsAuthenticated(false);
+        setLicenseExpired(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -118,6 +190,16 @@ function App() {
 
   return (
     <Router>
+      {licenseExpired && (
+        <LicenseExpiredOverlay
+          onActivateNew={async () => {
+            await StorageService.logout();
+            APIService.clearToken();
+            setIsAuthenticated(false);
+            setLicenseExpired(false);
+          }}
+        />
+      )}
       {updateVersion && (
         <UpdateBanner
           version={updateVersion}
