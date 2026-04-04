@@ -347,7 +347,8 @@ export default function Dashboard({ onLogout }) {
       // Only check onboarding once per session using a ref
       if (!onboardingChecked.current) {
         onboardingChecked.current = true;
-        const onboardingDone = await window.electronAPI?.storeGet('onboardingComplete');
+        const onboardingKey = `onboardingComplete_${data?.email || 'default'}`;
+        const onboardingDone = await window.electronAPI?.storeGet(onboardingKey);
         if (!onboardingDone) {
           setShowOnboarding(true);
         }
@@ -360,7 +361,8 @@ export default function Dashboard({ onLogout }) {
   };
 
   const handleCloseOnboarding = async () => {
-    await window.electronAPI?.storeSet('onboardingComplete', true);
+    const onboardingKey = `onboardingComplete_${userData?.email || 'default'}`;
+    await window.electronAPI?.storeSet(onboardingKey, true);
     setShowOnboarding(false);
   };
 
