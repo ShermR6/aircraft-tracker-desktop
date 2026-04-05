@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, Layers, CheckCircle, Circle, ArrowRight, X } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X } from 'lucide-react';
 import StorageService from '../services/storage';
 import AirportConfig from './AirportConfig';
 import AlertSettings from './AlertSettings';
@@ -10,7 +10,6 @@ import AircraftManager from './AircraftManager';
 import TrackerStatus from './TrackerStatus';
 import LiveMap from './LiveMap';
 import Logs from './Logs';
-import SavedLocations from './SavedLocations';
 
 const ONBOARDING_STEPS = [
   {
@@ -387,7 +386,7 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <div style={s.shell}>
-      {showOnboarding && (
+      {showOnboarding && (path === '/dashboard' || path === '/dashboard/') && (
         <OnboardingModal
           onClose={handleCloseOnboarding}
           onNavigate={(route) => { navigate(route); }}
@@ -434,7 +433,6 @@ export default function Dashboard({ onLogout }) {
           <NavItem to="/dashboard/aircraft" icon={Plane} label="Aircraft" active={path === '/dashboard/aircraft'} />
           <NavItem to="/dashboard/map" icon={Map} label="Live Map" active={path === '/dashboard/map'} />
           <NavItem to="/dashboard/airport" icon={MapPin} label="Airport Config" active={path === '/dashboard/airport'} />
-          <NavItem to="/dashboard/locations" icon={Layers} label="Locations" active={path === '/dashboard/locations'} />
           <NavItem to="/dashboard/alerts" icon={Bell} label="Alerts" active={path === '/dashboard/alerts'} />
           <NavItem to="/dashboard/integrations" icon={LinkIcon} label="Integrations" active={path === '/dashboard/integrations'} />
           <NavItem to="/dashboard/logs" icon={ScrollText} label="Logs" active={path === '/dashboard/logs'} />
@@ -474,7 +472,6 @@ export default function Dashboard({ onLogout }) {
             <Route path="/aircraft" element={<AircraftManager isViewOnly={isViewOnly} />} />
             <Route path="/map" element={<LiveMap />} />
             <Route path="/airport" element={<AirportConfig isViewOnly={isViewOnly} />} />
-            <Route path="/locations" element={<SavedLocations isViewOnly={isViewOnly} />} />
             <Route path="/alerts" element={<AlertSettings isViewOnly={isViewOnly} />} />
             <Route path="/integrations" element={<Integrations isViewOnly={isViewOnly} />} />
             <Route path="/logs" element={<Logs />} />

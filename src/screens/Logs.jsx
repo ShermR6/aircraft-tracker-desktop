@@ -95,6 +95,52 @@ function LocalTime({ iso }) {
   return React.createElement(React.Fragment, null, formatted);
 }
 
+function CheckboxDropdown({ label, options, selected, onChange, formatLabel }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggle = (val) => onChange(selected.includes(val) ? selected.filter(v => v !== val) : [...selected, val]);
+
+  const btnStyle = {
+    padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+    background: selected.length > 0 ? 'rgba(59,130,246,0.15)' : '#111827',
+    border: selected.length > 0 ? '1px solid rgba(59,130,246,0.4)' : '1px solid #374151',
+    color: selected.length > 0 ? '#60a5fa' : '#9ca3af',
+    cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '6px',
+  };
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button style={btnStyle} onClick={() => setOpen(o => !o)}>
+        {label}{selected.length > 0 ? ` (${selected.length})` : ''} ▾
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
+          background: '#1a2030', border: '1px solid #2d3748', borderRadius: '10px',
+          padding: '8px 0', minWidth: '180px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        }}>
+          {options.map(opt => (
+            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 14px', cursor: 'pointer', fontSize: '13px', color: selected.includes(opt) ? '#f9fafb' : '#9ca3af' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)}
+                style={{ accentColor: '#3b82f6', width: '14px', height: '14px', flexShrink: 0 }} />
+              {formatLabel ? formatLabel(opt) : opt}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
@@ -103,17 +149,24 @@ export default function Logs() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [filters, setFilters] = useState({ aircraft: '', alert_type: '', integration: '' });
+  const [selectedAircraft, setSelectedAircraft] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedChannels, setSelectedChannels] = useState([]);
   const [aircraft, setAircraft] = useState([]);
+
+  // Build filters object from multi-select arrays (API still takes single values, so we filter client-side)
+  const filters = {
+    aircraft: selectedAircraft.join(','),
+    alert_type: selectedTypes.join(','),
+    integration: selectedChannels.join(','),
+  };
 
   const loadLogs = useCallback(async (p = page, f = filters, isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const params = new URLSearchParams({ page: p, limit: 25 });
-      if (f.aircraft) params.append('aircraft', f.aircraft);
-      if (f.alert_type) params.append('alert_type', f.alert_type);
-      if (f.integration) params.append('integration', f.integration);
+      // Load all logs and filter client-side for multi-select support
+      const params = new URLSearchParams({ page: 1, limit: 500 });
       const data = await APIService.client.get(`/api/notifications/logs?${params}`);
       setLogs(data.data.logs || []);
       setTotal(data.data.total || 0);
@@ -124,7 +177,7 @@ export default function Logs() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [page, filters]);
+  }, [page]);
 
   const loadStats = async () => {
     try {
@@ -146,36 +199,31 @@ export default function Logs() {
   }, []);
 
   useEffect(() => {
-    loadLogs(page, filters);
-  }, [page, filters]);
+    loadLogs(page);
+  }, [page]);
 
-  const handleFilter = (key, val) => {
-    const newFilters = { ...filters, [key]: val };
-    setFilters(newFilters);
-    setPage(1);
-  };
+  const clearFilters = () => { setSelectedAircraft([]); setSelectedTypes([]); setSelectedChannels([]); setPage(1); };
+  const hasFilters = selectedAircraft.length > 0 || selectedTypes.length > 0 || selectedChannels.length > 0;
+
+  // Client-side filtering for multi-select
+  const filteredLogs = logs.filter(l =>
+    (selectedAircraft.length === 0 || selectedAircraft.includes(l.aircraft_tail)) &&
+    (selectedTypes.length === 0 || selectedTypes.includes(l.alert_type)) &&
+    (selectedChannels.length === 0 || selectedChannels.includes(l.integration_type))
+  );
 
   const downloadLogs = async () => {
     try {
-      // Fetch all logs without pagination for export
-      const params = new URLSearchParams({ page: 1, limit: 10000 });
-      if (filters.aircraft) params.append('aircraft', filters.aircraft);
-      if (filters.alert_type) params.append('alert_type', filters.alert_type);
-      if (filters.integration) params.append('integration', filters.integration);
-      const data = await APIService.client.get(`/api/notifications/logs?${params}`);
-      const allLogs = data.data.logs || [];
-
+      const exportLogs = filteredLogs;
       const formatTime = (iso) => new Date(iso).toLocaleString(undefined, {
         month: 'short', day: 'numeric', year: 'numeric',
         hour: 'numeric', minute: '2-digit',
       });
-
       const header = 'FinalPing Alert History Export\n' +
         `Exported: ${new Date().toLocaleString()}\n` +
-        `Total Alerts: ${allLogs.length}\n` +
+        `Total Alerts: ${exportLogs.length}\n` +
         '='.repeat(80) + '\n\n';
-
-      const rows = allLogs.map(log =>
+      const rows = exportLogs.map(log =>
         `[${formatTime(log.sent_at)}] ${log.aircraft_tail} — ${log.alert_type} — ${log.integration_type} — ${log.status}\n  ${log.message}`
       ).join('\n\n');
 
@@ -197,7 +245,7 @@ export default function Logs() {
       <div style={s.header}>
         <div>
           <h2 style={s.title}>Alert Logs</h2>
-          <p style={s.sub}>Full history of every notification sent · {total} total</p>
+          <p style={s.sub}>Full history of every notification sent · {hasFilters ? `${filteredLogs.length} of ${total}` : total} total</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button style={s.refreshBtn} onClick={downloadLogs}
@@ -234,29 +282,30 @@ export default function Logs() {
         {/* Filters */}
         <div style={s.filterRow}>
           <Filter size={13} color="#4b5563" />
-          <select style={s.select} value={filters.aircraft} onChange={e => handleFilter('aircraft', e.target.value)}>
-            <option value="">All Aircraft</option>
-            {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number}</option>)}
-          </select>
-          <select style={s.select} value={filters.alert_type} onChange={e => handleFilter('alert_type', e.target.value)}>
-            <option value="">All Alert Types</option>
-            <option value="landing">Landing</option>
-            <option value="2nm">2nm</option>
-            <option value="5nm">5nm</option>
-            <option value="10nm">10nm</option>
-            <option value="15nm">15nm</option>
-          </select>
-          <select style={s.select} value={filters.integration} onChange={e => handleFilter('integration', e.target.value)}>
-            <option value="">All Channels</option>
-            <option value="discord">Discord</option>
-            <option value="slack">Slack</option>
-            <option value="teams">Teams</option>
-            <option value="email">Email</option>
-          </select>
-          {(filters.aircraft || filters.alert_type || filters.integration) && (
+          <CheckboxDropdown
+            label="Aircraft"
+            options={aircraft.map(a => a.tail_number)}
+            selected={selectedAircraft}
+            onChange={v => { setSelectedAircraft(v); setPage(1); }}
+          />
+          <CheckboxDropdown
+            label="Alert Types"
+            options={['2nm', '5nm', '10nm', '15nm', 'landing']}
+            selected={selectedTypes}
+            onChange={v => { setSelectedTypes(v); setPage(1); }}
+            formatLabel={t => t === 'landing' ? '🛬 Landing' : `📍 ${t} out`}
+          />
+          <CheckboxDropdown
+            label="Channels"
+            options={['discord', 'slack', 'teams', 'email', 'sms', 'whatsapp']}
+            selected={selectedChannels}
+            onChange={v => { setSelectedChannels(v); setPage(1); }}
+            formatLabel={c => c.charAt(0).toUpperCase() + c.slice(1)}
+          />
+          {hasFilters && (
             <button style={{ ...s.refreshBtn, marginLeft: 0, color: '#f87171', borderColor: '#f8717130' }}
-              onClick={() => { setFilters({ aircraft: '', alert_type: '', integration: '' }); setPage(1); }}>
-              Clear filters
+              onClick={clearFilters}>
+              ✕ Clear
             </button>
           )}
         </div>
@@ -264,14 +313,12 @@ export default function Logs() {
         {/* Table */}
         {loading ? (
           <div style={s.loading}>Loading logs...</div>
-        ) : logs.length === 0 ? (
+        ) : filteredLogs.length === 0 ? (
           <div style={s.empty}>
             <Bell size={28} color="#2d3748" style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
             <p style={{ margin: '0 0 4px', fontSize: '14px' }}>No alerts found</p>
             <p style={{ margin: 0, fontSize: '12px' }}>
-              {filters.aircraft || filters.alert_type || filters.integration
-                ? 'Try adjusting your filters'
-                : 'Alerts will appear here once the tracker sends notifications'}
+              {hasFilters ? 'Try adjusting your filters' : 'Alerts will appear here once the tracker sends notifications'}
             </p>
           </div>
         ) : (
@@ -287,7 +334,7 @@ export default function Logs() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log, i) => (
+              {filteredLogs.map((log, i) => (
                 <tr key={log.id} style={s.tr(i)}>
                   <td style={s.td}>
                     <div style={s.tail}>
