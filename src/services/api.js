@@ -155,10 +155,11 @@ class APIService {
     return response.data;
   }
 
-  // Health Check
+  // Health Check — uses plain fetch so no auth token is required
   async healthCheck() {
-    const response = await this.client.get('/health');
-    return response.data;
+    const response = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
+    if (!response.ok) throw new Error('Health check failed');
+    return response.json();
   }
 
   async getRecentNotifications(limit = 8) {
