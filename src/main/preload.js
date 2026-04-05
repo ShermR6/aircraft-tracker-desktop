@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Restore input focus after React navigation
   focusWindow: () => ipcRenderer.invoke('focus-window'),
 
+  // App version
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+
   // Tracker control
   trackerStart: (token) => ipcRenderer.invoke('tracker-start', token),
   trackerStop: () => ipcRenderer.invoke('tracker-stop'),
