@@ -78,10 +78,32 @@ export default function AlertSettings({ isViewOnly = false }) {
 
   const loadData = async () => {
     try {
-      const alertData = await APIService.getAlertSettings();
-      const distanceAlerts = alertData.filter(a => a.alert_type !== 'landing')
-        .map((a, idx) => ({ id: idx + 1, distance: parseInt(a.alert_type.replace('nm', '')), enabled: a.enabled, message: a.message_template }));
-      if (distanceAlerts.length > 0) setAlerts(distanceAlerts);
+      const [alertData, airportConfig] = await Promise.all([
+        APIService.getAlertSettings(),
+        APIService.getAirportConfig().catch(() => null),
+      ]);
+
+      // Get distances from airport config (source of truth for what tracker watches)
+      const configDistances = airportConfig?.alert_distances_nm
+        ? airportConfig.alert_distances_nm.map(d => parseFloat(d))
+        : [10, 5, 2];
+
+      // Merge with saved message templates
+      const alertMap = {};
+      alertData.filter(a => a.alert_type !== 'landing').forEach(a => {
+        const dist = parseInt(a.alert_type.replace('nm', ''));
+        alertMap[dist] = { enabled: a.enabled, message: a.message_template };
+      });
+
+      const merged = configDistances.map((dist, idx) => ({
+        id: idx + 1,
+        distance: dist,
+        enabled: alertMap[dist]?.enabled ?? true,
+        message: alertMap[dist]?.message ?? `✈️ {tail_number} is ${dist}nm from {airport}`,
+      }));
+
+      if (merged.length > 0) setAlerts(merged);
+
       const landing = alertData.find(a => a.alert_type === 'landing');
       if (landing) setLandingAlert({ enabled: landing.enabled, message: landing.message_template });
     } catch (error) {
@@ -107,10 +129,26 @@ export default function AlertSettings({ isViewOnly = false }) {
     setSaving(true);
     setMessage({ type: '', text: '' });
     try {
+      // Save each alert message template
       for (const alert of [...alerts].sort((a, b) => b.distance - a.distance)) {
         await APIService.updateAlertSetting(`${alert.distance}nm`, alert.enabled, alert.message);
       }
       await APIService.updateAlertSetting('landing', landingAlert.enabled, landingAlert.message);
+
+      // Sync alert distances to airport config so the tracker picks them up
+      const enabledDistances = alerts
+        .filter(a => a.enabled)
+        .map(a => parseFloat(a.distance))
+        .filter(d => !isNaN(d) && d > 0);
+
+      if (enabledDistances.length > 0) {
+        const currentConfig = await APIService.getAirportConfig();
+        await APIService.updateAirportConfig({
+          ...currentConfig,
+          alert_distances_nm: enabledDistances,
+        });
+      }
+
       setMessage({ type: 'success', text: 'Alert settings saved successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to save settings' });
