@@ -344,16 +344,17 @@ export default function Dashboard({ onLogout }) {
         await APIService.healthCheck();
         setConnectionLost(false);
         setRetrying(false);
-      } catch {
+      } catch (err) {
+        console.warn('Connection check failed:', err?.message);
         setConnectionLost(true);
       }
     };
 
-    // Start checking after initial load
+    // Wait 10 seconds before first check to let the app fully load
     const timeout = setTimeout(() => {
       checkConnection();
       interval = setInterval(checkConnection, 30000);
-    }, 5000);
+    }, 10000);
 
     return () => {
       clearTimeout(timeout);

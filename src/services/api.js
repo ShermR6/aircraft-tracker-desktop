@@ -155,11 +155,22 @@ class APIService {
     return response.data;
   }
 
-  // Health Check — uses plain fetch so no auth token is required
+  // Health Check — plain fetch, no auth token needed
   async healthCheck() {
-    const response = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
-    if (!response.ok) throw new Error('Health check failed');
-    return response.json();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!response.ok) throw new Error(`Health check returned ${response.status}`);
+      return response.json();
+    } catch (err) {
+      clearTimeout(timeout);
+      throw err;
+    }
   }
 
   async getRecentNotifications(limit = 8) {
