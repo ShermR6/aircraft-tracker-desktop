@@ -144,30 +144,66 @@ function createWindow() {
       detail: 'Your cloud tracker will continue running and sending alerts even after closing. Minimize to tray to keep the app accessible from the taskbar.',
     }).then(({ response }) => {
       if (response === 0) {
-        // Minimize to tray
         mainWindow.hide();
       } else if (response === 1) {
-        // Exit
         forceQuit = true;
         tracker.stopTracker();
         app.quit();
       }
-      // response === 2 (Cancel) or X clicked — do nothing, return to app
+      // After dialog closes, restore input focus
+      if (response === 2 && mainWindow && !mainWindow.isDestroyed()) {
+        setTimeout(() => {
+          mainWindow.webContents.focus();
+          mainWindow.webContents.executeJavaScript(`window.focus();`).catch(() => {});
+        }, 100);
+      }
     });
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
 
-  // Fix Electron input focus bug
-  mainWindow.on('focus', () => {
-    mainWindow.webContents.focus();
-  });
+  // ── Aggressive input focus fix ─────────────────────────────────────────
+  // Electron loses input focus after dialogs, navigation, and tray restore.
+  // This forces focus back to the renderer whenever the window becomes active.
+  const refocusRenderer = () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.focus();
+      // Execute JS to blur and refocus the active element so inputs work
+      mainWindow.webContents.executeJavaScript(`
+        (function() {
+          const el = document.activeElement;
+          if (el && el !== document.body) {
+            el.blur();
+            setTimeout(() => el.focus(), 50);
+          } else {
+            // Focus the window itself so keyboard events register
+            window.focus();
+          }
+        })();
+      `).catch(() => {});
+    }
+  };
+
+  mainWindow.on('focus', refocusRenderer);
+  mainWindow.on('show', refocusRenderer);
+
+  // Also fix focus after dialog closes (the close dialog causes the bug most often)
+  mainWindow.on('leave-full-screen', refocusRenderer);
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
     if (app.isPackaged) {
       setTimeout(() => autoUpdater.checkForUpdates(), 3000);
     }
+  });
+
+  // Restore focus after any in-page navigation (React route changes, logout, etc.)
+  mainWindow.webContents.on('did-navigate-in-page', () => {
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.focus();
+      }
+    }, 100);
   });
 
   // Push tracker status updates to the renderer
