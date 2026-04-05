@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link as LinkIcon, Save, Trash2, Send, Loader, Check, X, Lock } from 'lucide-react';
 import APIService from '../services/api';
 import StorageService from '../services/storage';
-import { getLimits, getLimitDisplay } from '../config/tierLimits';
+import { getLimits, getLimitDisplay, isChannelAllowed } from '../config/tierLimits';
 
 const INTEGRATION_TYPES = [
   { type: 'discord', name: 'Discord', color: '#5865f2', placeholder: 'https://discord.com/api/webhooks/...', icon: '💬', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
@@ -104,6 +104,12 @@ export default function Integrations({ isViewOnly = false }) {
 
   const handleAdd = (type) => {
     if (integrations.some(i => i.type === type)) return;
+    if (!isChannelAllowed(tier, type)) {
+      const channelName = INTEGRATION_TYPES.find(t => t.type === type)?.name || type;
+      setMessage({ type: 'error', text: `${channelName} is not available on your ${tier} plan. Upgrade to unlock it.` });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      return;
+    }
     const limits = getLimits(tier);
     if (integrations.length >= limits.integrations) {
       setMessage({ type: 'error', text: `Your ${tier} plan allows up to ${getLimitDisplay(limits.integrations)} notification channel${limits.integrations === 1 ? '' : 's'}. Upgrade to add more.` });
@@ -306,14 +312,15 @@ export default function Integrations({ isViewOnly = false }) {
         <div style={s.addGrid}>
           {INTEGRATION_TYPES.map(t => {
             const alreadyAdded = hasIntegration(t.type);
-            const disabled = alreadyAdded || atLimit;
+            const channelLocked = !isChannelAllowed(tier, t.type);
+            const disabled = alreadyAdded || atLimit || channelLocked;
             return (
               <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
                 onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
                 onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
-                <div style={s.addIcon}>{atLimit && !alreadyAdded ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
+                <div style={s.addIcon}>{(channelLocked || (atLimit && !alreadyAdded)) ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
                 <p style={s.addName}>{t.name}</p>
-                <p style={s.addStatus}>{alreadyAdded ? 'Already added' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
+                <p style={s.addStatus}>{alreadyAdded ? 'Already added' : channelLocked ? 'Upgrade to unlock' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
               </div>
             );
           })}

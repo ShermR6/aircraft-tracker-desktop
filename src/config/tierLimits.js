@@ -3,15 +3,18 @@
 export const TIER_LIMITS = {
   starter: {
     aircraft: 3,
-    integrations: 1,
+    integrations: 2,
+    allowedChannels: ['discord', 'email'],
   },
   premium: {
-    aircraft: 10,
-    integrations: 3,
+    aircraft: 7,
+    integrations: 5,
+    allowedChannels: ['discord', 'email', 'slack', 'sms', 'teams'],
   },
   pro: {
-    aircraft: Infinity,
-    integrations: Infinity,
+    aircraft: 15,
+    integrations: 6,
+    allowedChannels: ['discord', 'email', 'slack', 'sms', 'teams', 'whatsapp'],
   },
 };
 
@@ -23,6 +26,11 @@ export function getLimits(tier) {
 export function isAtLimit(tier, type, currentCount) {
   const limits = getLimits(tier);
   return currentCount >= limits[type];
+}
+
+export function isChannelAllowed(tier, channelType) {
+  const limits = getLimits(tier);
+  return limits.allowedChannels.includes(channelType);
 }
 
 export function getLimitDisplay(value) {
