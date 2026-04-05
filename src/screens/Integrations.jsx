@@ -83,6 +83,7 @@ export default function Integrations({ isViewOnly = false }) {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [tier, setTier] = useState('starter');
   const [showChargesModal, setShowChargesModal] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', text: string, name: string }
   const [pendingAddType, setPendingAddType] = useState(null);
 
   useEffect(() => {
@@ -147,14 +148,20 @@ export default function Integrations({ isViewOnly = false }) {
 
   const handleTest = async (integration) => {
     setTesting(integration.id);
+    const name = integration.type.charAt(0).toUpperCase() + integration.type.slice(1);
     try {
       await APIService.testIntegration(integration.id);
       setTestResults(prev => ({ ...prev, [integration.id]: 'success' }));
+      setToast({ type: 'success', text: `Test notification sent to ${name} successfully!`, name });
     } catch {
       setTestResults(prev => ({ ...prev, [integration.id]: 'error' }));
+      setToast({ type: 'error', text: `${name} test failed — check your settings and try again.`, name });
     } finally {
       setTesting(null);
-      setTimeout(() => setTestResults(prev => ({ ...prev, [integration.id]: null })), 3000);
+      setTimeout(() => {
+        setTestResults(prev => ({ ...prev, [integration.id]: null }));
+        setToast(null);
+      }, 6000);
     }
   };
 
@@ -178,6 +185,28 @@ export default function Integrations({ isViewOnly = false }) {
 
   return (
     <div style={s.page}>
+      {/* Test result toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+          padding: '14px 20px', borderRadius: 12,
+          background: toast.type === 'success' ? '#0f2a1a' : '#2a0f0f',
+          border: `1px solid ${toast.type === 'success' ? '#34d39940' : '#ef444440'}`,
+          color: toast.type === 'success' ? '#34d399' : '#f87171',
+          fontSize: 13, fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 10,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          maxWidth: 360,
+          animation: 'slideIn 0.2s ease',
+        }}>
+          <span style={{ fontSize: 18 }}>{toast.type === 'success' ? '✅' : '❌'}</span>
+          {toast.text}
+        </div>
+      )}
+      <style>{`
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
 
       {/* SMS / WhatsApp charges warning modal */}
       {showChargesModal && (
@@ -295,8 +324,8 @@ export default function Integrations({ isViewOnly = false }) {
       {integrations.length === 0 ? (
         <div style={s.empty}>
           <div style={s.emptyIcon}><LinkIcon size={24} color="#4b5563" /></div>
-          <p style={s.emptyText}>No notification channels yet</p>
-          <p style={s.emptyHint}>Connect Discord, Slack, email, or SMS above to start receiving alerts when your aircraft approaches.</p>
+          <p style={s.emptyText}>No integrations yet</p>
+          <p style={s.emptyHint}>Click on a service above to get started</p>
         </div>
       ) : (
         integrations.map(integration => {
@@ -374,7 +403,7 @@ export default function Integrations({ isViewOnly = false }) {
         <strong>Email:</strong> Enter any email address — alerts will be sent from noreply@finalpingapp.com<br />
         <strong>SMS & WhatsApp:</strong> Enter your phone number with country code (e.g. +11234567890) — powered by Twilio
       </div>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      
     </div>
   );
 }
