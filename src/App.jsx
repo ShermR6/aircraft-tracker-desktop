@@ -172,12 +172,16 @@ function App() {
     });
     APIService.setToken(authData.access_token);
     setIsAuthenticated(true);
+    // Restore input focus after React re-render
+    setTimeout(() => window.electronAPI?.focusWindow?.(), 150);
   };
 
   const handleLogout = async () => {
     await StorageService.logout();
     APIService.clearToken();
     setIsAuthenticated(false);
+    // Restore input focus after navigating to activation screen
+    setTimeout(() => window.electronAPI?.focusWindow?.(), 150);
   };
 
   if (loading) {

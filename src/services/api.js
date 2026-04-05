@@ -5,8 +5,12 @@ const API_BASE_URL = 'https://aircraft-tracker-backend-production.up.railway.app
 class APIService {
   constructor() {
     this.token = null;
+    this.connectionListeners = [];
+    this.isConnected = true;
+
     this.client = axios.create({
       baseURL: API_BASE_URL,
+      timeout: 10000,
       headers: {
         'Content-Type': 'application/json'
       }
@@ -22,6 +26,38 @@ class APIService {
       },
       (error) => Promise.reject(error)
     );
+
+    // Response interceptor — track connection state
+    this.client.interceptors.response.use(
+      (response) => {
+        if (!this.isConnected) {
+          this.isConnected = true;
+          this.connectionListeners.forEach(fn => fn(true));
+        }
+        return response;
+      },
+      (error) => {
+        if (!error.response) {
+          // Network error — no response from server
+          if (this.isConnected) {
+            this.isConnected = false;
+            this.connectionListeners.forEach(fn => fn(false));
+          }
+        } else {
+          // Got a response — server is reachable
+          if (!this.isConnected) {
+            this.isConnected = true;
+            this.connectionListeners.forEach(fn => fn(true));
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  onConnectionChange(fn) {
+    this.connectionListeners.push(fn);
+    return () => { this.connectionListeners = this.connectionListeners.filter(l => l !== fn); };
   }
 
   setToken(token) {
@@ -155,22 +191,10 @@ class APIService {
     return response.data;
   }
 
-  // Health Check — plain fetch, no auth token needed
+  // Health Check
   async healthCheck() {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    try {
-      const response = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET',
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      if (!response.ok) throw new Error(`Health check returned ${response.status}`);
-      return response.json();
-    } catch (err) {
-      clearTimeout(timeout);
-      throw err;
-    }
+    const response = await this.client.get('/health');
+    return response.data;
   }
 
   async getRecentNotifications(limit = 8) {

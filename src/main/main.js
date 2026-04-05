@@ -144,66 +144,34 @@ function createWindow() {
       detail: 'Your cloud tracker will continue running and sending alerts even after closing. Minimize to tray to keep the app accessible from the taskbar.',
     }).then(({ response }) => {
       if (response === 0) {
+        // Minimize to tray
         mainWindow.hide();
       } else if (response === 1) {
+        // Exit
         forceQuit = true;
         tracker.stopTracker();
         app.quit();
       }
-      // After dialog closes, restore input focus
-      if (response === 2 && mainWindow && !mainWindow.isDestroyed()) {
-        setTimeout(() => {
-          mainWindow.webContents.focus();
-          mainWindow.webContents.executeJavaScript(`window.focus();`).catch(() => {});
-        }, 100);
-      }
+      // response === 2 (Cancel) or X clicked — do nothing, return to app
     });
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
 
-  // ── Aggressive input focus fix ─────────────────────────────────────────
-  // Electron loses input focus after dialogs, navigation, and tray restore.
-  // This forces focus back to the renderer whenever the window becomes active.
-  const refocusRenderer = () => {
+  // Fix Electron input focus bug — restore focus on window show/focus
+  const refocus = () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.focus();
-      // Execute JS to blur and refocus the active element so inputs work
-      mainWindow.webContents.executeJavaScript(`
-        (function() {
-          const el = document.activeElement;
-          if (el && el !== document.body) {
-            el.blur();
-            setTimeout(() => el.focus(), 50);
-          } else {
-            // Focus the window itself so keyboard events register
-            window.focus();
-          }
-        })();
-      `).catch(() => {});
     }
   };
-
-  mainWindow.on('focus', refocusRenderer);
-  mainWindow.on('show', refocusRenderer);
-
-  // Also fix focus after dialog closes (the close dialog causes the bug most often)
-  mainWindow.on('leave-full-screen', refocusRenderer);
+  mainWindow.on('focus', refocus);
+  mainWindow.on('show', refocus);
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
     if (app.isPackaged) {
       setTimeout(() => autoUpdater.checkForUpdates(), 3000);
     }
-  });
-
-  // Restore focus after any in-page navigation (React route changes, logout, etc.)
-  mainWindow.webContents.on('did-navigate-in-page', () => {
-    setTimeout(() => {
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.focus();
-      }
-    }, 100);
   });
 
   // Push tracker status updates to the renderer
@@ -251,6 +219,20 @@ ipcMain.handle('store-clear', () => { store.clear(); return true; });
 
 // ─── External URLs ─────────────────────────────────────────────────────────────
 ipcMain.handle('open-external', (event, url) => shell.openExternal(url));
+
+// ─── Focus window — restores input focus after React navigation ───────────────
+ipcMain.handle('focus-window', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.focus();
+    mainWindow.webContents.executeJavaScript(`
+      (function() {
+        window.focus();
+        const el = document.activeElement;
+        if (el && el !== document.body) { el.blur(); setTimeout(() => el.focus(), 50); }
+      })();
+    `).catch(() => {});
+  }
+});
 
 // ─── Auto-updater IPC ─────────────────────────────────────────────────────────
 ipcMain.handle('update-restart', () => {

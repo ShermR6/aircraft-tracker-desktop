@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // External links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
+  // Restore input focus after React navigation
+  focusWindow: () => ipcRenderer.invoke('focus-window'),
+
   // Tracker control
   trackerStart: (token) => ipcRenderer.invoke('tracker-start', token),
   trackerStop: () => ipcRenderer.invoke('tracker-stop'),
@@ -31,7 +34,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('update-downloaded', (event, version) => callback(version));
   },
   restartAndInstall: () => ipcRenderer.invoke('update-restart'),
-
-  // App version
-  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 });

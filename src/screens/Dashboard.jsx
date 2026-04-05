@@ -304,7 +304,6 @@ export default function Dashboard({ onLogout }) {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [visitedRoutes, setVisitedRoutes] = useState(new Set());
   const [connectionLost, setConnectionLost] = useState(false);
-  const [retrying, setRetrying] = useState(false);
   const onboardingChecked = React.useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -336,30 +335,12 @@ export default function Dashboard({ onLogout }) {
 
   useEffect(() => { loadUserData(); }, []);
 
-  // Connection monitor — ping Railway every 30 seconds
+  // Listen for connection state changes from axios interceptor
   useEffect(() => {
-    let interval;
-    const checkConnection = async () => {
-      try {
-        await APIService.healthCheck();
-        setConnectionLost(false);
-        setRetrying(false);
-      } catch (err) {
-        console.warn('Connection check failed:', err?.message);
-        setConnectionLost(true);
-      }
-    };
-
-    // Wait 10 seconds before first check to let the app fully load
-    const timeout = setTimeout(() => {
-      checkConnection();
-      interval = setInterval(checkConnection, 30000);
-    }, 10000);
-
-    return () => {
-      clearTimeout(timeout);
-      clearInterval(interval);
-    };
+    const unsubscribe = APIService.onConnectionChange((connected) => {
+      setConnectionLost(!connected);
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -433,23 +414,6 @@ export default function Dashboard({ onLogout }) {
           gap: 16, fontSize: 12, color: '#d1d5db',
         }}>
           <span>⚠️ <strong style={{ color: '#f87171' }}>Connection lost</strong> — unable to reach the server.</span>
-          <button
-            onClick={async () => {
-              setRetrying(true);
-              try {
-                await APIService.healthCheck();
-                setConnectionLost(false);
-              } catch {}
-              setRetrying(false);
-            }}
-            style={{
-              padding: '4px 14px', borderRadius: 999,
-              background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
-              color: '#f87171', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-            }}
-          >
-            {retrying ? 'Retrying...' : 'Retry →'}
-          </button>
         </div>
       )}
 
