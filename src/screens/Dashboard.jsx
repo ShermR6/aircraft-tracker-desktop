@@ -303,6 +303,8 @@ export default function Dashboard({ onLogout }) {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [visitedRoutes, setVisitedRoutes] = useState(new Set());
+  const [connectionLost, setConnectionLost] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const onboardingChecked = React.useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -333,6 +335,31 @@ export default function Dashboard({ onLogout }) {
   }, [location.pathname]);
 
   useEffect(() => { loadUserData(); }, []);
+
+  // Connection monitor — ping Railway every 30 seconds
+  useEffect(() => {
+    let interval;
+    const checkConnection = async () => {
+      try {
+        await APIService.healthCheck();
+        setConnectionLost(false);
+        setRetrying(false);
+      } catch {
+        setConnectionLost(true);
+      }
+    };
+
+    // Start checking after initial load
+    const timeout = setTimeout(() => {
+      checkConnection();
+      interval = setInterval(checkConnection, 30000);
+    }, 5000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     window.electronAPI?.getAppVersion().then(v => setAppVersion(v)).catch(() => {});
@@ -392,6 +419,37 @@ export default function Dashboard({ onLogout }) {
           onNavigate={(route) => { navigate(route); }}
           completedSteps={completedSteps}
         />
+      )}
+
+      {/* Connection lost banner */}
+      {connectionLost && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+          borderBottom: '1px solid rgba(239,68,68,0.3)',
+          padding: '8px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 16, fontSize: 12, color: '#d1d5db',
+        }}>
+          <span>⚠️ <strong style={{ color: '#f87171' }}>Connection lost</strong> — unable to reach the server.</span>
+          <button
+            onClick={async () => {
+              setRetrying(true);
+              try {
+                await APIService.healthCheck();
+                setConnectionLost(false);
+              } catch {}
+              setRetrying(false);
+            }}
+            style={{
+              padding: '4px 14px', borderRadius: 999,
+              background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+              color: '#f87171', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            {retrying ? 'Retrying...' : 'Retry →'}
+          </button>
+        </div>
       )}
 
       {/* View-only banner for free accounts */}
@@ -465,7 +523,7 @@ export default function Dashboard({ onLogout }) {
         </div>
       </div>
 
-      <div style={{ ...s.main, paddingTop: isViewOnly ? 36 : 0 }}>
+      <div style={{ ...s.main, paddingTop: (connectionLost ? 36 : 0) + (isViewOnly ? 36 : 0) }}>
         <div style={s.content}>
           <Routes>
             <Route path="/" element={<DashboardHome isViewOnly={isViewOnly} />} />
