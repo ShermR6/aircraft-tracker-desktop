@@ -348,12 +348,17 @@ export default function AircraftManager({ isViewOnly = false }) {
       {aircraft.length === 0 && !showForm ? (
         <div style={s.emptyState}>
           <div style={s.emptyIcon}><Plane size={28} color="#4b5563" /></div>
-          <p style={s.emptyTitle}>No aircraft yet</p>
-          <p style={s.emptyText}>{isViewOnly ? 'Purchase a license to start adding aircraft' : 'Add your first aircraft to start receiving tracking alerts'}</p>
+          <p style={s.emptyTitle}>No aircraft added yet</p>
+          <p style={s.emptyText}>{isViewOnly ? 'Purchase a license to start tracking aircraft' : 'Add a tail number and ICAO24 code to start receiving proximity alerts.'}</p>
           {!isViewOnly && (
             <button style={s.addBtn} onClick={openAdd}>
               <Plus size={16} /> Add Your First Aircraft
             </button>
+          )}
+          {!isViewOnly && (
+            <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '12px' }}>
+              Find ICAO24 codes at globe.adsbexchange.com
+            </p>
           )}
         </div>
       ) : (

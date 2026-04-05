@@ -295,8 +295,8 @@ export default function Integrations({ isViewOnly = false }) {
       {integrations.length === 0 ? (
         <div style={s.empty}>
           <div style={s.emptyIcon}><LinkIcon size={24} color="#4b5563" /></div>
-          <p style={s.emptyText}>No integrations yet</p>
-          <p style={s.emptyHint}>Click on a service above to get started</p>
+          <p style={s.emptyText}>No notification channels yet</p>
+          <p style={s.emptyHint}>Connect Discord, Slack, email, or SMS above to start receiving alerts when your aircraft approaches.</p>
         </div>
       ) : (
         integrations.map(integration => {
