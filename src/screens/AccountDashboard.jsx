@@ -130,9 +130,12 @@ export default function AccountDashboard() {
   // Expiry warning
   let expiryWarning = null;
   if (expiresAt) {
-    const daysLeft = Math.ceil((expiresAt - Date.now()) / (1000 * 60 * 60 * 24));
-    if (daysLeft <= 0) expiryWarning = { daysLeft: 0, urgent: true, expired: true };
-    else if (daysLeft <= 7) expiryWarning = { daysLeft, urgent: daysLeft <= 2 };
+    const msLeft = expiresAt - Date.now();
+    const hoursLeft = Math.floor(msLeft / (1000 * 60 * 60));
+    const daysLeft = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+    if (msLeft <= 0) expiryWarning = { label: 'expired', daysLeft: 0, urgent: true, expired: true };
+    else if (hoursLeft < 24) expiryWarning = { label: `${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}`, daysLeft: 0, urgent: true };
+    else if (daysLeft <= 7) expiryWarning = { label: `${daysLeft} day${daysLeft !== 1 ? 's' : ''}`, daysLeft, urgent: daysLeft <= 2 };
   }
 
   return (
@@ -163,7 +166,7 @@ export default function AccountDashboard() {
           <p style={{ fontSize: '13px', color: expiryWarning.urgent ? '#fca5a5' : '#fcd34d', margin: 0, flex: 1 }}>
             {expiryWarning.expired
               ? 'Your license has expired. Renew to continue receiving alerts.'
-              : `Your license expires in ${expiryWarning.daysLeft} day${expiryWarning.daysLeft !== 1 ? 's' : ''}. Renew soon to avoid interruption.`
+              : `Your license expires in ${expiryWarning.label}. Renew soon to avoid interruption.`
             }
           </p>
           <span
