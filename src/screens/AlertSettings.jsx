@@ -65,11 +65,11 @@ function Toggle({ checked, onChange }) {
 
 export default function AlertSettings({ isViewOnly = false }) {
   const [alerts, setAlerts] = useState([
-    { id: 1, distance: 10, enabled: true, message: '✈️ {tail_number} detected {distance}nm from {airport}' },
-    { id: 2, distance: 5, enabled: true, message: '🛬 {tail_number} approaching - {distance}nm from {airport}' },
-    { id: 3, distance: 2, enabled: true, message: '⚠️ {tail_number} on final - {distance}nm from {airport}' }
+    { id: 1, distance: 10, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' },
+    { id: 2, distance: 5, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' },
+    { id: 3, distance: 2, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' }
   ]);
-  const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ {tail_number} has landed at {airport}' });
+  const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ **{tail_number}** has landed at {airport}' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -99,7 +99,7 @@ export default function AlertSettings({ isViewOnly = false }) {
         id: idx + 1,
         distance: dist,
         enabled: alertMap[dist]?.enabled ?? true,
-        message: alertMap[dist]?.message ?? `✈️ {tail_number} is ${dist}nm from {airport}`,
+        message: alertMap[dist]?.message ?? '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL',
       }));
 
       if (merged.length > 0) setAlerts(merged);
@@ -115,7 +115,7 @@ export default function AlertSettings({ isViewOnly = false }) {
 
   const handleAddAlert = () => {
     const newId = Math.max(...alerts.map(a => a.id), 0) + 1;
-    setAlerts([...alerts, { id: newId, distance: 15, enabled: true, message: '✈️ {tail_number} is {distance}nm from {airport}' }]);
+    setAlerts([...alerts, { id: newId, distance: 15, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' }]);
   };
 
   const handleRemove = (id) => {
@@ -219,7 +219,7 @@ export default function AlertSettings({ isViewOnly = false }) {
         ))}
         <div style={s.varsRow}>
           <span style={s.varLabel}>Available variables:</span>
-          {['{tail_number}', '{airport}', '{distance}', '{altitude}'].map(v => (
+          {['{tail_number}', '{airport}', '{distance}', '{altitude}', '{eta}'].map(v => (
             <span key={v} style={s.varChip}>{v}</span>
           ))}
         </div>
