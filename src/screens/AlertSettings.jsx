@@ -131,7 +131,9 @@ export default function AlertSettings({ isViewOnly = false }) {
     try {
       // Save each alert message template
       for (const alert of [...alerts].sort((a, b) => b.distance - a.distance)) {
-        await APIService.updateAlertSetting(`${alert.distance}nm`, alert.enabled, alert.message);
+        const dist = parseFloat(alert.distance);
+        const distKey = dist === Math.floor(dist) ? `${Math.floor(dist)}nm` : `${dist}nm`;
+        await APIService.updateAlertSetting(distKey, alert.enabled, alert.message);
       }
       await APIService.updateAlertSetting('landing', landingAlert.enabled, landingAlert.message);
 
