@@ -65,11 +65,11 @@ function Toggle({ checked, onChange }) {
 
 export default function AlertSettings({ isViewOnly = false }) {
   const [alerts, setAlerts] = useState([
-    { id: 1, distance: 10, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' },
-    { id: 2, distance: 5, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' },
-    { id: 3, distance: 2, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' }
+    { id: 1, distance: 10, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' },
+    { id: 2, distance: 5, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' },
+    { id: 3, distance: 2, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' }
   ]);
-  const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ **{tail_number}** has landed at {airport}' });
+  const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ **{tail_number}** has landed at **{airport}**' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
