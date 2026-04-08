@@ -69,7 +69,7 @@ export default function AlertSettings({ isViewOnly = false }) {
     { id: 2, distance: 5, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' },
     { id: 3, distance: 2, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' }
   ]);
-  const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ **{tail_number}** has landed at **{airport}**' });
+  const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ **{tail_number}** has landed at {airport}' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -99,7 +99,7 @@ export default function AlertSettings({ isViewOnly = false }) {
         id: idx + 1,
         distance: dist,
         enabled: alertMap[dist]?.enabled ?? true,
-        message: alertMap[dist]?.message ?? '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL',
+        message: alertMap[dist]?.message ?? '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL',
       }));
 
       if (merged.length > 0) setAlerts(merged);
@@ -115,7 +115,7 @@ export default function AlertSettings({ isViewOnly = false }) {
 
   const handleAddAlert = () => {
     const newId = Math.max(...alerts.map(a => a.id), 0) + 1;
-    setAlerts([...alerts, { id: newId, distance: 15, enabled: true, message: '✈️ **{tail_number}** – {distance}nm from {airport}\nETA ~{eta}min, Alt {altitude}ft MSL' }]);
+    setAlerts([...alerts, { id: newId, distance: 15, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' }]);
   };
 
   const handleRemove = (id) => {
