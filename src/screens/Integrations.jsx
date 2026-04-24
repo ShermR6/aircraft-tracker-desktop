@@ -85,6 +85,7 @@ export default function Integrations({ isViewOnly = false }) {
   const [showChargesModal, setShowChargesModal] = useState(false);
   const [toast, setToast] = useState(null); // { type: 'success'|'error', text: string, name: string }
   const [pendingAddType, setPendingAddType] = useState(null);
+  const [chargesAccepted, setChargesAccepted] = useState(false);
 
   useEffect(() => {
     loadIntegrations();
@@ -119,6 +120,7 @@ export default function Integrations({ isViewOnly = false }) {
     // Show charges warning for SMS and WhatsApp before adding
     if (type === 'sms' || type === 'whatsapp') {
       setPendingAddType(type);
+      setChargesAccepted(false);
       setShowChargesModal(true);
       return;
     }
@@ -242,9 +244,24 @@ export default function Integrations({ isViewOnly = false }) {
               <li>You are responsible for any charges incurred by your carrier.</li>
               <li>You can disable {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} alerts at any time from this screen.</li>
             </ul>
-            <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 24, fontStyle: 'italic' }}>
+            <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, fontStyle: 'italic' }}>
               Reply STOP to any message to unsubscribe immediately.
             </p>
+            <label
+              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer', fontSize: 13, color: '#9ca3af', lineHeight: 1.5 }}
+              onClick={() => setChargesAccepted(!chargesAccepted)}
+            >
+              <div style={{
+                width: 20, height: 20, minWidth: 20, borderRadius: 4, marginTop: 1,
+                border: chargesAccepted ? '2px solid #3b82f6' : '2px solid #4b5563',
+                background: chargesAccepted ? '#3b82f6' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s',
+              }}>
+                {chargesAccepted && <Check size={13} color="#fff" strokeWidth={3} />}
+              </div>
+              <span>I acknowledge that standard messaging rates may apply and that I am responsible for any carrier charges.</span>
+            </label>
             <div style={{ display: 'flex', gap: 12 }}>
               <button
                 onClick={() => { setShowChargesModal(false); setPendingAddType(null); }}
@@ -258,16 +275,20 @@ export default function Integrations({ isViewOnly = false }) {
               </button>
               <button
                 onClick={() => {
+                  if (!chargesAccepted) return;
                   addIntegration(pendingAddType);
                   setShowChargesModal(false);
                   setPendingAddType(null);
                 }}
                 style={{
                   flex: 1, padding: '11px', borderRadius: 8,
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                  border: 'none', color: '#fff',
-                  fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                  boxShadow: '0 4px 12px #3b82f640',
+                  background: chargesAccepted ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#1f2937',
+                  border: chargesAccepted ? 'none' : '1px solid #374151',
+                  color: chargesAccepted ? '#fff' : '#4b5563',
+                  fontSize: 14, fontWeight: 600,
+                  cursor: chargesAccepted ? 'pointer' : 'not-allowed',
+                  boxShadow: chargesAccepted ? '0 4px 12px #3b82f640' : 'none',
+                  transition: 'all 0.2s',
                 }}
               >
                 I Understand, Continue
