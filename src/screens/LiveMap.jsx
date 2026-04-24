@@ -86,51 +86,21 @@ export default function LiveMap() {
       .bindPopup(`<div style="font-size:13px;"><strong style="color:#0ea5e9;">${airportConfig.airport_code || 'Home Base'}</strong><br/><span style="color:#9ca3af;font-size:11px;">${lat.toFixed(4)}, ${lng.toFixed(4)}</span></div>`)
       .addTo(map);
 
-    // Detection radius circle (query_radius_nm)
-    const detectionRadius = parseFloat(airportConfig.query_radius_nm || '100');
-    L.circle([lat, lng], {
-      radius: nmToMeters(detectionRadius),
-      color: '#6b7280',
-      weight: 1,
-      opacity: 0.3,
-      fillOpacity: 0.02,
-      dashArray: '8 6',
-    })
-      .bindPopup(`<span style="font-size:12px;color:#9ca3af;">Detection radius: ${detectionRadius} nm</span>`)
-      .addTo(map);
-
-    // Alert distance rings
-    const ringDistances = (airportConfig.alert_distances_nm || ['2.0', '5.0', '10.0'])
-      .map(d => parseFloat(d))
-      .sort((a, b) => a - b);
-    const ringColors = ['#ef4444', '#f59e0b', '#38bdf8', '#a78bfa', '#34d399', '#f472b6'];
-    ringsRef.current = ringDistances.map((nm, i) => {
-      const circle = L.circle([lat, lng], {
+    // Distance rings
+    const ringDistances = airportConfig.alert_distances_nm || ['2.0', '5.0', '10.0'];
+    const ringColors = ['#ef4444', '#f59e0b', '#38bdf8'];
+    ringsRef.current = ringDistances.map((dist, i) => {
+      const nm = parseFloat(dist);
+      return L.circle([lat, lng], {
         radius: nmToMeters(nm),
-        color: ringColors[i % ringColors.length],
-        weight: 1.5,
+        color: ringColors[i] || '#6b7280',
+        weight: 1,
         opacity: 0.5,
         fillOpacity: 0.03,
         dashArray: '6 4',
       })
-        .bindPopup(`<span style="font-size:12px;color:#9ca3af;">${nm} nm alert ring</span>`)
+        .bindPopup(`<span style="font-size:12px;color:#9ca3af;">${nm} nm ring</span>`)
         .addTo(map);
-
-      // Add label on the ring
-      const labelAngle = -45 * (Math.PI / 180);
-      const labelLat = lat + (nm / 60) * Math.cos(labelAngle);
-      const labelLng = lng + (nm / 60) * Math.sin(labelAngle) / Math.cos(lat * Math.PI / 180);
-      L.marker([labelLat, labelLng], {
-        icon: L.divIcon({
-          className: '',
-          html: `<div style="font-size:10px;font-weight:600;color:${ringColors[i % ringColors.length]};background:#0d1117cc;padding:1px 5px;border-radius:4px;white-space:nowrap;">${nm}nm</div>`,
-          iconSize: [40, 16],
-          iconAnchor: [20, 8],
-        }),
-        interactive: false,
-      }).addTo(map);
-
-      return circle;
     });
 
     setLoading(false);
@@ -144,7 +114,7 @@ export default function LiveMap() {
 
     try {
       const data = await APIService.getLiveAircraft();
-      const liveAircraft = (data || []).filter(a => a.latitude && a.longitude);
+      const liveAircraft = (data || []).filter(a => a.latitude && a.longitude && !a.on_ground);
       setAircraft(liveAircraft);
       setLastUpdate(new Date());
       setError(null);
@@ -155,7 +125,7 @@ export default function LiveMap() {
         const lat = parseFloat(ac.latitude);
         const lng = parseFloat(ac.longitude);
         const color = TRAIL_COLORS[idx % TRAIL_COLORS.length];
-        const status = ac.is_approaching ? 'approaching' : (ac.status || 'outside');
+        const status = ac.on_ground ? 'on_ground' : ac.is_approaching ? 'approaching' : (ac.status || 'outside');
         const dotColor = STATUS_COLORS[status] || '#6b7280';
 
         seen.add(ac.tail_number);
@@ -237,8 +207,11 @@ export default function LiveMap() {
   // Poll every 5 seconds
   useEffect(() => {
     if (!mapRef.current) return;
-    intervalRef.current = setInterval(() => fetchAircraft(), 5000);
-    return () => clearInterval(intervalRef.current);
+    const poll = () => fetchAircraft();
+    intervalRef.current = setInterval(poll, 5000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [fetchAircraft, airportConfig]);
 
   // Cleanup map on unmount
@@ -332,7 +305,7 @@ export default function LiveMap() {
                   </div>
                   <div style={{ fontSize: '11px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span>{ac.distance_nm?.toFixed(1) || '—'} nm away</span>
-                    <span>{ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft MSL' : 'On Ground'}</span>
+                    <span>{ac.on_ground ? 'On Ground' : ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft MSL' : '—'}</span>
                   </div>
                 </div>
               );
