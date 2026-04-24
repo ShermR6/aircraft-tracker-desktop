@@ -27,7 +27,10 @@ class APIService {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor — track connection state
+    // Response interceptor — track connection state + auto-refresh expired tokens
+    this.isRefreshing = false;
+    this.refreshQueue = [];
+
     this.client.interceptors.response.use(
       (response) => {
         if (!this.isConnected) {
@@ -36,20 +39,72 @@ class APIService {
         }
         return response;
       },
-      (error) => {
+      async (error) => {
         if (!error.response) {
           // Network error — no response from server
           if (this.isConnected) {
             this.isConnected = false;
             this.connectionListeners.forEach(fn => fn(false));
           }
-        } else {
-          // Got a response — server is reachable
-          if (!this.isConnected) {
-            this.isConnected = true;
-            this.connectionListeners.forEach(fn => fn(true));
+          return Promise.reject(error);
+        }
+
+        // Got a response — server is reachable
+        if (!this.isConnected) {
+          this.isConnected = true;
+          this.connectionListeners.forEach(fn => fn(true));
+        }
+
+        const originalRequest = error.config;
+
+        // Auto-refresh on 401 "Token expired" (not license_expired or other auth errors)
+        if (error.response.status === 401
+            && error.response.data?.detail === 'Token expired'
+            && !originalRequest._retry
+            && this.token) {
+
+          if (this.isRefreshing) {
+            // Another refresh is in progress — queue this request
+            return new Promise((resolve, reject) => {
+              this.refreshQueue.push({ resolve, reject });
+            }).then(() => {
+              originalRequest.headers.Authorization = `Bearer ${this.token}`;
+              return this.client(originalRequest);
+            });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            const response = await this.client.post('/api/auth/refresh', {}, {
+              headers: { Authorization: `Bearer ${this.token}` }
+            });
+            const newToken = response.data.access_token;
+            this.setToken(newToken);
+
+            // Save new token to storage
+            if (typeof window !== 'undefined' && window.electronAPI) {
+              await window.electronAPI.storeSet('auth_token', newToken);
+            }
+
+            // Retry all queued requests
+            this.refreshQueue.forEach(({ resolve }) => resolve());
+            this.refreshQueue = [];
+
+            // Retry the original request
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            // Refresh failed — clear queue and reject all
+            this.refreshQueue.forEach(({ reject }) => reject(refreshError));
+            this.refreshQueue = [];
+            return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
           }
         }
+
         return Promise.reject(error);
       }
     );
