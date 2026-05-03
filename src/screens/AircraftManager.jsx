@@ -118,7 +118,9 @@ export default function AircraftManager({ isViewOnly = false }) {
 
   useEffect(() => {
     loadAircraft();
-    StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
+    APIService.getCurrentUser().then(d => { if (d?.license_tier) setTier(d.license_tier); }).catch(() => {
+      StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
+    });
   }, []);
 
   const loadAircraft = async () => {

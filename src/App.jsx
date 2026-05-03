@@ -142,7 +142,13 @@ function App() {
       const token = await StorageService.getToken();
       if (token) {
         APIService.setToken(token);
-        await APIService.getCurrentUser();
+        const userInfo = await APIService.getCurrentUser();
+        if (userInfo?.license_tier) {
+          const stored = await StorageService.getUserData();
+          if (stored) {
+            await StorageService.setUserData({ ...stored, license_tier: userInfo.license_tier });
+          }
+        }
         setIsAuthenticated(true);
         setLicenseExpired(false);
       }

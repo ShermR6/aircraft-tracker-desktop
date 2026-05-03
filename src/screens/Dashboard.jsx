@@ -352,6 +352,13 @@ export default function Dashboard({ onLogout }) {
     try {
       const data = await StorageService.getUserData();
       setUserData(data);
+      APIService.getCurrentUser().then(async (fresh) => {
+        if (fresh?.license_tier && fresh.license_tier !== data?.license_tier) {
+          const updated = { ...data, license_tier: fresh.license_tier };
+          await StorageService.setUserData(updated);
+          setUserData(updated);
+        }
+      }).catch(() => {});
 
       // Only check onboarding once per session using a ref
       if (!onboardingChecked.current) {

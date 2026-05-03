@@ -89,7 +89,9 @@ export default function Integrations({ isViewOnly = false }) {
 
   useEffect(() => {
     loadIntegrations();
-    StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
+    APIService.getCurrentUser().then(d => { if (d?.license_tier) setTier(d.license_tier); }).catch(() => {
+      StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
+    });
   }, []);
 
   const loadIntegrations = async () => {
