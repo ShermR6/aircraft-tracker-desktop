@@ -62,7 +62,7 @@ def main():
     dst = os.path.join(RESOURCES_DIR, f'{OUTPUT_NAME}{ext}')
     
     shutil.copy2(src, dst)
-    print(f'\n✓ Binary copied to {dst}')
+    print(f'\nDone! Binary copied to {dst}')
     print(f'  Size: {os.path.getsize(dst) / 1024 / 1024:.1f} MB')
     print('\nDone! Run npm run package to build the Electron installer.')
 
