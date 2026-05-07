@@ -407,6 +407,12 @@ export default function Integrations({ isViewOnly = false }) {
                 onBlur={e => e.target.style.borderColor = '#374151'}
               />
 
+              {integration.type === 'sms' && (
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: '-8px 0 14px 0' }}>
+                  Tip: Save the sender number as "FinalPing" in your contacts for easy recognition.
+                </p>
+              )}
+
               {!isViewOnly && (
                 <div style={s.btnRow}>
                   <button style={s.saveBtn} onClick={() => handleSave(integration)}>
