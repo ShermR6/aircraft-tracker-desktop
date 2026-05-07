@@ -38,7 +38,7 @@ export default function AirportConfig({ isViewOnly = false }) {
   const [config, setConfig] = useState({
     airport_code: '', latitude: '', longitude: '',
     detection_radius_nm: '', polling_interval_seconds: '',
-    quiet_hours_start: '', quiet_hours_end: ''
+    quiet_hours_enabled: false, quiet_hours_start: '23:00', quiet_hours_end: '06:00'
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -181,22 +181,34 @@ export default function AirportConfig({ isViewOnly = false }) {
 
         {/* Quiet Hours */}
         <div style={s.card}>
-          <p style={s.cardTitle}>Quiet Hours</p>
-          <div style={s.grid2}>
-            <div>
-              <label style={s.label}>Start Time</label>
-              <input style={s.input} type="time" value={config.quiet_hours_start}
-                onChange={e => set('quiet_hours_start', e.target.value)}
-                onFocus={focusStyle} onBlur={blurStyle} />
-            </div>
-            <div>
-              <label style={s.label}>End Time</label>
-              <input style={s.input} type="time" value={config.quiet_hours_end}
-                onChange={e => set('quiet_hours_end', e.target.value)}
-                onFocus={focusStyle} onBlur={blurStyle} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: config.quiet_hours_enabled ? '20px' : '0' }}>
+            <p style={{ ...s.cardTitle, marginBottom: 0 }}>Quiet Hours</p>
+            <div
+              onClick={() => !isViewOnly && set('quiet_hours_enabled', !config.quiet_hours_enabled)}
+              style={{ width: '44px', height: '24px', borderRadius: '12px', background: config.quiet_hours_enabled ? '#3b82f6' : '#374151', position: 'relative', cursor: isViewOnly ? 'default' : 'pointer', transition: 'background 0.2s', flexShrink: 0 }}
+            >
+              <div style={{ position: 'absolute', top: '3px', left: config.quiet_hours_enabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
             </div>
           </div>
-          <p style={s.tip}>🌙 No notifications will be sent during quiet hours</p>
+          {config.quiet_hours_enabled && (
+            <>
+              <div style={s.grid2}>
+                <div>
+                  <label style={s.label}>Start Time</label>
+                  <input style={s.input} type="time" value={config.quiet_hours_start}
+                    onChange={e => set('quiet_hours_start', e.target.value)}
+                    onFocus={focusStyle} onBlur={blurStyle} />
+                </div>
+                <div>
+                  <label style={s.label}>End Time</label>
+                  <input style={s.input} type="time" value={config.quiet_hours_end}
+                    onChange={e => set('quiet_hours_end', e.target.value)}
+                    onFocus={focusStyle} onBlur={blurStyle} />
+                </div>
+              </div>
+              <p style={s.tip}>🌙 No notifications will be sent during these hours</p>
+            </>
+          )}
         </div>
 
         {message.text && <div style={{ ...s.alert(message.type), marginTop: '16px' }}>{message.text}</div>}

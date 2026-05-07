@@ -117,7 +117,7 @@ export default function AccountDashboard() {
   };
 
   const handleBillingPortal = async () => {
-    window.electronAPI?.openExternal('https://finalpingapp.com/dashboard');
+    window.electronAPI?.openExternal('https://finalpingapp.com/dashboard?tab=billing');
   };
 
   if (loading) return <div style={s.loading}>Loading your dashboard...</div>;
