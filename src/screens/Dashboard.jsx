@@ -305,6 +305,7 @@ export default function Dashboard({ onLogout }) {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [visitedRoutes, setVisitedRoutes] = useState(new Set());
   const [connectionLost, setConnectionLost] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const onboardingChecked = React.useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -382,11 +383,12 @@ export default function Dashboard({ onLogout }) {
     setShowOnboarding(false);
   };
 
-  const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      if (window.electronAPI) await window.electronAPI.trackerStop();
-      await onLogout();
-    }
+  const handleLogout = () => setShowLogoutConfirm(true);
+
+  const confirmLogout = async () => {
+    setShowLogoutConfirm(false);
+    if (window.electronAPI) await window.electronAPI.trackerStop();
+    await onLogout();
   };
 
   if (loading) {
@@ -409,6 +411,28 @@ export default function Dashboard({ onLogout }) {
           onNavigate={(route) => { navigate(route); }}
           completedSteps={completedSteps}
         />
+      )}
+
+      {showLogoutConfirm && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '28px 28px 24px', width: '320px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <LogOut size={18} color='#f87171' />
+              <span style={{ color: '#f1f5f9', fontSize: '15px', fontWeight: 700 }}>Log out</span>
+            </div>
+            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 22px' }}>Are you sure you want to log out of FinalPing?</p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                style={{ padding: '8px 18px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#94a3b8', fontSize: '13px', cursor: 'pointer' }}
+              >Cancel</button>
+              <button
+                onClick={confirmLogout}
+                style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#ef4444', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >Log out</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Connection lost banner */}
@@ -470,10 +494,6 @@ export default function Dashboard({ onLogout }) {
         </nav>
 
         <div style={s.sidebarBottom}>
-          <div style={s.tierBadge}>
-            <div style={s.tierLabel}>License</div>
-            <div style={s.tierValue}>{userData?.license_tier || 'Unknown'}</div>
-          </div>
           <button
             style={s.logoutBtn}
             onClick={handleLogout}
