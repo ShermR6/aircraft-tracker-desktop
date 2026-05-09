@@ -10,7 +10,6 @@ const INTEGRATION_TYPES = [
   { type: 'teams', name: 'Microsoft Teams', color: '#6264a7', placeholder: 'https://outlook.office.com/webhook/...', icon: '👥', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
   { type: 'email', name: 'Email', color: '#0ea5e9', placeholder: 'you@example.com', icon: '✉️', field: 'to_email', label: 'Recipient Email', inputType: 'email' },
   { type: 'sms', name: 'SMS', color: '#10b981', placeholder: '+11234567890', icon: '📲', field: 'to_phone', label: 'Phone Number', inputType: 'tel' },
-  { type: 'whatsapp', name: 'WhatsApp', color: '#25d366', placeholder: '+11234567890', icon: '🟢', field: 'to_phone', label: 'Phone Number', inputType: 'tel' },
 ];
 
 const s = {
