@@ -6,9 +6,9 @@ const { autoUpdater } = require('electron-updater');
 const Sentry = require('@sentry/electron/main');
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN || '',
+  dsn: 'https://2eaef290bb8846c7d4fb1fd25436c345@o4511365849874432.ingest.us.sentry.io/4511365852954624',
   environment: app.isPackaged ? 'production' : 'development',
-  enabled: app.isPackaged && !!process.env.SENTRY_DSN,
+  enabled: app.isPackaged,
 });
 
 const store = new Store();
