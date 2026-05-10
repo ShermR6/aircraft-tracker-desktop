@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare } from 'lucide-react';
 import StorageService from '../services/storage';
 import APIService from '../services/api';
 import AirportConfig from './AirportConfig';
@@ -494,6 +494,22 @@ export default function Dashboard({ onLogout }) {
         </nav>
 
         <div style={s.sidebarBottom}>
+          <button
+            style={s.logoutBtn}
+            onClick={() => window.electronAPI?.openExternal('mailto:support@finalpingapp.com?subject=FinalPing%20Feedback')}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = '#0ea5e9';
+              e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
+              e.currentTarget.style.background = 'rgba(14,165,233,0.06)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.borderColor = 'transparent';
+              e.currentTarget.style.background = 'none';
+            }}
+          >
+            <MessageSquare size={14} /> Send Feedback
+          </button>
           <button
             style={s.logoutBtn}
             onClick={handleLogout}

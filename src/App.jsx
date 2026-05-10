@@ -24,17 +24,30 @@ function UpdateBanner({ version, downloaded, onDismiss }) {
           : `⬇ Downloading FinalPing v${version}...`}
       </span>
       {downloaded && (
-        <button
-          onClick={() => window.electronAPI?.restartAndInstall()}
-          style={{
-            padding: '5px 14px', borderRadius: 999,
-            background: '#fff', color: '#3b82f6',
-            fontWeight: 700, fontSize: 12, border: 'none',
-            cursor: 'pointer', flexShrink: 0,
-          }}
-        >
-          Restart & Install
-        </button>
+        <>
+          <button
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/changelog')}
+            style={{
+              padding: '5px 14px', borderRadius: 999,
+              background: 'rgba(255,255,255,0.15)', color: '#fff',
+              fontWeight: 600, fontSize: 12, border: '1px solid rgba(255,255,255,0.3)',
+              cursor: 'pointer', flexShrink: 0,
+            }}
+          >
+            What's new?
+          </button>
+          <button
+            onClick={() => window.electronAPI?.restartAndInstall()}
+            style={{
+              padding: '5px 14px', borderRadius: 999,
+              background: '#fff', color: '#3b82f6',
+              fontWeight: 700, fontSize: 12, border: 'none',
+              cursor: 'pointer', flexShrink: 0,
+            }}
+          >
+            Restart & Install
+          </button>
+        </>
       )}
       <button
         onClick={onDismiss}
