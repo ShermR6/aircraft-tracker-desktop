@@ -282,10 +282,11 @@ const s = {
     fontWeight: '500', cursor: 'pointer', transition: 'all 0.15s',
   },
   main: {
-    flex: 1, overflow: 'auto',
+    flex: 1, overflow: 'hidden',
+    display: 'flex', flexDirection: 'column',
     background: 'radial-gradient(ellipse 100% 50% at 50% -10%, #0d1f2d 0%, #0b0b0b 60%)',
   },
-  content: { padding: '32px', maxWidth: '960px' },
+  content: { padding: '32px', overflowY: 'auto', flex: 1 },
 };
 
 function DashboardHome({ isViewOnly }) {
@@ -533,17 +534,21 @@ export default function Dashboard({ onLogout }) {
       </div>
 
       <div style={{ ...s.main, paddingTop: (connectionLost ? 36 : 0) + (isViewOnly ? 36 : 0) }}>
-        <div style={s.content}>
-          <Routes>
-            <Route path="/" element={<DashboardHome isViewOnly={isViewOnly} />} />
-            <Route path="/aircraft" element={<AircraftManager isViewOnly={isViewOnly} />} />
-            <Route path="/map" element={<LiveMap />} />
-            <Route path="/airport" element={<AirportConfig isViewOnly={isViewOnly} />} />
-            <Route path="/alerts" element={<AlertSettings isViewOnly={isViewOnly} />} />
-            <Route path="/integrations" element={<Integrations isViewOnly={isViewOnly} />} />
-            <Route path="/logs" element={<Logs />} />
-          </Routes>
-        </div>
+        <Routes>
+          {/* Full-bleed routes — no maxWidth, no padding wrapper */}
+          <Route path="/map" element={<LiveMap />} />
+          <Route path="/airport" element={
+            <div style={{ flex: 1, padding: '20px 24px 20px 32px', overflow: 'hidden', boxSizing: 'border-box', height: '100%' }}>
+              <AirportConfig isViewOnly={isViewOnly} />
+            </div>
+          } />
+          {/* Standard padded routes */}
+          <Route path="/" element={<div style={s.content}><DashboardHome isViewOnly={isViewOnly} /></div>} />
+          <Route path="/aircraft" element={<div style={s.content}><AircraftManager isViewOnly={isViewOnly} /></div>} />
+          <Route path="/alerts" element={<div style={s.content}><AlertSettings isViewOnly={isViewOnly} /></div>} />
+          <Route path="/integrations" element={<div style={s.content}><Integrations isViewOnly={isViewOnly} /></div>} />
+          <Route path="/logs" element={<div style={s.content}><Logs /></div>} />
+        </Routes>
       </div>
     </div>
   );

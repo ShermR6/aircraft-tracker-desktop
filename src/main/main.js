@@ -100,11 +100,12 @@ function createTray() {
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: 'FinalPing',
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    width: 1400,
+    height: 900,
+    minWidth: 900,
+    minHeight: 650,
     autoHideMenuBar: true,
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -121,10 +122,10 @@ function createWindow() {
         ...details.responseHeaders,
         'Content-Security-Policy': [
           "default-src 'self' 'unsafe-inline' 'unsafe-eval' file: data:; " +
-          "connect-src 'self' https://*.railway.app https://railway.app; " +
+          "connect-src 'self' https://*.railway.app https://railway.app https://*.cartocdn.com https://*.openstreetmap.org https://api.adsbdb.com; " +
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
           "font-src 'self' https://fonts.gstatic.com data:; " +
-          "img-src 'self' file: data: https:;"
+          "img-src 'self' file: data: https: blob:;"
         ],
       },
     });
@@ -167,6 +168,12 @@ function createWindow() {
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
+
+  // Maximize and show on first load
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
+    mainWindow.show();
+  });
 
   // Fix Electron input focus bug — restore focus on window show/focus
   const refocus = () => {
