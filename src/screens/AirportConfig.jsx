@@ -224,12 +224,9 @@ export default function AirportConfig({ isViewOnly = false }) {
         dashArray: rd.dash,
       }).addTo(map);
 
-      // Ring label
-      const labelLatLng = map.layerPointToLatLng(
-        map.latLngToLayerPoint([lat, lon]).subtract([rd.nm * NM_TO_M / 111000 * 0, rd.nm * NM_TO_M / 111000 * 0])
-      );
+      // Ring label — track it so it gets removed on next render
       const offset = L.latLng(lat + (rd.nm * NM_TO_M) / 111320, lon);
-      L.marker(offset, {
+      const label = L.marker(offset, {
         icon: L.divIcon({
           html: `<div style="font-size:10px;font-weight:700;color:${rd.color};opacity:${rd.opacity};white-space:nowrap;background:rgba(13,17,23,0.7);padding:1px 4px;border-radius:3px">${rd.nm} nm</div>`,
           className: '',
@@ -238,7 +235,7 @@ export default function AirportConfig({ isViewOnly = false }) {
         interactive: false,
       }).addTo(map);
 
-      ringsRef.current.push(circle);
+      ringsRef.current.push(circle, label);
     }
 
     // Draw approach corridor overlay
