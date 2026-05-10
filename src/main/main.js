@@ -3,6 +3,13 @@ const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
 const { autoUpdater } = require('electron-updater');
+const Sentry = require('@sentry/electron/main');
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN || '',
+  environment: app.isPackaged ? 'production' : 'development',
+  enabled: app.isPackaged && !!process.env.SENTRY_DSN,
+});
 
 const store = new Store();
 
