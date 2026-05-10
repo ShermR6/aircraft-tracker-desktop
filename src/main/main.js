@@ -2,7 +2,11 @@ const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog, nativeImage } = 
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
-if (app.isPackaged) {
+
+// process.defaultApp is true in dev (electron .), undefined when packaged
+const isPackaged = !process.defaultApp;
+
+if (isPackaged) {
   const Sentry = require('@sentry/electron/main');
   Sentry.init({
     dsn: 'https://2eaef290bb8846c7d4fb1fd25436c345@o4511365849874432.ingest.us.sentry.io/4511365852954624',
@@ -18,7 +22,7 @@ let forceQuit = false;
 
 // ─── Auto-updater (production only) ──────────────────────────────────────────
 let autoUpdater = null;
-if (app.isPackaged) {
+if (isPackaged) {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
@@ -45,7 +49,7 @@ function createTray() {
   // Use the app icon — falls back to empty image if not found
   let trayIcon;
   try {
-    const iconPath = app.isPackaged
+    const iconPath = isPackaged
       ? path.join(process.resourcesPath, 'app', 'build', 'favicon.ico')
       : path.join(__dirname, '..', 'public', 'favicon.ico');
     trayIcon = nativeImage.createFromPath(iconPath);
@@ -126,7 +130,7 @@ function createWindow() {
     });
   });
 
-  if (app.isPackaged) {
+  if (isPackaged) {
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
   } else {
     mainWindow.loadURL('http://localhost:3000');
@@ -175,7 +179,7 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
-    if (app.isPackaged) {
+    if (isPackaged) {
       setTimeout(() => autoUpdater.checkForUpdates(), 3000);
     }
   });

@@ -43,11 +43,15 @@
     },
     "nsis": {
       "license": "assets/license.rtf",
+      "installerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
     "win": {
       "target": "nsis",
+      "icon": "assets/icon.ico",
       "artifactName": "FinalPingSetup.exe"
     },
     "mac": {
