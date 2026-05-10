@@ -2,14 +2,13 @@ const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog, nativeImage } = 
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
-const { autoUpdater } = require('electron-updater');
-const Sentry = require('@sentry/electron/main');
-
-Sentry.init({
-  dsn: 'https://2eaef290bb8846c7d4fb1fd25436c345@o4511365849874432.ingest.us.sentry.io/4511365852954624',
-  environment: app.isPackaged ? 'production' : 'development',
-  enabled: app.isPackaged,
-});
+if (app.isPackaged) {
+  const Sentry = require('@sentry/electron/main');
+  Sentry.init({
+    dsn: 'https://2eaef290bb8846c7d4fb1fd25436c345@o4511365849874432.ingest.us.sentry.io/4511365852954624',
+    environment: 'production',
+  });
+}
 
 const store = new Store();
 
@@ -17,29 +16,29 @@ let mainWindow;
 let tray = null;
 let forceQuit = false;
 
-// ─── Auto-updater config ──────────────────────────────────────────────────────
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
-// Skip signature verification — app is not code signed
-if (process.platform === 'darwin') {
-  autoUpdater.verifyUpdateCodeSignature = false;
+// ─── Auto-updater (production only) ──────────────────────────────────────────
+let autoUpdater = null;
+if (app.isPackaged) {
+  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  if (process.platform === 'darwin') {
+    autoUpdater.verifyUpdateCodeSignature = false;
+  }
+  autoUpdater.on('update-available', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-available', info.version);
+    }
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-downloaded', info.version);
+    }
+  });
+  autoUpdater.on('error', (err) => {
+    console.error('Auto-updater error:', err.message);
+  });
 }
-
-autoUpdater.on('update-available', (info) => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-available', info.version);
-  }
-});
-
-autoUpdater.on('update-downloaded', (info) => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-downloaded', info.version);
-  }
-});
-
-autoUpdater.on('error', (err) => {
-  console.error('Auto-updater error:', err.message);
-});
 
 // ─── Tray ─────────────────────────────────────────────────────────────────────
 function createTray() {
@@ -244,7 +243,7 @@ ipcMain.handle('focus-window', () => {
 // ─── Auto-updater IPC ─────────────────────────────────────────────────────────
 ipcMain.handle('update-restart', () => {
   forceQuit = true;
-  autoUpdater.quitAndInstall();
+  if (autoUpdater) autoUpdater.quitAndInstall();
 });
 
 ipcMain.handle('get-app-version', () => app.getVersion());

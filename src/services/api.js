@@ -159,20 +159,24 @@ class APIService {
     return response.data;
   }
 
-  async addAircraft(tailNumber, icao24, friendlyName = null) {
+  async addAircraft(tailNumber, icao24, friendlyName = null, aircraftType = null, alertDistances = null) {
     const response = await this.client.post('/api/aircraft', {
       tail_number: tailNumber,
       icao24: icao24,
-      friendly_name: friendlyName
+      friendly_name: friendlyName,
+      aircraft_type: aircraftType,
+      alert_distances: alertDistances,
     });
     return response.data;
   }
 
-  async updateAircraft(aircraftId, tailNumber, icao24, friendlyName = null) {
+  async updateAircraft(aircraftId, tailNumber, icao24, friendlyName = null, aircraftType = null, alertDistances = null) {
     const response = await this.client.put(`/api/aircraft/${aircraftId}`, {
       tail_number: tailNumber,
       icao24: icao24,
-      friendly_name: friendlyName
+      friendly_name: friendlyName,
+      aircraft_type: aircraftType,
+      alert_distances: alertDistances,
     });
     return response.data;
   }
