@@ -43,7 +43,6 @@
     },
     "nsis": {
       "license": "assets/license.rtf",
-      "installerHeaderIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
