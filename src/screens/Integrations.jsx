@@ -118,8 +118,8 @@ export default function Integrations({ isViewOnly = false }) {
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       return;
     }
-    // Show charges warning for SMS and WhatsApp before adding
-    if (type === 'sms' || type === 'whatsapp') {
+    // Show charges warning for SMS before adding
+    if (type === 'sms') {
       setPendingAddType(type);
       setChargesAccepted(false);
       setShowChargesModal(true);
@@ -130,7 +130,7 @@ export default function Integrations({ isViewOnly = false }) {
 
   const addIntegration = (type) => {
     const emptyConfig = type === 'email' ? { to_email: '' } :
-                        (type === 'sms' || type === 'whatsapp') ? { to_phone: '' } :
+                        type === 'sms' ? { to_phone: '' } :
                         { webhook_url: '' };
     setIntegrations(prev => [...prev, { id: `temp-${Date.now()}`, type, config: emptyConfig, enabled: true, isNew: true }]);
   };
@@ -230,20 +230,18 @@ export default function Integrations({ isViewOnly = false }) {
             borderRadius: 16, padding: 32, maxWidth: 440, width: '100%',
             boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
           }}>
-            <div style={{ fontSize: 36, marginBottom: 16, textAlign: 'center' }}>
-              {pendingAddType === 'whatsapp' ? '🟢' : '📲'}
-            </div>
+            <div style={{ fontSize: 36, marginBottom: 16, textAlign: 'center' }}>📲</div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f9fafb', margin: '0 0 12px 0', textAlign: 'center' }}>
-              {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} Messaging Charges
+              SMS Messaging Charges
             </h2>
             <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, margin: '0 0 16px 0' }}>
-              By enabling {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} alerts, you acknowledge that:
+              By enabling SMS alerts, you acknowledge that:
             </p>
             <ul style={{ fontSize: 13, color: '#9ca3af', lineHeight: 2, margin: '0 0 20px 0', paddingLeft: 20 }}>
               <li>Standard carrier <strong style={{ color: '#e5e7eb' }}>messaging rates may apply</strong> depending on your mobile plan.</li>
               <li>FinalPing uses Twilio to deliver messages — <strong style={{ color: '#e5e7eb' }}>message frequency depends on aircraft activity</strong> and your configured alert distances.</li>
               <li>You are responsible for any charges incurred by your carrier.</li>
-              <li>You can disable {pendingAddType === 'whatsapp' ? 'WhatsApp' : 'SMS'} alerts at any time from this screen.</li>
+              <li>You can disable SMS alerts at any time from this screen.</li>
             </ul>
             <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, fontStyle: 'italic' }}>
               Reply STOP to any message to unsubscribe immediately.
@@ -361,7 +359,7 @@ export default function Integrations({ isViewOnly = false }) {
           const t = INTEGRATION_TYPES.find(t => t.type === integration.type);
           const testResult = testResults[integration.id];
           const isEmailType = integration.type === 'email';
-          const isPhoneType = integration.type === 'sms' || integration.type === 'whatsapp';
+          const isPhoneType = integration.type === 'sms';
           const fieldValue = isEmailType ? integration.config.to_email : 
                              isPhoneType ? integration.config.to_phone :
                              integration.config.webhook_url;
@@ -436,7 +434,7 @@ export default function Integrations({ isViewOnly = false }) {
         <strong>Slack:</strong> App Directory → Incoming Webhooks → Add to Slack<br />
         <strong>Teams:</strong> Channel → Connectors → Incoming Webhook → Configure<br />
         <strong>Email:</strong> Enter any email address — alerts will be sent from noreply@finalpingapp.com<br />
-        <strong>SMS & WhatsApp:</strong> Enter your phone number with country code (e.g. +11234567890) — powered by Twilio
+        <strong>SMS:</strong> Enter your phone number with country code (e.g. +11234567890) — powered by Twilio
       </div>
       
     </div>
