@@ -115,6 +115,7 @@ export default function AircraftManager({ isViewOnly = false }) {
   const [deleting, setDeleting] = useState(null);
   const [message, setMessage] = useState(null);
   const [tier, setTier] = useState('starter');
+  const [confirmModal, setConfirmModal] = useState(null);
 
   useEffect(() => {
     loadAircraft();
@@ -195,7 +196,10 @@ export default function AircraftManager({ isViewOnly = false }) {
   };
 
   const handleDelete = async (id, tailNum) => {
-    if (!window.confirm(`Remove ${tailNum} from tracking?`)) return;
+    try {
+      await new Promise((resolve, reject) => setConfirmModal({ message: `Remove ${tailNum} from tracking?`, onConfirm: resolve, onCancel: reject }));
+      setConfirmModal(null);
+    } catch { setConfirmModal(null); return; }
     setDeleting(id);
     try {
       await APIService.deleteAircraft(id);
@@ -223,6 +227,19 @@ export default function AircraftManager({ isViewOnly = false }) {
 
   return (
     <div style={s.page}>
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#0f1117', border: '1px solid #2d3748', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>✈️</div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Aircraft</h2>
+            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div style={s.header}>
         <div>

@@ -12,6 +12,10 @@ const INTEGRATION_TYPES = [
   { type: 'sms', name: 'SMS', color: '#10b981', placeholder: '+11234567890', icon: '📲', field: 'to_phone', label: 'Phone Number', inputType: 'tel' },
 ];
 
+const COMING_SOON_TYPES = [
+  { type: 'whatsapp', name: 'WhatsApp', icon: '🟢' },
+];
+
 const s = {
   page: { maxWidth: '860px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
   header: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' },
@@ -85,6 +89,7 @@ export default function Integrations({ isViewOnly = false }) {
   const [toast, setToast] = useState(null); // { type: 'success'|'error', text: string, name: string }
   const [pendingAddType, setPendingAddType] = useState(null);
   const [chargesAccepted, setChargesAccepted] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
 
   useEffect(() => {
     loadIntegrations();
@@ -175,7 +180,13 @@ export default function Integrations({ isViewOnly = false }) {
   };
 
   const handleDelete = async (integration) => {
-    if (!window.confirm(`Remove ${integration.type} integration?`)) return;
+    try {
+      await new Promise((resolve, reject) => setConfirmModal({
+        message: `Remove ${INTEGRATION_TYPES.find(t => t.type === integration.type)?.name || integration.type} integration?`,
+        onConfirm: resolve, onCancel: reject,
+      }));
+      setConfirmModal(null);
+    } catch { setConfirmModal(null); return; }
     try {
       if (!integration.isNew) await APIService.deleteIntegration(integration.id);
       setIntegrations(prev => prev.filter(i => i.id !== integration.id));
@@ -216,6 +227,21 @@ export default function Integrations({ isViewOnly = false }) {
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
+
+      {/* Confirm delete modal */}
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#0f1117', border: '1px solid #2d3748', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>🗑️</div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Integration</h2>
+            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SMS / WhatsApp charges warning modal */}
       {showChargesModal && (
@@ -344,6 +370,13 @@ export default function Integrations({ isViewOnly = false }) {
               </div>
             );
           })}
+          {COMING_SOON_TYPES.map(t => (
+            <div key={t.type} style={{ ...s.addCard(true), opacity: 0.5 }}>
+              <div style={s.addIcon}>{t.icon}</div>
+              <p style={s.addName}>{t.name}</p>
+              <p style={{ ...s.addStatus, color: '#f59e0b' }}>Coming Soon</p>
+            </div>
+          ))}
         </div>
       )}
 
