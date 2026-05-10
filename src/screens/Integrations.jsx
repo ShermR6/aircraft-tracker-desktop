@@ -5,11 +5,20 @@ import StorageService from '../services/storage';
 import { getLimits, getLimitDisplay, isChannelAllowed } from '../config/tierLimits';
 
 const INTEGRATION_TYPES = [
-  { type: 'discord', name: 'Discord', color: '#5865f2', placeholder: 'https://discord.com/api/webhooks/...', icon: '💬', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
-  { type: 'slack', name: 'Slack', color: '#4a154b', placeholder: 'https://hooks.slack.com/services/...', icon: '📱', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
-  { type: 'teams', name: 'Microsoft Teams', color: '#6264a7', placeholder: 'https://outlook.office.com/webhook/...', icon: '👥', field: 'webhook_url', label: 'Webhook URL', inputType: 'url' },
-  { type: 'email', name: 'Email', color: '#0ea5e9', placeholder: 'you@example.com', icon: '✉️', field: 'to_email', label: 'Recipient Email', inputType: 'email' },
-  { type: 'sms', name: 'SMS', color: '#10b981', placeholder: '+11234567890', icon: '📲', field: 'to_phone', label: 'Phone Number', inputType: 'tel' },
+  { type: 'discord',     name: 'Discord',         color: '#5865f2', icon: '💬', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://discord.com/api/webhooks/...', inputType: 'url' }] },
+  { type: 'slack',       name: 'Slack',           color: '#4a154b', icon: '📱', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://hooks.slack.com/services/...',  inputType: 'url' }] },
+  { type: 'teams',       name: 'Microsoft Teams', color: '#6264a7', icon: '👥', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://outlook.office.com/webhook/...', inputType: 'url' }] },
+  { type: 'google_chat', name: 'Google Chat',     color: '#4285f4', icon: '💬', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://chat.googleapis.com/v1/spaces/...', inputType: 'url' }] },
+  { type: 'email',       name: 'Email',           color: '#0ea5e9', icon: '✉️', fields: [{ key: 'to_email',   label: 'Recipient Email', placeholder: 'you@example.com',                       inputType: 'email' }] },
+  { type: 'sms',         name: 'SMS',             color: '#10b981', icon: '📲', fields: [{ key: 'to_phone',   label: 'Phone Number',    placeholder: '+11234567890',                           inputType: 'tel' }] },
+  { type: 'telegram',    name: 'Telegram',        color: '#229ed9', icon: '✈️', fields: [
+    { key: 'bot_token', label: 'Bot Token', placeholder: '123456789:ABCdefGHI...', inputType: 'text' },
+    { key: 'chat_id',   label: 'Chat ID',   placeholder: '-1001234567890',         inputType: 'text' },
+  ]},
+  { type: 'webhook',     name: 'Webhook',         color: '#6366f1', icon: '🔗', fields: [
+    { key: 'url',    label: 'Webhook URL',         placeholder: 'https://your-service.com/webhook', inputType: 'url' },
+    { key: 'secret', label: 'Secret (optional)',   placeholder: 'Sent as X-FinalPing-Secret header', inputType: 'text', required: false },
+  ]},
 ];
 
 const COMING_SOON_TYPES = [
@@ -134,15 +143,13 @@ export default function Integrations({ isViewOnly = false }) {
   };
 
   const addIntegration = (type) => {
-    const emptyConfig = type === 'email' ? { to_email: '' } :
-                        type === 'sms' ? { to_phone: '' } :
-                        { webhook_url: '' };
+    const typeDef = INTEGRATION_TYPES.find(t => t.type === type);
+    const emptyConfig = Object.fromEntries((typeDef?.fields || []).map(f => [f.key, '']));
     setIntegrations(prev => [...prev, { id: `temp-${Date.now()}`, type, config: emptyConfig, enabled: true, isNew: true }]);
   };
 
   const handleUpdate = (id, field, value) => setIntegrations(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i));
-  const handleUpdateWebhook = (id, url) => setIntegrations(prev => prev.map(i => i.id === id ? { ...i, config: { ...i.config, webhook_url: url } } : i));
-  const handleUpdateEmail = (id, email) => setIntegrations(prev => prev.map(i => i.id === id ? { ...i, config: { ...i.config, to_email: email } } : i));
+  const handleUpdateConfig = (id, key, value) => setIntegrations(prev => prev.map(i => i.id === id ? { ...i, config: { ...i.config, [key]: value } } : i));
 
   const handleSave = async (integration) => {
     setMessage({ type: '', text: '' });
@@ -390,13 +397,20 @@ export default function Integrations({ isViewOnly = false }) {
       ) : (
         integrations.map(integration => {
           const t = INTEGRATION_TYPES.find(t => t.type === integration.type);
+          if (!t) return null;
           const testResult = testResults[integration.id];
-          const isEmailType = integration.type === 'email';
-          const isPhoneType = integration.type === 'sms';
-          const fieldValue = isEmailType ? integration.config.to_email : 
-                             isPhoneType ? integration.config.to_phone :
-                             integration.config.webhook_url;
-          const isTestDisabled = testing === integration.id || integration.isNew || !fieldValue;
+          const requiredFields = t.fields.filter(f => f.required !== false);
+          const isTestDisabled = testing === integration.id || integration.isNew ||
+            requiredFields.some(f => !integration.config[f.key]);
+
+          const typeDescriptions = {
+            email: 'Send alert emails to an inbox',
+            sms: 'Send alerts via text message',
+            telegram: 'Send alerts to a Telegram chat',
+            webhook: 'POST alerts to any URL you choose',
+            google_chat: 'Send notifications to a Google Chat space',
+          };
+          const desc = typeDescriptions[integration.type] || `Send notifications to a ${t.name} channel`;
 
           return (
             <div key={integration.id} style={s.card}>
@@ -405,7 +419,7 @@ export default function Integrations({ isViewOnly = false }) {
                   <div style={s.typeIcon(t.color)}>{t.icon}</div>
                   <div>
                     <p style={s.typeName}>{t.name}</p>
-                    <p style={s.typeDesc}>{isEmailType ? 'Send alert emails to an inbox' : isPhoneType ? `Send alerts via ${t.name}` : `Send notifications to a ${t.name} channel`}</p>
+                    <p style={s.typeDesc}>{desc}</p>
                   </div>
                 </div>
                 <div style={s.cardTopRight}>
@@ -422,24 +436,29 @@ export default function Integrations({ isViewOnly = false }) {
                 </div>
               </div>
 
-              <label style={s.label}>{t.label}</label>
-              <input
-                style={{ ...s.input, fontFamily: (isEmailType || isPhoneType) ? "'Segoe UI', sans-serif" : 'monospace' }}
-                type={t.inputType}
-                value={fieldValue}
-                placeholder={t.placeholder}
-                onChange={e => isEmailType
-                  ? handleUpdateEmail(integration.id, e.target.value)
-                  : isPhoneType
-                  ? setIntegrations(prev => prev.map(i => i.id === integration.id ? { ...i, config: { ...i.config, to_phone: e.target.value } } : i))
-                  : handleUpdateWebhook(integration.id, e.target.value)}
-                onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                onBlur={e => e.target.style.borderColor = '#374151'}
-              />
+              {t.fields.map(field => (
+                <div key={field.key}>
+                  <label style={s.label}>{field.label}</label>
+                  <input
+                    style={{ ...s.input, fontFamily: field.inputType === 'email' || field.inputType === 'tel' ? "'Segoe UI', sans-serif" : 'monospace' }}
+                    type={field.inputType}
+                    value={integration.config[field.key] || ''}
+                    placeholder={field.placeholder}
+                    onChange={e => handleUpdateConfig(integration.id, field.key, e.target.value)}
+                    onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={e => e.target.style.borderColor = '#374151'}
+                  />
+                </div>
+              ))}
 
               {integration.type === 'sms' && (
                 <p style={{ fontSize: '12px', color: '#6b7280', margin: '-8px 0 14px 0' }}>
                   Tip: Save the sender number as "FinalPing" in your contacts for easy recognition.
+                </p>
+              )}
+              {integration.type === 'telegram' && (
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: '-8px 0 14px 0' }}>
+                  Create a bot via @BotFather, add it to your chat, then get the Chat ID via @userinfobot.
                 </p>
               )}
 
@@ -466,8 +485,11 @@ export default function Integrations({ isViewOnly = false }) {
         <strong>Discord:</strong> Server Settings → Integrations → Webhooks → New Webhook<br />
         <strong>Slack:</strong> App Directory → Incoming Webhooks → Add to Slack<br />
         <strong>Teams:</strong> Channel → Connectors → Incoming Webhook → Configure<br />
-        <strong>Email:</strong> Enter any email address — alerts will be sent from noreply@finalpingapp.com<br />
-        <strong>SMS:</strong> Enter your phone number with country code (e.g. +11234567890) — powered by Twilio
+        <strong>Google Chat:</strong> Space Settings → Apps & Integrations → Webhooks → Add Webhook<br />
+        <strong>Email:</strong> Enter any email address — alerts sent from noreply@finalpingapp.com<br />
+        <strong>SMS:</strong> Enter your phone number with country code (e.g. +11234567890)<br />
+        <strong>Telegram:</strong> Create a bot via @BotFather → add to your chat → get Chat ID via @userinfobot<br />
+        <strong>Webhook:</strong> Enter any HTTPS URL — FinalPing will POST JSON with message and source fields
       </div>
       
     </div>

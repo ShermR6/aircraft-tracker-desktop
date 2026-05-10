@@ -9,12 +9,12 @@ export const TIER_LIMITS = {
   premium: {
     aircraft: 7,
     integrations: 4,
-    allowedChannels: ['discord', 'email', 'slack', 'teams'],
+    allowedChannels: ['discord', 'email', 'slack', 'teams', 'google_chat'],
   },
   pro: {
     aircraft: 15,
     integrations: 5,
-    allowedChannels: ['discord', 'email', 'slack', 'teams', 'sms'],
+    allowedChannels: ['discord', 'email', 'slack', 'teams', 'google_chat', 'sms', 'telegram', 'webhook'],
   },
 };
 
