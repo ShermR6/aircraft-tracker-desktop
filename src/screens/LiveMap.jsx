@@ -228,7 +228,7 @@ export default function LiveMap() {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div style={{ padding: '28px 32px', fontFamily: "'Segoe UI', system-ui, sans-serif", display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
@@ -268,7 +268,7 @@ export default function LiveMap() {
             <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading map...
           </div>
         )}
-        <div ref={mapContainerRef} style={{ height: '500px', width: '100%' }} />
+        <div ref={mapContainerRef} style={{ height: 'calc(100vh - 320px)', minHeight: '360px', width: '100%' }} />
       </div>
 
       {/* Aircraft status list */}

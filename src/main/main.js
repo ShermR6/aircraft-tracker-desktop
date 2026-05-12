@@ -2,7 +2,17 @@ const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog, nativeImage } = 
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
-const { autoUpdater } = require('electron-updater');
+
+// process.defaultApp is true in dev (electron .), undefined when packaged
+const isPackaged = !process.defaultApp;
+
+if (isPackaged) {
+  const Sentry = require('@sentry/electron/main');
+  Sentry.init({
+    dsn: 'https://2eaef290bb8846c7d4fb1fd25436c345@o4511365849874432.ingest.us.sentry.io/4511365852954624',
+    environment: 'production',
+  });
+}
 
 const store = new Store();
 
@@ -10,36 +20,36 @@ let mainWindow;
 let tray = null;
 let forceQuit = false;
 
-// ─── Auto-updater config ──────────────────────────────────────────────────────
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
-// Skip signature verification — app is not code signed
-if (process.platform === 'darwin') {
-  autoUpdater.verifyUpdateCodeSignature = false;
+// ─── Auto-updater (production only) ──────────────────────────────────────────
+let autoUpdater = null;
+if (isPackaged) {
+  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  if (process.platform === 'darwin') {
+    autoUpdater.verifyUpdateCodeSignature = false;
+  }
+  autoUpdater.on('update-available', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-available', info.version);
+    }
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-downloaded', info.version);
+    }
+  });
+  autoUpdater.on('error', (err) => {
+    console.error('Auto-updater error:', err.message);
+  });
 }
-
-autoUpdater.on('update-available', (info) => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-available', info.version);
-  }
-});
-
-autoUpdater.on('update-downloaded', (info) => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-downloaded', info.version);
-  }
-});
-
-autoUpdater.on('error', (err) => {
-  console.error('Auto-updater error:', err.message);
-});
 
 // ─── Tray ─────────────────────────────────────────────────────────────────────
 function createTray() {
   // Use the app icon — falls back to empty image if not found
   let trayIcon;
   try {
-    const iconPath = app.isPackaged
+    const iconPath = isPackaged
       ? path.join(process.resourcesPath, 'app', 'build', 'favicon.ico')
       : path.join(__dirname, '..', 'public', 'favicon.ico');
     trayIcon = nativeImage.createFromPath(iconPath);
@@ -90,11 +100,12 @@ function createTray() {
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: 'FinalPing',
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    width: 1400,
+    height: 900,
+    minWidth: 900,
+    minHeight: 650,
     autoHideMenuBar: true,
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -111,16 +122,16 @@ function createWindow() {
         ...details.responseHeaders,
         'Content-Security-Policy': [
           "default-src 'self' 'unsafe-inline' 'unsafe-eval' file: data:; " +
-          "connect-src 'self' https://*.railway.app https://railway.app; " +
+          "connect-src 'self' https://*.railway.app https://railway.app https://*.cartocdn.com https://*.openstreetmap.org https://api.adsbdb.com; " +
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
           "font-src 'self' https://fonts.gstatic.com data:; " +
-          "img-src 'self' file: data: https:;"
+          "img-src 'self' file: data: https: blob:;"
         ],
       },
     });
   });
 
-  if (app.isPackaged) {
+  if (isPackaged) {
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
   } else {
     mainWindow.loadURL('http://localhost:3000');
@@ -158,6 +169,12 @@ function createWindow() {
 
   mainWindow.on('closed', () => { mainWindow = null; });
 
+  // Maximize and show on first load
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
+    mainWindow.show();
+  });
+
   // Fix Electron input focus bug — restore focus on window show/focus
   const refocus = () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -169,7 +186,7 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
-    if (app.isPackaged) {
+    if (isPackaged) {
       setTimeout(() => autoUpdater.checkForUpdates(), 3000);
     }
   });
@@ -237,7 +254,7 @@ ipcMain.handle('focus-window', () => {
 // ─── Auto-updater IPC ─────────────────────────────────────────────────────────
 ipcMain.handle('update-restart', () => {
   forceQuit = true;
-  autoUpdater.quitAndInstall();
+  if (autoUpdater) autoUpdater.quitAndInstall();
 });
 
 ipcMain.handle('get-app-version', () => app.getVersion());
