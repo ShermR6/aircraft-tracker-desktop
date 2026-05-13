@@ -4,7 +4,6 @@ import APIService from '../services/api';
 import StorageService from '../services/storage';
 import { getLimits, getLimitDisplay } from '../config/tierLimits';
 
-const ALL_DISTANCES = [10, 5, 2];
 const DEFAULT_DISTANCES = [10, 5, 2];
 
 const emptyForm = {
@@ -87,6 +86,7 @@ export default function AircraftManager({ isViewOnly = false }) {
   const [message, setMessage] = useState(null);
   const [tier, setTier] = useState('starter');
   const [confirmModal, setConfirmModal] = useState(null);
+  const [allDistances, setAllDistances] = useState([10, 5, 2]);
   const lookupTimer = useRef(null);
 
   useEffect(() => {
@@ -94,6 +94,13 @@ export default function AircraftManager({ isViewOnly = false }) {
     APIService.getCurrentUser().then(d => { if (d?.license_tier) setTier(d.license_tier); }).catch(() => {
       StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
     });
+    APIService.getAirportConfig().then(c => {
+      if (c?.alert_distances_nm?.length) {
+        const dists = c.alert_distances_nm.map(Number).sort((a, b) => b - a);
+        setAllDistances(dists);
+        setForm(prev => ({ ...prev, alert_distances: dists }));
+      }
+    }).catch(() => {});
   }, []);
 
   const loadAircraft = async () => {
@@ -306,7 +313,7 @@ export default function AircraftManager({ isViewOnly = false }) {
                   <div style={s.typeText}>{a.aircraft_type || '—'}</div>
                 </td>
                 <td style={s.td}>
-                  {ALL_DISTANCES.map(d => (
+                  {allDistances.map(d => (
                     <span key={d} style={s.distTag((a.alert_distances || DEFAULT_DISTANCES).includes(d))}>
                       {d}nm
                     </span>
@@ -390,13 +397,11 @@ export default function AircraftManager({ isViewOnly = false }) {
             <div>
               <label style={s.fieldLabel}>ALERT DISTANCES</label>
               <div style={s.distRow}>
-                {ALL_DISTANCES.map(d => {
+                {allDistances.map(d => {
                   const active = form.alert_distances.includes(d);
-                  const labels = { 10: 'Inbound', 5: 'Approach', 2: 'Final' };
                   return (
                     <button key={d} style={s.distBtn(active)} onClick={() => toggleDistance(d)}>
                       <span style={{ fontWeight: 700 }}>{d} nm</span>
-                      <span style={s.distLabel}>{labels[d]}</span>
                     </button>
                   );
                 })}

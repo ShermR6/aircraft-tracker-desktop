@@ -1,50 +1,55 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Loader, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, Loader, Check, Trash2, Edit2, X, Plus } from 'lucide-react';
 import APIService from '../services/api';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import airportsData from '../data/airports.json';
 
-// Fix Leaflet marker icon broken paths in webpack
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow,
-});
+L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
-// airports.json format: [icao, name, city, region, country, lat, lon, elev_ft, iata, [[le_ident, le_hdg, he_ident, he_hdg, length_ft], ...]]
-function searchAirports(query) {
-  if (!query || query.length < 2) return [];
-  const q = query.toUpperCase().trim();
-  const results = [];
-  for (let i = 0; i < airportsData.length && results.length < 8; i++) {
-    if (airportsData[i][0].startsWith(q)) results.push(airportsData[i]);
-  }
-  return results.map(a => ({
+// airports.json: [icao, name, city, region, country, lat, lon, elev_ft, iata,
+//   [[le_ident, le_hdg, he_ident, he_hdg, length_ft, le_lat, le_lon, he_lat, he_lon], ...]]
+function toAirport(a) {
+  return {
     icao: a[0], name: a[1], city: a[2], region: a[3], country: a[4],
     lat: a[5], lon: a[6], elev: a[7], iata: a[8],
     runways: (a[9] || []).map(rw => ({
       leIdent: rw[0], leHdg: rw[1], heIdent: rw[2], heHdg: rw[3], lengthFt: rw[4],
+      leLat: rw[5] ?? null, leLon: rw[6] ?? null, heLat: rw[7] ?? null, heLon: rw[8] ?? null,
       ident: `${rw[0]}/${rw[2]}`,
     })),
-  }));
+  };
+}
+
+function searchAirports(query) {
+  if (!query || query.length < 2) return [];
+  const q = query.toUpperCase().trim();
+  const qLower = query.toLowerCase().trim();
+  const exact = [], prefix = [], nameCity = [];
+  for (let i = 0; i < airportsData.length; i++) {
+    const a = airportsData[i];
+    const icao = a[0]; const iata = a[8] || '';
+    if (icao === q || iata === q) { exact.push(a); continue; }
+    if (icao.startsWith(q) || iata.startsWith(q)) { prefix.push(a); continue; }
+    const name = (a[1] || '').toLowerCase(); const city = (a[2] || '').toLowerCase();
+    if (name.includes(qLower) || city.includes(qLower)) nameCity.push(a);
+  }
+  return [...exact, ...prefix, ...nameCity].slice(0, 12).map(toAirport);
 }
 
 const NM_TO_M = 1852;
-const RING_DEFS = [
-  { nm: 10, label: '10 nm', sublabel: 'Inbound', color: '#38bdf8' },
-  { nm: 5,  label: '5 nm',  sublabel: 'Approach', color: '#38bdf8' },
-  { nm: 2,  label: '2 nm',  sublabel: 'Final',    color: '#38bdf8' },
-];
+function makeRingDefs(dists) {
+  return [...dists].sort((a, b) => b - a).map(nm => ({
+    nm, label: `${nm} nm`,
+  }));
+}
 
 const s = {
-  page: { display: 'grid', gridTemplateColumns: '1fr 420px', gap: '0', height: '100%', maxHeight: 'calc(100vh - 80px)', overflow: 'hidden' },
-  left: { overflowY: 'auto', padding: '0 24px 24px 0', display: 'flex', flexDirection: 'column', gap: '0' },
-  right: { background: '#0d1117', borderLeft: '1px solid #1e2a3a', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: '0 14px 14px 0' },
-  mapLabel: { padding: '12px 16px', fontSize: '11px', fontWeight: '700', color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid #1e2a3a', flexShrink: 0 },
-  mapContainer: { flex: 1, position: 'relative' },
+  page: { maxWidth: '860px', margin: '0 auto', paddingBottom: '40px' },
   section: { marginBottom: '20px' },
   label: { fontSize: '11px', fontWeight: '700', color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', display: 'block' },
   input: { width: '100%', padding: '11px 14px', background: '#0d1117', border: '2px solid #1e2a3a', borderRadius: '8px', color: '#f9fafb', fontSize: '15px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' },
@@ -65,11 +70,6 @@ const s = {
   }),
   ringBtnNm: { fontSize: '20px', fontWeight: '800', lineHeight: 1.1 },
   ringBtnSub: { fontSize: '11px', fontWeight: '600', letterSpacing: '0.04em', marginTop: '3px' },
-  toggleRow: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' },
-  toggleSwitch: (on) => ({ width: '44px', height: '24px', borderRadius: '12px', background: on ? '#38bdf8' : '#1e2a3a', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s', marginTop: '2px' }),
-  toggleKnob: (on) => ({ position: 'absolute', top: '3px', left: on ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }),
-  runwayPicker: { display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' },
-  runwayBtn: (active) => ({ padding: '7px 14px', borderRadius: '8px', border: `1px solid ${active ? '#38bdf8' : '#1e2a3a'}`, background: active ? 'rgba(56,189,248,0.1)' : 'transparent', color: active ? '#38bdf8' : '#6b7280', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }),
   saveBtn: (saving) => ({ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: saving ? '#374151' : 'linear-gradient(135deg, #38bdf8, #0ea5e9)', color: '#fff', fontSize: '15px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }),
   toast: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', fontSize: '13px', background: type === 'success' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)', border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`, color: type === 'success' ? '#6ee7b7' : '#fca5a5', marginTop: '16px' }),
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
@@ -77,48 +77,59 @@ const s = {
   hdrMini: { fontSize: '11px', fontWeight: '700', color: '#38bdf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
   hdrTitle: { fontSize: '26px', fontWeight: '800', color: '#f9fafb', margin: '0 0 4px 0' },
   hdrSub: { fontSize: '13px', color: '#6b7280', margin: 0 },
+  iconBtn: (color, bg) => ({ width: '32px', height: '32px', borderRadius: '7px', border: 'none', background: bg, color, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }),
+  manualLink: { background: 'none', border: 'none', color: '#38bdf8', fontSize: '12px', cursor: 'pointer', padding: '6px 0 0 0', display: 'block', textAlign: 'left' },
+  mapSection: { marginTop: '24px', border: '1px solid #1e2a3a', borderRadius: '12px', overflow: 'hidden', background: '#0d1117' },
+  mapLabel: { padding: '10px 16px', fontSize: '11px', fontWeight: '700', color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid #1e2a3a' },
+  mapContainer: { height: '400px', position: 'relative' },
+  overlay: { position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' },
+  modal: { background: '#0f1117', border: '1px solid #2d3748', borderRadius: '16px', padding: '28px', maxWidth: '480px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' },
+  modalTitle: { fontSize: '18px', fontWeight: '700', color: '#f9fafb', marginBottom: '4px' },
+  modalSub: { fontSize: '13px', color: '#6b7280', marginBottom: '20px' },
+  modalInput: { width: '100%', padding: '10px 14px', background: '#1a2030', border: '1px solid #374151', borderRadius: '8px', color: '#f9fafb', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' },
+  modalLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' },
+  modalError: { fontSize: '12px', color: '#fca5a5', marginTop: '10px' },
+  modalDivider: { borderTop: '1px solid #1e2a3a', margin: '20px 0' },
+  runwayRow: { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' },
+  addRwyBtn: { display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: '1px dashed #374151', borderRadius: '7px', color: '#6b7280', fontSize: '12px', padding: '7px 12px', cursor: 'pointer', width: '100%', justifyContent: 'center' },
 };
-
-function formatDMS(deg, posLetter, negLetter) {
-  const letter = deg >= 0 ? posLetter : negLetter;
-  const abs = Math.abs(deg);
-  const d = Math.floor(abs);
-  const min = (abs - d) * 60;
-  return `${abs.toFixed(4)}° ${letter}`;
-}
 
 export default function AirportConfig({ isViewOnly = false }) {
   const [config, setConfig] = useState({
     airport_code: '', airport_name: '', latitude: '', longitude: '',
     elevation_ft_msl: 0, detection_radius_nm: 100, polling_interval_seconds: 10,
     alert_distances_nm: [10, 5, 2],
-    runway_info: [], approach_corridor_enabled: false, approach_runway_heading: null,
+    runway_info: [],
     quiet_hours_enabled: false, quiet_hours_start: '23:00', quiet_hours_end: '06:00',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedAirport, setSelectedAirport] = useState(null);
+  const [ringDists, setRingDists] = useState([10, 5, 2]);
   const [activeRings, setActiveRings] = useState(new Set([10, 5, 2]));
-  const [approachRunway, setApproachRunway] = useState(null); // {leIdent, leHdg, heIdent, heHdg, end: 'le'|'he'}
 
-  // Map refs
+  const [manualModal, setManualModal] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    icao: '', name: '', city: '', lat: '', lon: '', elev: '',
+    runways: [],
+  });
+  const [manualError, setManualError] = useState('');
+
   const mapDivRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const ringsRef = useRef([]);
-  const corridorRef = useRef(null);
+  const runwaysRef = useRef([]);
   const searchRef = useRef(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => { loadConfig(); }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target) &&
@@ -135,137 +146,108 @@ export default function AirportConfig({ isViewOnly = false }) {
       const data = await APIService.getAirportConfig();
       if (data) {
         setConfig(data);
-        // Restore active rings from saved alert_distances_nm
         if (data.alert_distances_nm?.length) {
-          setActiveRings(new Set(data.alert_distances_nm.map(Number)));
+          const dists = data.alert_distances_nm.map(Number);
+          setRingDists(dists);
+          setActiveRings(new Set(dists));
         }
-        // Restore selected airport from saved airport_code
         if (data.airport_code) {
           const match = searchAirports(data.airport_code).find(a => a.icao === data.airport_code);
           if (match) {
             setSelectedAirport(match);
             setSearchQuery(data.airport_code);
-            // Restore approach runway
-            if (data.approach_runway_heading != null && match.runways.length) {
-              for (const rw of match.runways) {
-                if (Math.abs(rw.leHdg - data.approach_runway_heading) < 5) {
-                  setApproachRunway({ ...rw, end: 'le' }); break;
-                }
-                if (Math.abs(rw.heHdg - data.approach_runway_heading) < 5) {
-                  setApproachRunway({ ...rw, end: 'he' }); break;
-                }
-              }
-            }
           }
         }
       }
-    } catch {
-      // No existing config
-    } finally {
-      setLoading(false);
-    }
+    } catch { } finally { setLoading(false); }
   };
 
-  // Init map
+  // Init map — must wait for loading=false so the map div is actually in the DOM
   useEffect(() => {
+    if (loading) return;
     if (!mapDivRef.current || mapRef.current) return;
     const map = L.map(mapDivRef.current, {
-      center: [39.5, -98.35],
-      zoom: 10,
-      zoomControl: true,
-      attributionControl: false,
+      center: [39.5, -98.35], zoom: 4, zoomControl: true, attributionControl: false,
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
     mapRef.current = map;
+    setTimeout(() => map.invalidateSize(), 0);
     return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
-  }, []);
+  }, [loading]);
 
   // Update map when airport or rings change
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    // Clear existing layers
     if (markerRef.current) { markerRef.current.remove(); markerRef.current = null; }
-    ringsRef.current.forEach(l => l.remove());
-    ringsRef.current = [];
-    if (corridorRef.current) { corridorRef.current.remove(); corridorRef.current = null; }
+    ringsRef.current.forEach(l => l.remove()); ringsRef.current = [];
+    runwaysRef.current.forEach(l => l.remove()); runwaysRef.current = [];
 
     if (!selectedAirport) return;
 
     const { lat, lon } = selectedAirport;
-    map.setView([lat, lon], 11);
+    setTimeout(() => { map.invalidateSize(); map.setView([lat, lon], 12); }, 50);
 
-    // Airport marker
     const airportIcon = L.divIcon({
       html: `<div style="width:10px;height:10px;background:#38bdf8;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px #38bdf8"></div>`,
-      className: '',
-      iconSize: [10, 10],
-      iconAnchor: [5, 5],
+      className: '', iconSize: [10, 10], iconAnchor: [5, 5],
     });
     markerRef.current = L.marker([lat, lon], { icon: airportIcon }).addTo(map);
 
-    // Draw rings — always show all 3 as reference, active rings highlighted
-    const ringDefs = [
-      { nm: 10, color: activeRings.has(10) ? '#38bdf8' : '#2d3748', dash: activeRings.has(10) ? '' : '6, 6', weight: activeRings.has(10) ? 2 : 1, opacity: activeRings.has(10) ? 0.8 : 0.3 },
-      { nm: 5,  color: activeRings.has(5)  ? '#38bdf8' : '#2d3748', dash: activeRings.has(5)  ? '' : '6, 6', weight: activeRings.has(5)  ? 2 : 1, opacity: activeRings.has(5)  ? 0.8 : 0.3 },
-      { nm: 2,  color: activeRings.has(2)  ? '#38bdf8' : '#2d3748', dash: activeRings.has(2)  ? '' : '6, 6', weight: activeRings.has(2)  ? 2 : 1, opacity: activeRings.has(2)  ? 0.8 : 0.3 },
-    ];
+    // Draw runways
+    const cosLat = Math.cos(lat * Math.PI / 180);
+    const identToHdg = (ident) => { const n = parseInt(ident); return (n >= 1 && n <= 36) ? n * 10 : null; };
+    for (const rw of selectedAirport.runways) {
+      const leHdg = rw.leHdg ?? identToHdg(rw.leIdent);
+      let lePt, hePt;
+      if (rw.leLat != null && rw.leLon != null && rw.heLat != null && rw.heLon != null) {
+        lePt = [rw.leLat, rw.leLon];
+        hePt = [rw.heLat, rw.heLon];
+      } else if (leHdg != null && rw.lengthFt > 0 && !/[LRC]$/i.test(rw.leIdent || '')) {
+        const halfM = (rw.lengthFt * 0.3048) / 2;
+        const hdgRad = (leHdg * Math.PI) / 180;
+        lePt = [lat - (halfM / 111320) * Math.cos(hdgRad), lon - (halfM / (111320 * cosLat)) * Math.sin(hdgRad)];
+        hePt = [lat + (halfM / 111320) * Math.cos(hdgRad), lon + (halfM / (111320 * cosLat)) * Math.sin(hdgRad)];
+      } else continue;
 
-    for (const rd of ringDefs) {
-      const circle = L.circle([lat, lon], {
-        radius: rd.nm * NM_TO_M,
-        color: rd.color,
-        weight: rd.weight,
-        opacity: rd.opacity,
-        fill: false,
-        dashArray: rd.dash,
-      }).addTo(map);
+      runwaysRef.current.push(L.polyline([lePt, hePt], { color: '#fff', weight: 5, opacity: 0.9 }).addTo(map));
 
-      // Ring label — track it so it gets removed on next render
-      const offset = L.latLng(lat + (rd.nm * NM_TO_M) / 111320, lon);
-      const label = L.marker(offset, {
+      const rwLabel = (pt, txt) => L.marker(pt, {
         icon: L.divIcon({
-          html: `<div style="font-size:10px;font-weight:700;color:${rd.color};opacity:${rd.opacity};white-space:nowrap;background:rgba(13,17,23,0.7);padding:1px 4px;border-radius:3px">${rd.nm} nm</div>`,
-          className: '',
-          iconAnchor: [16, 8],
-        }),
-        interactive: false,
+          html: `<div style="font-size:9px;font-weight:800;color:#fff;background:rgba(0,0,0,0.75);padding:1px 5px;border-radius:3px;white-space:nowrap">${txt}</div>`,
+          className: '', iconAnchor: [12, 6],
+        }), interactive: false,
       }).addTo(map);
 
-      ringsRef.current.push(circle, label);
+      if (rw.leIdent) runwaysRef.current.push(rwLabel(lePt, rw.leIdent));
+      if (rw.heIdent) runwaysRef.current.push(rwLabel(hePt, rw.heIdent));
     }
 
-    // Draw approach corridor overlay
-    if (config.approach_corridor_enabled && approachRunway) {
-      const hdg = approachRunway.end === 'he' ? approachRunway.heHdg : approachRunway.leHdg;
-      // Draw a narrow wedge/line showing approach direction
-      const R = 12 * NM_TO_M; // 12nm line
-      const toRad = (deg) => (deg * Math.PI) / 180;
-      // Approach FROM the opposite direction
-      const approachHdg = (hdg + 180) % 360;
-      const endLat = lat + (R / 111320) * Math.cos(toRad(approachHdg));
-      const endLon = lon + (R / (111320 * Math.cos(toRad(lat)))) * Math.sin(toRad(approachHdg));
-      corridorRef.current = L.polyline([[lat, lon], [endLat, endLon]], {
-        color: '#f59e0b',
-        weight: 2,
-        opacity: 0.7,
-        dashArray: '8, 4',
+    // Draw distance rings
+    for (const nm of ringDists) {
+      const active = activeRings.has(nm);
+      const color = active ? '#38bdf8' : '#2d3748';
+      const opacity = active ? 0.8 : 0.3;
+      const circle = L.circle([lat, lon], {
+        radius: nm * NM_TO_M, color, weight: active ? 2 : 1,
+        opacity, fill: false, dashArray: active ? '' : '6, 6',
       }).addTo(map);
+      const offset = L.latLng(lat + (nm * NM_TO_M) / 111320, lon);
+      const lbl = L.marker(offset, {
+        icon: L.divIcon({
+          html: `<div style="font-size:10px;font-weight:700;color:${color};opacity:${opacity};white-space:nowrap;background:rgba(13,17,23,0.7);padding:1px 4px;border-radius:3px">${nm} nm</div>`,
+          className: '', iconAnchor: [16, 8],
+        }), interactive: false,
+      }).addTo(map);
+      ringsRef.current.push(circle, lbl);
     }
-  }, [selectedAirport, activeRings, config.approach_corridor_enabled, approachRunway]);
+  }, [selectedAirport, activeRings, ringDists]);
 
   const handleSearch = (val) => {
     setSearchQuery(val);
-    if (val.length >= 2) {
-      setSuggestions(searchAirports(val));
-      setShowDropdown(true);
-    } else {
-      setSuggestions([]);
-      setShowDropdown(false);
-    }
+    if (val.length >= 2) { setSuggestions(searchAirports(val)); setShowDropdown(true); }
+    else { setSuggestions([]); setShowDropdown(false); }
   };
 
   const selectAirport = (airport) => {
@@ -273,36 +255,85 @@ export default function AirportConfig({ isViewOnly = false }) {
     setSearchQuery(airport.icao);
     setShowDropdown(false);
     setSuggestions([]);
-    setApproachRunway(null);
     setConfig(prev => ({
-      ...prev,
-      airport_code: airport.icao,
-      airport_name: airport.name,
-      latitude: airport.lat,
-      longitude: airport.lon,
-      elevation_ft_msl: airport.elev,
+      ...prev, airport_code: airport.icao, airport_name: airport.name,
+      latitude: airport.lat, longitude: airport.lon, elevation_ft_msl: airport.elev,
       runway_info: airport.runways,
-      approach_corridor_enabled: false,
-      approach_runway_heading: null,
     }));
   };
 
-  const toggleRing = (nm) => {
-    setActiveRings(prev => {
-      const next = new Set(prev);
-      next.has(nm) ? next.delete(nm) : next.add(nm);
-      return next;
+  const clearAirport = () => {
+    setSelectedAirport(null);
+    setSearchQuery('');
+    setSuggestions([]);
+    setConfig(prev => ({
+      ...prev, airport_code: '', airport_name: '', latitude: '', longitude: '',
+      elevation_ft_msl: 0, runway_info: [],
+    }));
+  };
+
+  const openManualModal = (prefill = null) => {
+    setManualForm(prefill ? {
+      icao: prefill.icao || '',
+      name: prefill.name || '',
+      city: prefill.city || '',
+      lat: String(prefill.lat || ''),
+      lon: String(prefill.lon || ''),
+      elev: String(prefill.elev || ''),
+      runways: (prefill.runways || []).map(rw => ({
+        ident: rw.ident || `${rw.leIdent || ''}/${rw.heIdent || ''}`,
+        lengthFt: String(rw.lengthFt || ''),
+      })),
+    } : { icao: '', name: '', city: '', lat: '', lon: '', elev: '', runways: [] });
+    setManualError('');
+    setManualModal(true);
+  };
+
+  const addManualRunway = () => setManualForm(p => ({ ...p, runways: [...p.runways, { ident: '', lengthFt: '' }] }));
+  const removeManualRunway = (i) => setManualForm(p => ({ ...p, runways: p.runways.filter((_, idx) => idx !== i) }));
+  const updateManualRunway = (i, field, val) => setManualForm(p => ({
+    ...p, runways: p.runways.map((r, idx) => idx === i ? { ...r, [field]: val } : r),
+  }));
+
+  const submitManual = () => {
+    const lat = parseFloat(manualForm.lat);
+    const lon = parseFloat(manualForm.lon);
+    if (!manualForm.icao.trim()) { setManualError('ICAO code is required'); return; }
+    if (!manualForm.name.trim()) { setManualError('Airport name is required'); return; }
+    if (isNaN(lat) || lat < -90 || lat > 90) { setManualError('Valid latitude required (e.g. 33.2006)'); return; }
+    if (isNaN(lon) || lon < -180 || lon > 180) { setManualError('Valid longitude required (e.g. -97.1980)'); return; }
+
+    const runways = manualForm.runways
+      .filter(r => r.ident.trim())
+      .map(r => {
+        const parts = r.ident.trim().toUpperCase().replace(/\s/g, '').split('/');
+        const leIdent = parts[0] || '';
+        const heIdent = parts[1] || '';
+        const leNum = parseInt(leIdent);
+        const heNum = parseInt(heIdent);
+        return {
+          leIdent, heIdent,
+          leHdg: !isNaN(leNum) && leNum >= 1 && leNum <= 36 ? leNum * 10 : null,
+          heHdg: !isNaN(heNum) && heNum >= 1 && heNum <= 36 ? heNum * 10 : null,
+          lengthFt: parseInt(r.lengthFt) || 0,
+          leLat: null, leLon: null, heLat: null, heLon: null,
+          ident: `${leIdent}/${heIdent}`,
+        };
+      });
+
+    selectAirport({
+      icao: manualForm.icao.trim().toUpperCase(),
+      name: manualForm.name.trim(),
+      city: manualForm.city.trim(),
+      region: '', country: '',
+      lat, lon, elev: parseInt(manualForm.elev) || 0,
+      iata: null, runways,
     });
+    setManualModal(false);
   };
 
-  const toggleApproachCorridor = () => {
-    setConfig(prev => ({ ...prev, approach_corridor_enabled: !prev.approach_corridor_enabled }));
-  };
-
-  const selectApproachEnd = (rw, end) => {
-    const hdg = end === 'he' ? rw.heHdg : rw.leHdg;
-    setApproachRunway({ ...rw, end });
-    setConfig(prev => ({ ...prev, approach_runway_heading: hdg }));
+  const toggleRing = (nm) => {
+    setActiveRings(prev => { const next = new Set(prev); next.has(nm) ? next.delete(nm) : next.add(nm); return next; });
   };
 
   const handleSave = async (e) => {
@@ -317,206 +348,222 @@ export default function AirportConfig({ isViewOnly = false }) {
       const payload = {
         ...config,
         alert_distances_nm: Array.from(activeRings).sort((a, b) => b - a),
-        approach_runway_heading: approachRunway
-          ? (approachRunway.end === 'he' ? approachRunway.heHdg : approachRunway.leHdg)
-          : null,
       };
       await APIService.updateAirportConfig(payload);
-      const ringsText = Array.from(activeRings).sort((a,b)=>b-a).map(n=>`${n}nm`).join(', ');
-      const corridorText = config.approach_corridor_enabled && approachRunway
-        ? ` · approach corridor enabled`
-        : '';
-      setMessage({
-        type: 'success',
-        text: `${config.airport_code} configured · ${ringsText}${corridorText}`,
-      });
+      const ringsText = Array.from(activeRings).sort((a, b) => b - a).map(n => `${n}nm`).join(', ');
+      setMessage({ type: 'success', text: `${config.airport_code} configured · ${ringsText}` });
     } catch (error) {
       setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to save configuration' });
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
-  // Runway endpoint options for approach corridor
-  const runwayEndOptions = [];
-  if (selectedAirport) {
-    for (const rw of selectedAirport.runways) {
-      if (rw.leIdent) runwayEndOptions.push({ rw, end: 'le', ident: rw.leIdent, hdg: rw.leHdg });
-      if (rw.heIdent) runwayEndOptions.push({ rw, end: 'he', ident: rw.heIdent, hdg: rw.heHdg });
-    }
-  }
-
   const metaLine = selectedAirport
-    ? `${formatDMS(selectedAirport.lat, 'N', 'S')} · ${formatDMS(selectedAirport.lon, 'E', 'W')} · Elev ${selectedAirport.elev} ft` +
-      (selectedAirport.runways.length ? ` · ${selectedAirport.runways.map(r => `Runway ${r.ident} (${r.lengthFt.toLocaleString()} ft)`).join(', ')}` : '')
+    ? `${Math.abs(selectedAirport.lat).toFixed(4)}° ${selectedAirport.lat >= 0 ? 'N' : 'S'} · ${Math.abs(selectedAirport.lon).toFixed(4)}° ${selectedAirport.lon >= 0 ? 'E' : 'W'} · Elev ${selectedAirport.elev} ft` +
+      (selectedAirport.runways.length ? ` · ${selectedAirport.runways.map(r => `Rwy ${r.ident}${r.lengthFt ? ` (${r.lengthFt.toLocaleString()} ft)` : ''}`).join(', ')}` : '')
     : '';
 
-  if (loading) {
-    return <div style={s.loading}><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading...</div>;
-  }
+  if (loading) return (
+    <div style={s.loading}>
+      <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading...
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
     <div style={s.page}>
-      {/* ─── Left panel ─── */}
-      <div style={s.left}>
-        <div style={s.hdr}>
-          <p style={s.hdrMini}>Airport Config</p>
-          <h2 style={s.hdrTitle}>Add destination</h2>
-          <p style={s.hdrSub}>Tell FinalPing where this aircraft is heading.</p>
-        </div>
+      {/* Manual entry modal */}
+      {manualModal && (
+        <div style={s.overlay}>
+          <div style={s.modal}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <div style={s.modalTitle}>Enter airport manually</div>
+              <button onClick={() => setManualModal(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '2px' }}><X size={18} /></button>
+            </div>
+            <p style={s.modalSub}>Can't find your airport in the search, or the data is incorrect? Enter it below.</p>
 
-        {/* ICAO Search */}
-        <div style={{ ...s.section, position: 'relative' }}>
-          <label style={s.label}>ICAO Airport Code</label>
-          <div ref={searchRef} style={{ position: 'relative' }}>
-            <input
-              style={{
-                ...s.input,
-                borderColor: showDropdown ? '#38bdf8' : '#1e2a3a',
-                textTransform: 'uppercase',
-              }}
-              type="text"
-              value={searchQuery}
-              placeholder="e.g. KPAO"
-              onChange={e => handleSearch(e.target.value)}
-              onFocus={() => { if (suggestions.length) setShowDropdown(true); }}
-              maxLength={6}
-              disabled={isViewOnly}
-            />
-            {showDropdown && suggestions.length > 0 && (
-              <div ref={dropdownRef} style={s.dropdown}>
-                {suggestions.map(ap => (
-                  <div
-                    key={ap.icao}
-                    style={s.dropdownItem}
-                    onMouseDown={() => selectAirport(ap)}
-                    onMouseEnter={e => e.currentTarget.style.background = '#1a2a40'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <div style={s.iataBadge(ap.iata)}>{ap.iata || ap.icao.slice(1, 4)}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#f9fafb' }}>
-                        <span style={{ color: '#38bdf8' }}>{ap.icao}</span>
-                        <span style={{ color: '#4b5563', fontWeight: 400 }}> · {ap.name}</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>
-                        {[ap.city, ap.region, ap.country].filter(Boolean).join(', ')}
-                      </div>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={s.modalLabel}>ICAO Code *</label>
+              <input style={s.modalInput} placeholder="e.g. KDTO" maxLength={6}
+                value={manualForm.icao} onChange={e => setManualForm(p => ({ ...p, icao: e.target.value.toUpperCase() }))} />
+            </div>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={s.modalLabel}>Airport Name *</label>
+              <input style={s.modalInput} placeholder="e.g. Denton Enterprise Airport"
+                value={manualForm.name} onChange={e => setManualForm(p => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={s.modalLabel}>Latitude *</label>
+                <input style={s.modalInput} placeholder="33.2006" type="number" step="0.0001"
+                  value={manualForm.lat} onChange={e => setManualForm(p => ({ ...p, lat: e.target.value }))} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={s.modalLabel}>Longitude *</label>
+                <input style={s.modalInput} placeholder="-97.1980" type="number" step="0.0001"
+                  value={manualForm.lon} onChange={e => setManualForm(p => ({ ...p, lon: e.target.value }))} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={s.modalLabel}>City</label>
+                <input style={s.modalInput} placeholder="e.g. Denton"
+                  value={manualForm.city} onChange={e => setManualForm(p => ({ ...p, city: e.target.value }))} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={s.modalLabel}>Elevation (ft)</label>
+                <input style={s.modalInput} placeholder="641" type="number"
+                  value={manualForm.elev} onChange={e => setManualForm(p => ({ ...p, elev: e.target.value }))} />
+              </div>
+            </div>
+
+            <div style={s.modalDivider} />
+
+            {/* Runway inputs */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ ...s.modalLabel, marginBottom: '10px' }}>Runways (optional)</label>
+              <div style={{ fontSize: '11px', color: '#4b5563', marginBottom: '10px' }}>
+                Enter as "09/27" — the app computes heading from runway number.
+              </div>
+              {manualForm.runways.map((rw, i) => (
+                <div key={i} style={s.runwayRow}>
+                  <input
+                    style={{ ...s.modalInput, flex: 1 }}
+                    placeholder="09/27"
+                    value={rw.ident}
+                    onChange={e => updateManualRunway(i, 'ident', e.target.value)}
+                  />
+                  <input
+                    style={{ ...s.modalInput, width: '110px', flex: 'none' }}
+                    placeholder="Length (ft)"
+                    type="number"
+                    value={rw.lengthFt}
+                    onChange={e => updateManualRunway(i, 'lengthFt', e.target.value)}
+                  />
+                  <button onClick={() => removeManualRunway(i)}
+                    style={{ width: '30px', height: '36px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+              <button style={s.addRwyBtn} onClick={addManualRunway}>
+                <Plus size={13} /> Add Runway
+              </button>
+            </div>
+
+            {manualError && <p style={s.modalError}>{manualError}</p>}
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button onClick={() => setManualModal(false)} style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={submitManual} style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Use this airport</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={s.hdr}>
+        <p style={s.hdrMini}>Airport Config</p>
+        <h2 style={s.hdrTitle}>Add destination</h2>
+        <p style={s.hdrSub}>Tell FinalPing where this aircraft is heading.</p>
+      </div>
+
+      {/* Airport Search */}
+      <div style={{ ...s.section, position: 'relative' }}>
+        <label style={s.label}>Search Airport</label>
+        <div ref={searchRef} style={{ position: 'relative' }}>
+          <input
+            style={{ ...s.input, borderColor: showDropdown ? '#38bdf8' : '#1e2a3a' }}
+            type="text" value={searchQuery}
+            placeholder="ICAO, IATA, city, or airport name"
+            onChange={e => handleSearch(e.target.value)}
+            onFocus={() => { if (suggestions.length) setShowDropdown(true); }}
+            disabled={isViewOnly}
+          />
+          {showDropdown && suggestions.length > 0 && (
+            <div ref={dropdownRef} style={s.dropdown}>
+              {suggestions.map(ap => (
+                <div key={ap.icao} style={s.dropdownItem}
+                  onMouseDown={() => selectAirport(ap)}
+                  onMouseEnter={e => e.currentTarget.style.background = '#1a2a40'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <div style={s.iataBadge(ap.iata)}>{ap.iata || ap.icao.slice(0, 3)}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#f9fafb' }}>
+                      <span style={{ color: '#38bdf8' }}>{ap.icao}</span>
+                      <span style={{ color: '#4b5563', fontWeight: 400 }}> · {ap.name}</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>
+                      {[ap.city, ap.region, ap.country].filter(Boolean).join(', ')}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {!isViewOnly && (
+          <button style={s.manualLink} onClick={() => openManualModal()}>
+            Can't find your airport or wrong info? Enter manually →
+          </button>
+        )}
+      </div>
+
+      {/* Selected airport card */}
+      {selectedAirport && (
+        <div style={s.section}>
+          <div style={s.airportCard}>
+            <div style={s.airportCardBadge}>{selectedAirport.iata || selectedAirport.icao.slice(0, 3)}</div>
+            <div style={s.airportCardInfo}>
+              <div style={s.airportName}>{selectedAirport.name}</div>
+              <div style={s.airportMeta}>{metaLine}</div>
+            </div>
+            {!isViewOnly && (
+              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                <button onClick={() => openManualModal(selectedAirport)} title="Edit airport info"
+                  style={s.iconBtn('#38bdf8', 'rgba(56,189,248,0.1)')}>
+                  <Edit2 size={14} />
+                </button>
+                <button onClick={clearAirport} title="Remove airport"
+                  style={s.iconBtn('#ef4444', 'rgba(239,68,68,0.1)')}>
+                  <Trash2 size={14} />
+                </button>
               </div>
             )}
           </div>
         </div>
+      )}
 
-        {/* Selected airport card */}
-        {selectedAirport && (
-          <div style={{ ...s.section }}>
-            <div style={s.airportCard}>
-              <div style={s.airportCardBadge}>{selectedAirport.iata || selectedAirport.icao.slice(1, 4)}</div>
-              <div style={s.airportCardInfo}>
-                <div style={s.airportName}>{selectedAirport.name}</div>
-                <div style={s.airportMeta}>{metaLine}</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Detection Rings */}
-        <div style={s.section}>
-          <label style={s.label}>Detection Ring</label>
-          <div style={s.ringsRow}>
-            {RING_DEFS.map(({ nm, label, sublabel }) => (
-              <button
-                key={nm}
-                type="button"
-                style={s.ringBtn(activeRings.has(nm))}
-                onClick={() => !isViewOnly && toggleRing(nm)}
-              >
-                <div style={s.ringBtnNm}>{label}</div>
-                <div style={s.ringBtnSub}>{sublabel}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Approach Corridor */}
-        <div style={s.section}>
-          <div style={s.toggleRow}>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#e5e7eb' }}>Restrict to approach corridor</div>
-              {config.approach_corridor_enabled && approachRunway && (
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '3px' }}>
-                  Only fire when aircraft is aligned with runway {approachRunway.end === 'he' ? approachRunway.heIdent : approachRunway.leIdent}
-                </div>
-              )}
-              {config.approach_corridor_enabled && !approachRunway && (
-                <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '3px' }}>
-                  Select a runway end below
-                </div>
-              )}
-            </div>
-            <div
-              style={s.toggleSwitch(config.approach_corridor_enabled)}
-              onClick={() => !isViewOnly && toggleApproachCorridor()}
-            >
-              <div style={s.toggleKnob(config.approach_corridor_enabled)} />
-            </div>
-          </div>
-
-          {config.approach_corridor_enabled && runwayEndOptions.length > 0 && (
-            <div style={s.runwayPicker}>
-              {runwayEndOptions.map(({ rw, end, ident, hdg }) => {
-                const isActive = approachRunway && approachRunway.rw === rw && approachRunway.end === end;
-                return (
-                  <button
-                    key={`${rw.ident}-${end}`}
-                    type="button"
-                    style={s.runwayBtn(isActive)}
-                    onClick={() => !isViewOnly && selectApproachEnd(rw, end)}
-                  >
-                    RWY {ident} <span style={{ opacity: 0.6, marginLeft: 4 }}>{hdg}°</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {config.approach_corridor_enabled && !selectedAirport && (
-            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-              Select an airport above to choose a runway.
-            </div>
-          )}
-        </div>
-
-        {/* Save */}
-        {!isViewOnly && (
-          <div style={s.section}>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              style={s.saveBtn(saving)}
-            >
-              {saving
-                ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</>
-                : 'Save airport'}
+      {/* Detection Rings */}
+      <div style={s.section}>
+        <label style={s.label}>Detection Ring</label>
+        <div style={s.ringsRow}>
+          {makeRingDefs(ringDists).map(({ nm, label }) => (
+            <button key={nm} type="button" style={s.ringBtn(activeRings.has(nm))}
+              onClick={() => !isViewOnly && toggleRing(nm)}>
+              <div style={s.ringBtnNm}>{label}</div>
             </button>
-          </div>
-        )}
-
-        {/* Toast */}
-        {message.text && (
-          <div style={s.toast(message.type)}>
-            {message.type === 'success' && <Check size={15} />}
-            {message.text}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
-      {/* ─── Right panel — Map ─── */}
-      <div style={s.right}>
+      {/* Save */}
+      {!isViewOnly && (
+        <div style={s.section}>
+          <button type="button" onClick={handleSave} disabled={saving} style={s.saveBtn(saving)}>
+            {saving ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</> : 'Save airport'}
+          </button>
+        </div>
+      )}
+
+      {/* Toast */}
+      {message.text && (
+        <div style={s.toast(message.type)}>
+          {message.type === 'success' && <Check size={15} />}
+          {message.text}
+        </div>
+      )}
+
+      {/* Map */}
+      <div style={s.mapSection}>
         <div style={s.mapLabel}>Map Preview</div>
         <div style={s.mapContainer}>
           <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
@@ -524,7 +571,7 @@ export default function AirportConfig({ isViewOnly = false }) {
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
               <div style={{ textAlign: 'center', color: '#374151' }}>
                 <MapPin size={32} strokeWidth={1} style={{ margin: '0 auto 8px' }} />
-                <div style={{ fontSize: '13px' }}>Search for an airport</div>
+                <div style={{ fontSize: '13px' }}>Search for an airport to preview on map</div>
               </div>
             </div>
           )}

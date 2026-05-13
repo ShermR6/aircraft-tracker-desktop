@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare, BookOpen } from 'lucide-react';
 import StorageService from '../services/storage';
 import APIService from '../services/api';
 import AirportConfig from './AirportConfig';
@@ -497,7 +497,23 @@ export default function Dashboard({ onLogout }) {
         <div style={s.sidebarBottom}>
           <button
             style={s.logoutBtn}
-            onClick={() => window.electronAPI?.openExternal('mailto:support@finalpingapp.com?subject=FinalPing%20Feedback')}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/docs')}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = '#0ea5e9';
+              e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
+              e.currentTarget.style.background = 'rgba(14,165,233,0.06)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.borderColor = 'transparent';
+              e.currentTarget.style.background = 'none';
+            }}
+          >
+            <BookOpen size={14} /> Help Center
+          </button>
+          <button
+            style={s.logoutBtn}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/contact')}
             onMouseEnter={e => {
               e.currentTarget.style.color = '#0ea5e9';
               e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
