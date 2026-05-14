@@ -149,7 +149,7 @@ export default function AircraftManager({ isViewOnly = false }) {
   const toggleDistance = (d) => {
     setForm(p => {
       const has = p.alert_distances.includes(d);
-      if (has && p.alert_distances.length === 1) return p; // keep at least one
+      if (has && p.alert_distances.length === 1) return p;
       return { ...p, alert_distances: has ? p.alert_distances.filter(x => x !== d) : [...p.alert_distances, d].sort((a, b) => b - a) };
     });
   };
@@ -202,7 +202,7 @@ export default function AircraftManager({ isViewOnly = false }) {
         showMessage('success', `${form.tail_number.toUpperCase()} added`);
       }
       await loadAircraft();
-      setForm(emptyForm);
+      setForm(makeEmptyForm(globalDistances));
     } catch (err) {
       showMessage('error', err.response?.data?.detail || 'Failed to save aircraft');
     } finally {

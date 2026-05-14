@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare, BookOpen } from 'lucide-react';
 import StorageService from '../services/storage';
 import APIService from '../services/api';
 import AirportConfig from './AirportConfig';
@@ -491,13 +491,32 @@ export default function Dashboard({ onLogout }) {
           <NavItem to="/dashboard/airport" icon={MapPin} label="Airport Config" active={path === '/dashboard/airport'} />
           <NavItem to="/dashboard/alerts" icon={Bell} label="Alerts" active={path === '/dashboard/alerts'} />
           <NavItem to="/dashboard/integrations" icon={LinkIcon} label="Integrations" active={path === '/dashboard/integrations'} />
+          {userData?.license_tier === 'team' && (
+            <NavItem to="/dashboard/team" icon={Users} label="Team" active={path === '/dashboard/team'} />
+          )}
           <NavItem to="/dashboard/logs" icon={ScrollText} label="Logs" active={path === '/dashboard/logs'} />
         </nav>
 
         <div style={s.sidebarBottom}>
           <button
             style={s.logoutBtn}
-            onClick={() => window.electronAPI?.openExternal('mailto:support@finalpingapp.com?subject=FinalPing%20Feedback')}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/docs')}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = '#0ea5e9';
+              e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
+              e.currentTarget.style.background = 'rgba(14,165,233,0.06)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.borderColor = 'transparent';
+              e.currentTarget.style.background = 'none';
+            }}
+          >
+            <BookOpen size={14} /> Help Center
+          </button>
+          <button
+            style={s.logoutBtn}
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/contact')}
             onMouseEnter={e => {
               e.currentTarget.style.color = '#0ea5e9';
               e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
@@ -537,11 +556,7 @@ export default function Dashboard({ onLogout }) {
         <Routes>
           {/* Full-bleed routes — no maxWidth, no padding wrapper */}
           <Route path="/map" element={<LiveMap />} />
-          <Route path="/airport" element={
-            <div style={{ flex: 1, padding: '20px 24px 20px 32px', overflow: 'hidden', boxSizing: 'border-box', height: '100%' }}>
-              <AirportConfig isViewOnly={isViewOnly} />
-            </div>
-          } />
+          <Route path="/airport" element={<div style={s.content}><AirportConfig isViewOnly={isViewOnly} /></div>} />
           {/* Standard padded routes */}
           <Route path="/" element={<div style={s.content}><DashboardHome isViewOnly={isViewOnly} /></div>} />
           <Route path="/aircraft" element={<div style={s.content}><AircraftManager isViewOnly={isViewOnly} /></div>} />
