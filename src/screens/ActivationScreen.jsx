@@ -351,6 +351,10 @@ export default function ActivationScreen({ onSuccess }) {
       setError('You must agree to the Terms of Service and Privacy Policy to continue.');
       return;
     }
+    if (licenseKey.trim().toUpperCase().startsWith('FPT-')) {
+      setError('This is a FinalPing for Teams license key. Please download FinalPing for Teams to activate it.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -541,7 +545,7 @@ export default function ActivationScreen({ onSuccess }) {
                   <label style={s.label}>License Key</label>
                   <div style={s.inputWrap}>
                     <div style={s.inputIcon}><Key size={15} color="#4b5563" /></div>
-                    <input style={s.input} type="text" placeholder="XXXX-XXXX-XXXX-XXXX"
+                    <input style={s.input} type="text" placeholder="FP-XXXX-XXXX-XXXX-XXXX"
                       value={licenseKey} onChange={e => setLicenseKey(e.target.value)}
                       onFocus={focusInput} onBlur={blurInput} autoComplete="off" spellCheck={false} />
                   </div>

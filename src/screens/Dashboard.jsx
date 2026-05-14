@@ -491,6 +491,9 @@ export default function Dashboard({ onLogout }) {
           <NavItem to="/dashboard/airport" icon={MapPin} label="Airport Config" active={path === '/dashboard/airport'} />
           <NavItem to="/dashboard/alerts" icon={Bell} label="Alerts" active={path === '/dashboard/alerts'} />
           <NavItem to="/dashboard/integrations" icon={LinkIcon} label="Integrations" active={path === '/dashboard/integrations'} />
+          {userData?.license_tier === 'team' && (
+            <NavItem to="/dashboard/team" icon={Users} label="Team" active={path === '/dashboard/team'} />
+          )}
           <NavItem to="/dashboard/logs" icon={ScrollText} label="Logs" active={path === '/dashboard/logs'} />
         </nav>
 
