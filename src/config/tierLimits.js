@@ -19,7 +19,7 @@ export const TIER_LIMITS = {
 };
 
 export function getLimits(tier) {
-  const key = (tier || '').toLowerCase();
+  const key = (tier || '').toLowerCase().replace(/^team-/, '');
   return TIER_LIMITS[key] || TIER_LIMITS.starter;
 }
 
