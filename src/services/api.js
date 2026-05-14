@@ -202,6 +202,11 @@ class APIService {
     return response.data;
   }
 
+  async deleteAirportConfig() {
+    const response = await this.client.delete('/api/airport/config');
+    return response.data;
+  }
+
   // Alert Settings
   async getAlertSettings() {
     const response = await this.client.get('/api/settings/alerts');

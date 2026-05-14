@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Loader, Check } from 'lucide-react';
+import { MapPin, Loader, Check, Trash2 } from 'lucide-react';
 import APIService from '../services/api';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -33,11 +33,16 @@ function searchAirports(query) {
 }
 
 const NM_TO_M = 1852;
-const RING_DEFS = [
-  { nm: 10, label: '10 nm', sublabel: 'Inbound', color: '#38bdf8' },
-  { nm: 5,  label: '5 nm',  sublabel: 'Approach', color: '#38bdf8' },
-  { nm: 2,  label: '2 nm',  sublabel: 'Final',    color: '#38bdf8' },
-];
+const DIST_LABELS = { 10: 'Inbound', 5: 'Approach', 2: 'Final' };
+
+function buildRingDefs(distances) {
+  return [...distances].sort((a, b) => b - a).map(nm => ({
+    nm,
+    label: `${nm} nm`,
+    sublabel: DIST_LABELS[nm] || 'Custom',
+    color: '#38bdf8',
+  }));
+}
 
 const s = {
   page: { display: 'grid', gridTemplateColumns: '1fr 420px', gap: '0', height: '100%', maxHeight: 'calc(100vh - 80px)', overflow: 'hidden' },
@@ -71,6 +76,7 @@ const s = {
   runwayPicker: { display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' },
   runwayBtn: (active) => ({ padding: '7px 14px', borderRadius: '8px', border: `1px solid ${active ? '#38bdf8' : '#1e2a3a'}`, background: active ? 'rgba(56,189,248,0.1)' : 'transparent', color: active ? '#38bdf8' : '#6b7280', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }),
   saveBtn: (saving) => ({ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: saving ? '#374151' : 'linear-gradient(135deg, #38bdf8, #0ea5e9)', color: '#fff', fontSize: '15px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }),
+  deleteBtn: { width: '100%', padding: '11px', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '8px' },
   toast: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', fontSize: '13px', background: type === 'success' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)', border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`, color: type === 'success' ? '#6ee7b7' : '#fca5a5', marginTop: '16px' }),
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
   hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #1a2030' },
@@ -97,6 +103,8 @@ export default function AirportConfig({ isViewOnly = false }) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // Search state
@@ -207,12 +215,15 @@ export default function AirportConfig({ isViewOnly = false }) {
     });
     markerRef.current = L.marker([lat, lon], { icon: airportIcon }).addTo(map);
 
-    // Draw rings — always show all 3 as reference, active rings highlighted
-    const ringDefs = [
-      { nm: 10, color: activeRings.has(10) ? '#38bdf8' : '#2d3748', dash: activeRings.has(10) ? '' : '6, 6', weight: activeRings.has(10) ? 2 : 1, opacity: activeRings.has(10) ? 0.8 : 0.3 },
-      { nm: 5,  color: activeRings.has(5)  ? '#38bdf8' : '#2d3748', dash: activeRings.has(5)  ? '' : '6, 6', weight: activeRings.has(5)  ? 2 : 1, opacity: activeRings.has(5)  ? 0.8 : 0.3 },
-      { nm: 2,  color: activeRings.has(2)  ? '#38bdf8' : '#2d3748', dash: activeRings.has(2)  ? '' : '6, 6', weight: activeRings.has(2)  ? 2 : 1, opacity: activeRings.has(2)  ? 0.8 : 0.3 },
-    ];
+    // Draw rings for all active distances
+    const allDistances = Array.from(activeRings).sort((a, b) => b - a);
+    const ringDefs = allDistances.map(nm => ({
+      nm,
+      color: '#38bdf8',
+      dash: '',
+      weight: 2,
+      opacity: 0.8,
+    }));
 
     for (const rd of ringDefs) {
       const circle = L.circle([lat, lon], {
@@ -337,6 +348,32 @@ export default function AirportConfig({ isViewOnly = false }) {
     }
   };
 
+  const handleDelete = async () => {
+    setConfirmDelete(false);
+    setDeleting(true);
+    setMessage({ type: '', text: '' });
+    try {
+      await APIService.deleteAirportConfig();
+      // Reset everything to a clean state
+      setSelectedAirport(null);
+      setSearchQuery('');
+      setActiveRings(new Set([10, 5, 2]));
+      setApproachRunway(null);
+      setConfig({
+        airport_code: '', airport_name: '', latitude: '', longitude: '',
+        elevation_ft_msl: 0, detection_radius_nm: 100, polling_interval_seconds: 10,
+        alert_distances_nm: [10, 5, 2],
+        runway_info: [], approach_corridor_enabled: false, approach_runway_heading: null,
+        quiet_hours_enabled: false, quiet_hours_start: '23:00', quiet_hours_end: '06:00',
+      });
+      setMessage({ type: 'success', text: 'Airport configuration deleted.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to delete configuration' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Runway endpoint options for approach corridor
   const runwayEndOptions = [];
   if (selectedAirport) {
@@ -357,6 +394,21 @@ export default function AirportConfig({ isViewOnly = false }) {
 
   return (
     <div style={s.page}>
+      {/* Delete confirmation modal */}
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#0f1117', border: '1px solid #2d3748', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>🗑️</div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', margin: '0 0 8px 0', textAlign: 'center' }}>Delete Airport Config</h2>
+            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px 0' }}>Remove <strong style={{ color: '#f9fafb' }}>{config.airport_code}</strong> and all its detection settings?</p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleDelete} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Left panel ─── */}
       <div style={s.left}>
         <div style={s.hdr}>
@@ -427,11 +479,11 @@ export default function AirportConfig({ isViewOnly = false }) {
         <div style={s.section}>
           <label style={s.label}>Detection Ring</label>
           <div style={s.ringsRow}>
-            {RING_DEFS.map(({ nm, label, sublabel }) => (
+            {buildRingDefs(activeRings).map(({ nm, label, sublabel }) => (
               <button
                 key={nm}
                 type="button"
-                style={s.ringBtn(activeRings.has(nm))}
+                style={s.ringBtn(true)}
                 onClick={() => !isViewOnly && toggleRing(nm)}
               >
                 <div style={s.ringBtnNm}>{label}</div>
@@ -490,7 +542,7 @@ export default function AirportConfig({ isViewOnly = false }) {
           )}
         </div>
 
-        {/* Save */}
+        {/* Save / Delete */}
         {!isViewOnly && (
           <div style={s.section}>
             <button
@@ -503,6 +555,18 @@ export default function AirportConfig({ isViewOnly = false }) {
                 ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</>
                 : 'Save airport'}
             </button>
+            {config.airport_code && (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={deleting}
+                style={s.deleteBtn}
+              >
+                {deleting
+                  ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Deleting...</>
+                  : <><Trash2 size={14} />Delete airport</>}
+              </button>
+            )}
           </div>
         )}
 

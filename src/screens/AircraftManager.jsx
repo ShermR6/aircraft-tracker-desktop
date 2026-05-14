@@ -4,18 +4,15 @@ import APIService from '../services/api';
 import StorageService from '../services/storage';
 import { getLimits, getLimitDisplay } from '../config/tierLimits';
 
-const ALL_DISTANCES = [10, 5, 2];
-const DEFAULT_DISTANCES = [10, 5, 2];
+const FALLBACK_DISTANCES = [10, 5, 2];
+const DIST_LABELS = { 10: 'Inbound', 5: 'Approach', 2: 'Final' };
 
-const emptyForm = {
-  icao24: '',
-  tail_number: '',
-  aircraft_type: '',
-  alert_distances: [...DEFAULT_DISTANCES],
-};
+function makeEmptyForm(distances) {
+  return { icao24: '', tail_number: '', aircraft_type: '', alert_distances: [...distances] };
+}
 
 const s = {
-  layout: { display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', maxWidth: '1100px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif", alignItems: 'start' },
+  layout: { display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', fontFamily: "'Segoe UI', system-ui, sans-serif", alignItems: 'start' },
   left: {},
   right: { position: 'sticky', top: 0 },
 
@@ -79,7 +76,8 @@ const s = {
 export default function AircraftManager({ isViewOnly = false }) {
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState(emptyForm);
+  const [globalDistances, setGlobalDistances] = useState(FALLBACK_DISTANCES);
+  const [form, setForm] = useState(makeEmptyForm(FALLBACK_DISTANCES));
   const [editingId, setEditingId] = useState(null);
   const [lookingUp, setLookingUp] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -94,6 +92,13 @@ export default function AircraftManager({ isViewOnly = false }) {
     APIService.getCurrentUser().then(d => { if (d?.license_tier) setTier(d.license_tier); }).catch(() => {
       StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
     });
+    APIService.getAirportConfig().then(cfg => {
+      if (cfg?.alert_distances_nm?.length) {
+        const dists = cfg.alert_distances_nm.map(Number).sort((a, b) => b - a);
+        setGlobalDistances(dists);
+        setForm(makeEmptyForm(dists));
+      }
+    }).catch(() => {});
   }, []);
 
   const loadAircraft = async () => {
@@ -155,13 +160,13 @@ export default function AircraftManager({ isViewOnly = false }) {
       icao24: a.icao24 || '',
       tail_number: a.tail_number || '',
       aircraft_type: a.aircraft_type || '',
-      alert_distances: a.alert_distances || [...DEFAULT_DISTANCES],
+      alert_distances: a.alert_distances || [...globalDistances],
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm(makeEmptyForm(globalDistances));
   };
 
   const handleSave = async () => {
@@ -306,8 +311,8 @@ export default function AircraftManager({ isViewOnly = false }) {
                   <div style={s.typeText}>{a.aircraft_type || '—'}</div>
                 </td>
                 <td style={s.td}>
-                  {ALL_DISTANCES.map(d => (
-                    <span key={d} style={s.distTag((a.alert_distances || DEFAULT_DISTANCES).includes(d))}>
+                  {globalDistances.map(d => (
+                    <span key={d} style={s.distTag((a.alert_distances || globalDistances).includes(d))}>
                       {d}nm
                     </span>
                   ))}
@@ -390,13 +395,12 @@ export default function AircraftManager({ isViewOnly = false }) {
             <div>
               <label style={s.fieldLabel}>ALERT DISTANCES</label>
               <div style={s.distRow}>
-                {ALL_DISTANCES.map(d => {
+                {globalDistances.map(d => {
                   const active = form.alert_distances.includes(d);
-                  const labels = { 10: 'Inbound', 5: 'Approach', 2: 'Final' };
                   return (
                     <button key={d} style={s.distBtn(active)} onClick={() => toggleDistance(d)}>
                       <span style={{ fontWeight: 700 }}>{d} nm</span>
-                      <span style={s.distLabel}>{labels[d]}</span>
+                      <span style={s.distLabel}>{DIST_LABELS[d] || 'Custom'}</span>
                     </button>
                   );
                 })}
