@@ -126,17 +126,100 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
+const CURRENT_VERSION = '1.0.8';
+
+const CHANGELOG = [
+  { type: 'new', text: 'New app icon with runway and radar design' },
+  { type: 'new', text: 'Formatting syntax guide in alert message editor' },
+  { type: 'improved', text: 'Help Center button added to the dashboard toolbar' },
+  { type: 'improved', text: 'macOS installer now available' },
+];
+
+const TAG = {
+  new: { bg: 'rgba(14,165,233,0.15)', color: '#38bdf8', label: 'New' },
+  improved: { bg: 'rgba(168,85,247,0.15)', color: '#a855f7', label: 'Improved' },
+  fix: { bg: 'rgba(239,68,68,0.15)', color: '#f87171', label: 'Fix' },
+};
+
+function ChangelogModal({ onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 10000,
+      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        background: '#0f1117', border: '1px solid #1e2a3a',
+        borderRadius: 20, padding: 32, maxWidth: 420, width: '90%',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          <span style={{ fontSize: 22, fontWeight: 800, color: '#f9fafb' }}>What&apos;s new in v{CURRENT_VERSION}</span>
+          <span style={{
+            fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
+            background: 'rgba(34,197,94,0.12)', color: '#22c55e',
+            textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: 'auto',
+          }}>Latest</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+          {CHANGELOG.map((c, i) => {
+            const tag = TAG[c.type];
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14 }}>
+                <span style={{
+                  flexShrink: 0, fontSize: 11, fontWeight: 700,
+                  padding: '2px 7px', borderRadius: 4,
+                  background: tag.bg, color: tag.color, marginTop: 1,
+                }}>{tag.label}</span>
+                <span style={{ color: '#d1d5db', lineHeight: 1.5 }}>{c.text}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/changelog')}
+            style={{
+              flex: 1, padding: '10px', borderRadius: 10,
+              background: 'transparent', border: '1px solid #1e2a3a',
+              color: '#9ca3af', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+          >Full Changelog</button>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1, padding: '10px', borderRadius: 10,
+              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+              border: 'none', color: '#fff',
+              fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}
+          >Got it</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updateVersion, setUpdateVersion] = useState(null);
   const [updateDownloaded, setUpdateDownloaded] = useState(false);
   const [licenseExpired, setLicenseExpired] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   useEffect(() => {
     checkAuth().catch((err) => {
       console.error('Fatal auth error:', err);
       setLoading(false);
+    });
+
+    // Show changelog modal if this is the first launch after an update
+    StorageService.get('lastSeenVersion').then((seen) => {
+      if (seen !== CURRENT_VERSION) {
+        setShowChangelog(true);
+        StorageService.set('lastSeenVersion', CURRENT_VERSION);
+      }
     });
 
     // Listen for auto-updater events from main process
@@ -213,6 +296,7 @@ function App() {
 
   return (
     <Router>
+      {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
       {licenseExpired && (
         <LicenseExpiredOverlay
           onActivateNew={async () => {

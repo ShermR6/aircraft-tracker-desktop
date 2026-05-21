@@ -222,6 +222,17 @@ export default function AlertSettings({ isViewOnly = false }) {
             <span key={v} style={s.varChip}>{v}</span>
           ))}
         </div>
+        <div style={{ ...s.varsRow, marginTop: 8 }}>
+          <span style={s.varLabel}>Formatting:</span>
+          {[
+            { syntax: '**bold**', label: 'Bold' },
+            { syntax: '_italic_', label: 'Italic' },
+            { syntax: '__underline__', label: 'Underline' },
+            { syntax: '~~strikethrough~~', label: 'Strike' },
+          ].map(f => (
+            <span key={f.syntax} style={{ ...s.varChip, color: '#93c5fd' }} title={f.label}>{f.syntax}</span>
+          ))}
+        </div>
       </div>
 
       {/* Landing Alert */}
@@ -255,6 +266,8 @@ export default function AlertSettings({ isViewOnly = false }) {
 
       <div style={s.infoBox}>
         <strong>How variables work:</strong> Use {'{tail_number}'}, {'{airport}'}, {'{distance}'}, {'{altitude}'}, or {'{eta}'} in your messages. The system fills them in with real flight data when sending each notification.
+        <br /><br />
+        <strong>Formatting:</strong> Discord and Slack support markdown — use <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>**text**</code> for bold, <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>_text_</code> for italic, <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>__text__</code> for underline (Discord only), and <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>~~text~~</code> for strikethrough.
       </div>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
