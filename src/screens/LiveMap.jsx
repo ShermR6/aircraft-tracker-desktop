@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plane, RefreshCw, Loader, Navigation } from 'lucide-react';
 import APIService from '../services/api';
+import { getColor, ensureLoaded } from '../services/aircraftColors';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -10,7 +11,9 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
-const TRAIL_COLORS = ['#38bdf8', '#a78bfa', '#f59e0b', '#34d399', '#f87171', '#818cf8'];
+// Module-level so trail data and position tracker persist across tab navigation
+const _trailData = {};
+const _posTracker = {};
 
 function nmToMeters(nm) { return nm * 1852; }
 
@@ -34,8 +37,8 @@ export default function LiveMap() {
   const mapRef = useRef(null);
   const markersRef = useRef({});
   const trailsRef = useRef({});
-  const trailDataRef = useRef({});
-  const posTrackerRef = useRef({}); // { [tail]: { lat, lng, changedAt } }
+  const trailDataRef = useRef(_trailData);
+  const posTrackerRef = useRef(_posTracker); // { [tail]: { lat, lng, changedAt } }
   const ringsRef = useRef([]);
   const airportMarkerRef = useRef(null);
   const intervalRef = useRef(null);
@@ -47,6 +50,7 @@ export default function LiveMap() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    ensureLoaded();
     APIService.getAirportConfig()
       .then(cfg => setAirportConfig(cfg))
       .catch(() => setError('No airport configured. Please set up your location in Airport Config first.'));
@@ -145,10 +149,10 @@ export default function LiveMap() {
 
       const seen = new Set();
 
-      liveAircraft.forEach((ac, idx) => {
+      liveAircraft.forEach((ac) => {
         const lat = parseFloat(ac.latitude);
         const lng = parseFloat(ac.longitude);
-        const color = TRAIL_COLORS[idx % TRAIL_COLORS.length];
+        const color = getColor(ac.tail_number);
         const lastSeenMs = ac.last_seen ? new Date(ac.last_seen).getTime() : now;
         const fresh = freshnessStyle(lastSeenMs);
 
@@ -164,23 +168,26 @@ export default function LiveMap() {
         }
 
         if (trailsRef.current[ac.tail_number]) {
-          trailsRef.current[ac.tail_number].setLatLngs(trail);
+          trailsRef.current[ac.tail_number].setLatLngs(trail).setStyle({ color });
         } else {
           trailsRef.current[ac.tail_number] = L.polyline(trail, {
             color, weight: 2, opacity: 0.6, dashArray: '4 4',
           }).addTo(map);
         }
 
-        // Icon — rotates with heading, color reflects data freshness
+        // Icon — tail label above plane circle, plane rotates with heading
         const rotation = ac.heading || 0;
-        const c = fresh.color;
+        const c = color;
         const iconHtml = `
-          <div style="width:28px;height:28px;background:${c}20;border:1.5px solid ${c};border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:${fresh.opacity};transform:rotate(${rotation}deg);box-shadow:0 0 8px ${c}40;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="${c}" stroke="none">
-              <path d="M12 2L8 10H4l4 4-1.5 6L12 17l5.5 3L16 14l4-4h-4L12 2z"/>
-            </svg>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="font-size:9px;font-weight:700;color:${c};white-space:nowrap;background:rgba(0,0,0,0.65);padding:1px 5px;border-radius:4px;letter-spacing:0.04em;opacity:${fresh.opacity};">${ac.tail_number}</div>
+            <div style="width:28px;height:28px;background:${c}20;border:1.5px solid ${c};border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:${fresh.opacity};transform:rotate(${rotation}deg);box-shadow:0 0 8px ${c}40;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="${c}" stroke="none">
+                <path d="M12 2L8 10H4l4 4-1.5 6L12 17l5.5 3L16 14l4-4h-4L12 2z"/>
+              </svg>
+            </div>
           </div>`;
-        const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
+        const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [70, 44], iconAnchor: [35, 30] });
 
         const status = ac.is_approaching ? 'approaching' : (ac.status || 'outside');
         const popupContent = `
