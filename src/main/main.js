@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
@@ -19,6 +19,18 @@ const store = new Store();
 let mainWindow;
 let tray = null;
 let forceQuit = false;
+
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized() || !mainWindow.isVisible()) mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
 
 // ─── Auto-updater (production only) ──────────────────────────────────────────
 let autoUpdater = null;
@@ -112,7 +124,12 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
     },
     backgroundColor: '#0f1117',
-    titleBarStyle: 'default',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#00000000',
+      symbolColor: '#ffffff',
+      height: 40,
+    },
   });
 
   // Override CSP
@@ -141,30 +158,20 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
-  // Intercept close button — ask user what to do
+  // Closing the window just hides to tray — cloud tracker keeps running either way
   mainWindow.on('close', (e) => {
-    if (forceQuit) return; // allow quit from tray menu or update restart
+    if (forceQuit) return;
     e.preventDefault();
-    dialog.showMessageBox(mainWindow, {
-      type: 'question',
-      buttons: ['Minimize to Tray', 'Exit', 'Cancel'],
-      defaultId: 0,
-      cancelId: 2,
-      title: 'Exit FinalPing?',
-      message: 'Exit FinalPing?',
-      detail: 'Your cloud tracker will continue running and sending alerts even after closing. Minimize to tray to keep the app accessible from the taskbar.',
-    }).then(({ response }) => {
-      if (response === 0) {
-        // Minimize to tray
-        mainWindow.hide();
-      } else if (response === 1) {
-        // Exit
-        forceQuit = true;
-        tracker.stopTracker();
-        app.quit();
-      }
-      // response === 2 (Cancel) or X clicked — do nothing, return to app
-    });
+    mainWindow.hide();
+    // Show a one-time tray balloon so new users know the app didn't fully close
+    if (tray && !store.get('tray_tip_shown')) {
+      store.set('tray_tip_shown', true);
+      tray.displayBalloon({
+        title: 'FinalPing is still running',
+        content: 'Your aircraft alerts are active. Right-click the tray icon to quit.',
+        iconType: 'info',
+      });
+    }
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
