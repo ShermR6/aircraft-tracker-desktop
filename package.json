@@ -31,12 +31,6 @@
     "extraMetadata": {
       "main": "build/electron.js"
     },
-    "extraResources": [
-      {
-        "from": "resources/tracker.exe",
-        "to": "tracker.exe"
-      }
-    ],
     "publish": {
       "provider": "github",
       "owner": "ShermR6",
@@ -53,7 +47,13 @@
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico",
-      "artifactName": "FinalPingSetup.exe"
+      "artifactName": "FinalPingSetup.exe",
+      "extraResources": [
+        {
+          "from": "resources/tracker.exe",
+          "to": "tracker.exe"
+        }
+      ]
     },
     "mac": {
       "target": "dmg",
