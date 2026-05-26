@@ -3,12 +3,13 @@ import { Plane, Trash2, Edit2, AlertCircle, Loader, Lock } from 'lucide-react';
 import APIService from '../services/api';
 import StorageService from '../services/storage';
 import { getLimits, getLimitDisplay } from '../config/tierLimits';
+import { getColor, setColor, ensureLoaded } from '../services/aircraftColors';
 
 const FALLBACK_DISTANCES = [10, 5, 2];
 const DIST_LABELS = { 10: 'Inbound', 5: 'Approach', 2: 'Final' };
 
 function makeEmptyForm(distances) {
-  return { icao24: '', tail_number: '', aircraft_type: '', alert_distances: [...distances] };
+  return { icao24: '', tail_number: '', aircraft_type: '', alert_distances: [...distances], color: '' };
 }
 
 const s = {
@@ -85,9 +86,11 @@ export default function AircraftManager({ isViewOnly = false }) {
   const [message, setMessage] = useState(null);
   const [tier, setTier] = useState('starter');
   const [confirmModal, setConfirmModal] = useState(null);
+  const [colorVersion, setColorVersion] = useState(0);
   const lookupTimer = useRef(null);
 
   useEffect(() => {
+    ensureLoaded().then(() => setColorVersion(v => v + 1));
     loadAircraft();
     APIService.getCurrentUser().then(d => { if (d?.license_tier) setTier(d.license_tier); }).catch(() => {
       StorageService.getUserData().then(d => { if (d?.license_tier) setTier(d.license_tier); });
@@ -161,12 +164,18 @@ export default function AircraftManager({ isViewOnly = false }) {
       tail_number: a.tail_number || '',
       aircraft_type: a.aircraft_type || '',
       alert_distances: a.alert_distances || [...globalDistances],
+      color: getColor(a.tail_number),
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setForm(makeEmptyForm(globalDistances));
+  };
+
+  const handleColorChange = async (tail, color) => {
+    await setColor(tail, color);
+    setColorVersion(v => v + 1);
   };
 
   const handleSave = async () => {
@@ -180,26 +189,24 @@ export default function AircraftManager({ isViewOnly = false }) {
     }
     setSaving(true);
     try {
+      const tail = form.tail_number.toUpperCase();
       if (editingId) {
         await APIService.updateAircraft(
-          editingId,
-          form.tail_number.toUpperCase(),
-          form.icao24,
-          null,
-          form.aircraft_type || null,
-          form.alert_distances,
+          editingId, tail, form.icao24, null,
+          form.aircraft_type || null, form.alert_distances,
         );
-        showMessage('success', `${form.tail_number.toUpperCase()} updated`);
+        showMessage('success', `${tail} updated`);
         setEditingId(null);
       } else {
         await APIService.addAircraft(
-          form.tail_number.toUpperCase(),
-          form.icao24,
-          null,
-          form.aircraft_type || null,
-          form.alert_distances,
+          tail, form.icao24, null,
+          form.aircraft_type || null, form.alert_distances,
         );
-        showMessage('success', `${form.tail_number.toUpperCase()} added`);
+        showMessage('success', `${tail} added`);
+      }
+      if (form.color) {
+        await setColor(tail, form.color);
+        setColorVersion(v => v + 1);
       }
       await loadAircraft();
       setForm(makeEmptyForm(globalDistances));
@@ -241,6 +248,7 @@ export default function AircraftManager({ isViewOnly = false }) {
   const limits = getLimits(tier);
   const atLimit = aircraft.length >= limits.aircraft;
   const isAdding = !editingId;
+  const formColor = form.color || (form.tail_number ? getColor(form.tail_number.toUpperCase()) : '#38bdf8');
 
   return (
     <div style={s.layout}>
@@ -302,7 +310,21 @@ export default function AircraftManager({ isViewOnly = false }) {
             ) : aircraft.map(a => (
               <tr key={a.id} style={{ background: editingId === a.id ? 'rgba(59,130,246,0.05)' : 'transparent' }}>
                 <td style={s.td}>
-                  <div style={s.tailNum}>{a.tail_number}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      title="Click to change color"
+                      onClick={() => document.getElementById(`cp-${a.id}`).click()}
+                      style={{ width: 12, height: 12, borderRadius: '50%', background: getColor(a.tail_number), cursor: 'pointer', flexShrink: 0, border: '1.5px solid rgba(255,255,255,0.2)' }}
+                    />
+                    <input
+                      id={`cp-${a.id}`}
+                      type="color"
+                      value={getColor(a.tail_number)}
+                      onChange={e => handleColorChange(a.tail_number, e.target.value)}
+                      style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                    />
+                    <div style={s.tailNum}>{a.tail_number}</div>
+                  </div>
                 </td>
                 <td style={s.td}>
                   <div style={{ ...s.icaoText, fontSize: '13px', color: '#6b7280' }}>{a.icao24 || '—'}</div>
@@ -391,6 +413,37 @@ export default function AircraftManager({ isViewOnly = false }) {
               </div>
             </div>
 
+            {/* Map Color */}
+            <div style={s.inputGroup}>
+              <label style={s.fieldLabel}>MAP COLOR</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+                <div
+                  title="Open color wheel"
+                  onClick={() => document.getElementById('form-color-pick').click()}
+                  style={{ width: 36, height: 36, borderRadius: '50%', background: formColor, cursor: 'pointer', flexShrink: 0, border: '2px solid rgba(255,255,255,0.15)', boxShadow: `0 0 10px ${formColor}70` }}
+                />
+                <input
+                  id="form-color-pick"
+                  type="color"
+                  value={formColor}
+                  onChange={e => setForm(p => ({ ...p, color: e.target.value }))}
+                  style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                />
+                <input
+                  style={{ ...s.input, fontFamily: 'monospace', fontSize: '13px' }}
+                  value={formColor}
+                  onChange={e => {
+                    const v = e.target.value;
+                    if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setForm(p => ({ ...p, color: v }));
+                  }}
+                  maxLength={7}
+                  placeholder="#38bdf8"
+                  onFocus={e => e.target.style.borderColor = '#0ea5e9'}
+                  onBlur={e => e.target.style.borderColor = '#1f2937'}
+                />
+              </div>
+            </div>
+
             {/* Alert distances */}
             <div>
               <label style={s.fieldLabel}>ALERT DISTANCES</label>
@@ -400,7 +453,6 @@ export default function AircraftManager({ isViewOnly = false }) {
                   return (
                     <button key={d} style={s.distBtn(active)} onClick={() => toggleDistance(d)}>
                       <span style={{ fontWeight: 700 }}>{d} nm</span>
-                      <span style={s.distLabel}>{DIST_LABELS[d] || 'Custom'}</span>
                     </button>
                   );
                 })}

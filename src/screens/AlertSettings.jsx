@@ -126,6 +126,25 @@ export default function AlertSettings({ isViewOnly = false }) {
       if (enabledDistances.length > 0) {
         const currentConfig = await APIService.getAirportConfig();
         await APIService.updateAirportConfig({ ...currentConfig, alert_distances_nm: enabledDistances });
+
+        // Sync per-aircraft distances: remove any distance no longer in the global list.
+        // Aircraft saved while a different global distance set was active can carry stale
+        // values (e.g. 15nm) that make the tracker fire alerts the user never configured.
+        try {
+          const distSet = new Set(enabledDistances);
+          const allAircraft = await APIService.getAircraft();
+          for (const ac of allAircraft) {
+            if (!ac.alert_distances) continue;
+            const synced = ac.alert_distances.filter(d => distSet.has(d));
+            if (synced.length !== ac.alert_distances.length) {
+              await APIService.updateAircraft(
+                ac.id, ac.tail_number, ac.icao24,
+                ac.friendly_name, ac.aircraft_type,
+                synced.length > 0 ? synced : enabledDistances,
+              );
+            }
+          }
+        } catch { /* non-critical — alert distances are still saved */ }
       }
       setMessage({ type: 'success', text: 'Alert settings saved.' });
     } catch (error) {

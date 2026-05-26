@@ -580,11 +580,10 @@ export default function AirportConfig({ isViewOnly = false }) {
       <div style={s.section}>
         <label style={s.label}>Detection Ring</label>
         <div style={s.ringsRow}>
-          {makeRingDefs(ringDists).map(({ nm, label, sublabel }) => (
+          {makeRingDefs(ringDists).map(({ nm, label }) => (
             <button key={nm} type="button" style={s.ringBtn(activeRings.has(nm))}
               onClick={() => !isViewOnly && toggleRing(nm)}>
               <div style={s.ringBtnNm}>{label}</div>
-              <div style={s.ringBtnSub}>{sublabel}</div>
             </button>
           ))}
         </div>

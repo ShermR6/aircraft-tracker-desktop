@@ -218,6 +218,7 @@ const s = {
     borderBottom: '1px solid rgba(255,255,255,0.07)',
     position: 'relative',
     zIndex: 1,
+    WebkitAppRegion: 'drag',
   },
   logoTop: {
     fontSize: '8px', fontWeight: '700', letterSpacing: '0.18em',
@@ -551,6 +552,9 @@ export default function Dashboard({ onLogout }) {
           </div>
         </div>
       </div>
+
+      {/* Invisible drag strip — spans the top of the content area in the empty padding zone */}
+      <div style={{ position: 'fixed', top: 0, left: 220, right: 0, height: 28, WebkitAppRegion: 'drag', zIndex: 1, pointerEvents: 'auto' }} />
 
       <div style={{ ...s.main, paddingTop: (connectionLost ? 36 : 0) + (isViewOnly ? 36 : 0) }}>
         <Routes>

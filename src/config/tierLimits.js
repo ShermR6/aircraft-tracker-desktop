@@ -13,7 +13,7 @@ export const TIER_LIMITS = {
   },
   pro: {
     aircraft: 15,
-    integrations: 5,
+    integrations: 8,
     allowedChannels: ['discord', 'email', 'slack', 'teams', 'google_chat', 'sms', 'telegram', 'webhook'],
   },
 };

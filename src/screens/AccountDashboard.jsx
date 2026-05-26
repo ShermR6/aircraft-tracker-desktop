@@ -309,8 +309,10 @@ export default function AccountDashboard() {
           ) : (
             aircraft.map((a, i) => {
               const live = liveAircraft.find(l => l.icao24 === a.icao24 || l.tail_number === a.tail_number);
-              const hasPosition = live && (live.latitude || live.distance_nm > 0);
-              const isOnGround = live && live.on_ground;
+              const lastSeenMs = live?.last_seen ? Date.now() - new Date(live.last_seen).getTime() : Infinity;
+              const isStale = lastSeenMs > 45000;
+              const hasPosition = live && !isStale && (live.latitude || live.distance_nm > 0);
+              const isOnGround = live && !isStale && live.on_ground;
               const isAirborne = hasPosition && !isOnGround;
               const dotColor = isAirborne ? '#34d399' : isOnGround ? '#f87171' : '#6b7280';
               const statusLabel = isAirborne ? 'Airborne' : isOnGround ? 'On Ground' : 'Not Detected';
