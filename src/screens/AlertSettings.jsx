@@ -18,7 +18,7 @@ function Toggle({ checked, onChange }) {
 
 const s = {
   page: { maxWidth: '860px', margin: '0 auto', paddingBottom: '40px', fontFamily: "'Segoe UI', system-ui, sans-serif" },
-  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #1a2030', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingRight: window.electronAPI?.platform === 'win32' ? 110 : 0 },
+  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #1a2030', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
   hdrMini: { fontSize: '11px', fontWeight: '700', color: '#38bdf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
   hdrTitle: { fontSize: '26px', fontWeight: '800', color: '#f9fafb', margin: '0 0 4px 0' },
   hdrSub: { fontSize: '13px', color: '#6b7280', margin: 0 },

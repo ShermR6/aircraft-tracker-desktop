@@ -188,6 +188,8 @@ function OnboardingModal({ onClose, onNavigate, completedSteps }) {
   );
 }
 
+const isWindows = window.electronAPI?.platform === 'win32';
+
 const s = {
   shell: {
     display: 'flex',
@@ -287,7 +289,7 @@ const s = {
     display: 'flex', flexDirection: 'column',
     background: 'radial-gradient(ellipse 100% 50% at 50% -10%, #0d1f2d 0%, #0b0b0b 60%)',
   },
-  content: { padding: '32px', overflowY: 'auto', flex: 1 },
+  content: { padding: '32px', paddingRight: isWindows ? 150 : 32, overflowY: 'auto', flex: 1 },
 };
 
 function DashboardHome({ isViewOnly }) {
