@@ -34,7 +34,8 @@
     "publish": {
       "provider": "github",
       "owner": "ShermR6",
-      "repo": "aircraft-tracker-desktop"
+      "repo": "aircraft-tracker-desktop",
+      "releaseType": "release"
     },
     "nsis": {
       "license": "assets/license.rtf",
