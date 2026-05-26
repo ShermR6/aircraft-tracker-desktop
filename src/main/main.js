@@ -159,20 +159,8 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
-  // Closing the window just hides to tray — cloud tracker keeps running either way
-  mainWindow.on('close', (e) => {
-    if (forceQuit) return;
-    e.preventDefault();
-    mainWindow.hide();
-    // Show a one-time tray balloon so new users know the app didn't fully close
-    if (tray && !store.get('tray_tip_shown')) {
-      store.set('tray_tip_shown', true);
-      tray.displayBalloon({
-        title: 'FinalPing is still running',
-        content: 'Your aircraft alerts are active. Right-click the tray icon to quit.',
-        iconType: 'info',
-      });
-    }
+  mainWindow.on('close', () => {
+    forceQuit = true;
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
