@@ -125,10 +125,11 @@ function createWindow() {
     },
     backgroundColor: '#0f1117',
     titleBarStyle: 'hidden',
+    trafficLightPosition: { x: 16, y: 22 },
     titleBarOverlay: {
       color: '#00000000',
       symbolColor: '#ffffff',
-      height: 40,
+      height: 48,
     },
   });
 
