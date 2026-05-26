@@ -251,7 +251,7 @@ export default function LiveMap() {
 
   return (
     <div style={{ padding: '28px 32px', fontFamily: "'Segoe UI', system-ui, sans-serif", display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px', paddingRight: window.electronAPI?.platform === 'win32' ? 110 : 0 }}>
         <div>
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Live Map</h2>
           <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
