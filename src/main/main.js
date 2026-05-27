@@ -41,16 +41,6 @@ if (isPackaged) {
   if (process.platform === 'darwin') {
     autoUpdater.verifyUpdateCodeSignature = false;
   }
-  autoUpdater.on('update-available', (info) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('update-available', info.version);
-    }
-  });
-  autoUpdater.on('update-downloaded', (info) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('update-downloaded', info.version);
-    }
-  });
   autoUpdater.on('error', (err) => {
     console.error('Auto-updater error:', err.message);
   });

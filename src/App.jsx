@@ -6,63 +6,6 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
-function UpdateBanner({ version, downloaded, onDismiss }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0,
-      zIndex: 9999,
-      background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-      padding: '10px 20px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      gap: 16, fontSize: 13, fontWeight: 600, color: '#fff',
-      boxShadow: '0 2px 12px rgba(59,130,246,0.3)',
-    }}>
-      <span>
-        {downloaded
-          ? `✅ FinalPing v${version} is ready to install.`
-          : `⬇ Downloading FinalPing v${version}...`}
-      </span>
-      {downloaded && (
-        <>
-          <button
-            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/changelog')}
-            style={{
-              padding: '5px 14px', borderRadius: 999,
-              background: 'rgba(255,255,255,0.15)', color: '#fff',
-              fontWeight: 600, fontSize: 12, border: '1px solid rgba(255,255,255,0.3)',
-              cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            What's new?
-          </button>
-          <button
-            onClick={() => window.electronAPI?.restartAndInstall()}
-            style={{
-              padding: '5px 14px', borderRadius: 999,
-              background: '#fff', color: '#3b82f6',
-              fontWeight: 700, fontSize: 12, border: 'none',
-              cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            Restart & Install
-          </button>
-        </>
-      )}
-      <button
-        onClick={onDismiss}
-        style={{
-          background: 'none', border: 'none',
-          color: 'rgba(255,255,255,0.7)', fontSize: 18,
-          cursor: 'pointer', padding: '0 4px', lineHeight: 1, flexShrink: 0,
-        }}
-        title="Dismiss"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
 
 function LicenseExpiredOverlay({ onActivateNew }) {
   const openPricing = () => {
@@ -203,8 +146,6 @@ function ChangelogModal({ onClose }) {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [updateVersion, setUpdateVersion] = useState(null);
-  const [updateDownloaded, setUpdateDownloaded] = useState(false);
   const [licenseExpired, setLicenseExpired] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
 
@@ -222,15 +163,6 @@ function App() {
       }
     });
 
-    // Listen for auto-updater events from main process
-    window.electronAPI?.onUpdateAvailable((version) => {
-      setUpdateVersion(version);
-      setUpdateDownloaded(false);
-    });
-    window.electronAPI?.onUpdateDownloaded((version) => {
-      setUpdateVersion(version);
-      setUpdateDownloaded(true);
-    });
   }, []);
 
   const checkAuth = async () => {
@@ -305,13 +237,6 @@ function App() {
             setIsAuthenticated(false);
             setLicenseExpired(false);
           }}
-        />
-      )}
-      {updateVersion && (
-        <UpdateBanner
-          version={updateVersion}
-          downloaded={updateDownloaded}
-          onDismiss={() => setUpdateVersion(null)}
         />
       )}
       <Routes>
