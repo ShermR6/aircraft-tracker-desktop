@@ -15,7 +15,7 @@ function makeEmptyForm(distances) {
 const s = {
   layout: { display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', fontFamily: "'Segoe UI', system-ui, sans-serif", alignItems: 'start' },
   left: {},
-  right: { position: 'sticky', top: 0 },
+  right: { position: 'sticky', top: 0, marginTop: '130px' },
 
   sectionLabel: { fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
   pageTitle: { fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' },
