@@ -178,7 +178,7 @@ function createWindow() {
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
     if (isPackaged) {
-      setTimeout(() => autoUpdater.checkForUpdates(), 3000);
+      setTimeout(() => autoUpdater.checkForUpdates(), 1000);
     }
   });
 

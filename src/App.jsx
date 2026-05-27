@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ActivationScreen from './screens/ActivationScreen';
 import Dashboard from './screens/Dashboard';
@@ -6,6 +6,41 @@ import StorageService from './services/storage';
 import APIService from './services/api';
 import './App.css';
 
+function SplashScreen() {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999,
+      background: '#0b0b0b',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      fontFamily: "'Segoe UI', system-ui, sans-serif",
+    }}>
+      <style>{`
+        @keyframes splashIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(400%)} }
+      `}</style>
+      <div style={{ animation: 'splashIn 0.5s ease', textAlign: 'center' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#4b5563', marginBottom: 10 }}>
+          AIRCRAFT ALERTS
+        </div>
+        <div style={{ fontSize: 38, fontWeight: 800, color: '#f9fafb', letterSpacing: '-0.03em' }}>
+          FinalPing
+        </div>
+        <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg, #0ea5e9, #6366f1)', borderRadius: 999, margin: '14px auto 0' }} />
+      </div>
+      <div style={{
+        position: 'absolute', bottom: 48,
+        width: 100, height: 2, background: '#1a1a1a', borderRadius: 999, overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(90deg, transparent, #0ea5e9, transparent)',
+          animation: 'shimmer 1.4s ease-in-out infinite',
+        }} />
+      </div>
+    </div>
+  );
+}
 
 function UpdateBanner({ version, onDismiss }) {
   return (
@@ -177,9 +212,22 @@ function ChangelogModal({ onClose }) {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [updateVersion, setUpdateVersion] = useState(null);
   const [licenseExpired, setLicenseExpired] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const inSplash = useRef(true);
+
+  // Hide splash once auth is done, but show for at least 2s
+  useEffect(() => {
+    if (!loading) {
+      const minSplash = setTimeout(() => {
+        inSplash.current = false;
+        setShowSplash(false);
+      }, 2000);
+      return () => clearTimeout(minSplash);
+    }
+  }, [loading]);
 
   useEffect(() => {
     checkAuth().catch((err) => {
@@ -195,7 +243,14 @@ function App() {
       }
     });
 
-    window.electronAPI?.onUpdateDownloaded((version) => setUpdateVersion(version));
+    window.electronAPI?.onUpdateDownloaded((version) => {
+      if (inSplash.current) {
+        // Update finished downloading before user started using the app — restart silently
+        window.electronAPI?.restartAndInstall();
+      } else {
+        setUpdateVersion(version);
+      }
+    });
   }, []);
 
   const checkAuth = async () => {
@@ -261,6 +316,7 @@ function App() {
 
   return (
     <Router>
+      {showSplash && <SplashScreen />}
       {updateVersion && <UpdateBanner version={updateVersion} onDismiss={() => setUpdateVersion(null)} />}
       {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
       {licenseExpired && (
