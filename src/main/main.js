@@ -41,9 +41,10 @@ if (isPackaged) {
   if (process.platform === 'darwin') {
     autoUpdater.verifyUpdateCodeSignature = false;
   }
-  autoUpdater.on('update-downloaded', () => {
-    forceQuit = true;
-    autoUpdater.quitAndInstall(true, true);
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-downloaded', info.version);
+    }
   });
   autoUpdater.on('error', (err) => {
     console.error('Auto-updater error:', err.message);

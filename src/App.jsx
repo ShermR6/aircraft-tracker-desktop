@@ -7,6 +7,37 @@ import APIService from './services/api';
 import './App.css';
 
 
+function UpdateBanner({ version, onDismiss }) {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
+      background: '#1e293b', border: '1px solid rgba(14,165,233,0.3)',
+      borderRadius: 12, padding: '12px 16px',
+      display: 'flex', alignItems: 'center', gap: 12,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+      fontSize: 13, color: '#e2e8f0',
+    }}>
+      <span style={{ color: '#38bdf8', fontSize: 16 }}>↑</span>
+      <span>v{version} ready</span>
+      <button
+        onClick={() => window.electronAPI?.restartAndInstall()}
+        style={{
+          padding: '4px 12px', borderRadius: 6,
+          background: '#0ea5e9', border: 'none',
+          color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+        }}
+      >Restart</button>
+      <button
+        onClick={onDismiss}
+        style={{
+          background: 'none', border: 'none',
+          color: '#4b5563', fontSize: 16, cursor: 'pointer', padding: 0, lineHeight: 1,
+        }}
+      >✕</button>
+    </div>
+  );
+}
+
 function LicenseExpiredOverlay({ onActivateNew }) {
   const openPricing = () => {
     if (window.electronAPI?.openExternal) {
@@ -146,6 +177,7 @@ function ChangelogModal({ onClose }) {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [updateVersion, setUpdateVersion] = useState(null);
   const [licenseExpired, setLicenseExpired] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
 
@@ -163,6 +195,7 @@ function App() {
       }
     });
 
+    window.electronAPI?.onUpdateDownloaded((version) => setUpdateVersion(version));
   }, []);
 
   const checkAuth = async () => {
@@ -228,6 +261,7 @@ function App() {
 
   return (
     <Router>
+      {updateVersion && <UpdateBanner version={updateVersion} onDismiss={() => setUpdateVersion(null)} />}
       {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
       {licenseExpired && (
         <LicenseExpiredOverlay
