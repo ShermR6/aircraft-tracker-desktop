@@ -65,6 +65,7 @@ export default function AlertSettings({ isViewOnly = false }) {
     { id: 3, distance: 2,  enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' },
   ]);
   const [landingAlert, setLandingAlert] = useState({ enabled: true, message: '✅ **{tail_number}** has landed at {airport}' });
+  const [takeoffAlert, setTakeoffAlert] = useState({ enabled: true, message: '🛫 **{tail_number}** is airborne — Departed at {speed}kts' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -93,6 +94,8 @@ export default function AlertSettings({ isViewOnly = false }) {
       if (merged.length > 0) setAlerts(merged);
       const landing = alertData.find(a => a.alert_type === 'landing');
       if (landing) setLandingAlert({ enabled: landing.enabled, message: landing.message_template });
+      const takeoff = alertData.find(a => a.alert_type === 'takeoff');
+      if (takeoff) setTakeoffAlert({ enabled: takeoff.enabled, message: takeoff.message_template });
     } catch { } finally { setLoading(false); }
   };
 
@@ -122,6 +125,7 @@ export default function AlertSettings({ isViewOnly = false }) {
         await APIService.updateAlertSetting(distKey, alert.enabled, alert.message);
       }
       await APIService.updateAlertSetting('landing', landingAlert.enabled, landingAlert.message);
+      await APIService.updateAlertSetting('takeoff', takeoffAlert.enabled, takeoffAlert.message);
       const enabledDistances = alerts.filter(a => a.enabled).map(a => parseFloat(a.distance)).filter(d => !isNaN(d) && d > 0);
       if (enabledDistances.length > 0) {
         const currentConfig = await APIService.getAirportConfig();
@@ -251,6 +255,33 @@ export default function AlertSettings({ isViewOnly = false }) {
           ].map(f => (
             <span key={f.syntax} style={{ ...s.varChip, color: '#93c5fd' }} title={f.label}>{f.syntax}</span>
           ))}
+        </div>
+      </div>
+
+      {/* Takeoff Alert */}
+      <div style={s.section}>
+        <span style={s.sectionLabel}>Takeoff Alert <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(245,180,0,0.15)', color: '#f5b400', border: '1px solid rgba(245,180,0,0.3)', borderRadius: 999, padding: '1px 6px', marginLeft: 6 }}>Ground Station</span></span>
+        <div style={s.landingCard}>
+          <div style={s.landingTop}>
+            <span style={s.landingTitle}>Alert when aircraft takes off</span>
+            <Toggle checked={takeoffAlert.enabled} onChange={v => !isViewOnly && setTakeoffAlert({ ...takeoffAlert, enabled: v })} />
+          </div>
+          {takeoffAlert.enabled && (
+            <>
+              <label style={s.msgLabel}>Takeoff Message</label>
+              <textarea style={s.textarea} rows={2} value={takeoffAlert.message}
+                onChange={e => setTakeoffAlert({ ...takeoffAlert, message: e.target.value })}
+                onFocus={e => e.target.style.borderColor = '#38bdf8'}
+                onBlur={e => e.target.style.borderColor = '#1e2a3a'}
+                disabled={isViewOnly} />
+              <div style={{ ...s.varsRow, marginTop: 12 }}>
+                <span style={s.varLabel}>Variables:</span>
+                {['{tail_number}', '{speed}', '{airport}'].map(v => (
+                  <span key={v} style={s.varChip}>{v}</span>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
