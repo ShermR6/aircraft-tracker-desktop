@@ -41,6 +41,7 @@ export default function LiveMap() {
   const posTrackerRef = useRef(_posTracker); // { [tail]: { lat, lng, changedAt } }
   const ringsRef = useRef([]);
   const airportMarkerRef = useRef(null);
+  const rangePolygonRef = useRef(null);
   const intervalRef = useRef(null);
 
   const [airportConfig, setAirportConfig] = useState(null);
@@ -92,12 +93,78 @@ export default function LiveMap() {
       return L.circle([lat, lng], {
         radius: nmToMeters(nm), color: ringColors[i] || '#6b7280',
         weight: 1, opacity: 0.5, fillOpacity: 0.03, dashArray: '6 4',
-      }).bindPopup(`<span style="font-size:12px;color:#9ca3af;">${nm} nm ring</span>`).addTo(map);
+      }).bindPopup(`<span style="font-size:12px;color:#9ca3af;">${nm} nm alert ring</span>`).addTo(map);
     });
 
     setLoading(false);
     fetchAircraft(map);
+    fetchRangePolygon(map, lat, lng);
+
+    // Refresh range polygon every 10 minutes
+    const rangeInterval = setInterval(() => fetchRangePolygon(mapRef.current, lat, lng), 600000);
+    return () => clearInterval(rangeInterval);
   }, [airportConfig]);
+
+  const fetchRangePolygon = useCallback(async (map, centerLat, centerLng) => {
+    if (!map) return;
+    try {
+      const data = await APIService.getGroundStationRange();
+      if (!data?.range_nm) return;
+
+      const rangeNm = data.range_nm;
+      const nonZeroCount = rangeNm.filter(v => v > 0).length;
+      const maxRange = Math.max(...rangeNm);
+
+      // Need real data before drawing — don't show a blob from sparse readings
+      if (nonZeroCount < 8 || maxRange < 10) return;
+
+      // Interpolate empty buckets from nearest non-zero neighbors
+      const smoothed = [...rangeNm];
+      for (let i = 0; i < smoothed.length; i++) {
+        if (smoothed[i] > 0) continue;
+        let left = null, right = null;
+        for (let d = 1; d < smoothed.length; d++) {
+          const li = (i - d + smoothed.length) % smoothed.length;
+          const ri = (i + d) % smoothed.length;
+          if (left === null && smoothed[li] > 0) left = { val: smoothed[li], dist: d };
+          if (right === null && smoothed[ri] > 0) right = { val: smoothed[ri], dist: d };
+          if (left && right) break;
+        }
+        if (left && right) {
+          const total = left.dist + right.dist;
+          smoothed[i] = (left.val * right.dist + right.val * left.dist) / total;
+        } else if (left) {
+          smoothed[i] = left.val;
+        } else if (right) {
+          smoothed[i] = right.val;
+        }
+      }
+
+      // Convert polar (bearing, distance) to lat/lng points
+      const R = 3440.065;
+      const points = smoothed.map((distNm, i) => {
+        const brng = (i * 10) * Math.PI / 180;
+        const d = distNm / R;
+        const lat1 = centerLat * Math.PI / 180;
+        const lon1 = centerLng * Math.PI / 180;
+        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(brng));
+        const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+        return [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+      });
+
+      if (rangePolygonRef.current) rangePolygonRef.current.remove();
+
+      rangePolygonRef.current = L.polygon(points, {
+        color: '#a855f7', weight: 1.5, opacity: 0.5,
+        fillColor: '#a855f7', fillOpacity: 0.04, dashArray: '8 5',
+      }).bindPopup(
+        `<span style="font-size:12px;color:#a855f7;">SDR reception range — max ${maxRange.toFixed(0)} nm</span><br/>` +
+        `<span style="color:#6b7280;font-size:10px;">Based on ${nonZeroCount}/36 directions · grows over time</span>`
+      ).addTo(map);
+    } catch {
+      // No ground station or no data yet — silently skip
+    }
+  }, []);
 
   const fetchAircraft = useCallback(async (mapInstance) => {
     const map = mapInstance || mapRef.current;
@@ -107,18 +174,23 @@ export default function LiveMap() {
       const data = await APIService.getLiveAircraft();
       const now = Date.now();
 
-      // Filter 1: must have position, must not be on ground
-      const candidates = (data || []).filter(a => a.latitude && a.longitude && !a.on_ground);
+      // Filter: must have position. On-ground aircraft shown if from ground station.
+      const candidates = (data || []).filter(a => a.latitude && a.longitude);
 
-      // Filter 2: staleness — remove aircraft the backend hasn't refreshed recently,
-      // and remove aircraft frozen at low altitude near the airport (landed but not yet
-      // cleared from backend state)
       const liveAircraft = candidates.filter(ac => {
+        const fromGS = ac.source === 'ground_station';
+
+        // Ground station aircraft: show always (on ground or airborne) — GS data is live
+        if (fromGS) return true;
+
+        // Cloud aircraft on ground: hide (cloud can't reliably track ground position)
+        if (ac.on_ground) return false;
+
         const tail = ac.tail_number;
         const lat = parseFloat(ac.latitude);
         const lng = parseFloat(ac.longitude);
 
-        // Backend last_seen: if backend data is > 45s old, aircraft is gone or landed
+        // Staleness: cloud data > 45s old
         if (ac.last_seen) {
           const ageS = (now - new Date(ac.last_seen).getTime()) / 1000;
           if (ageS > 45) return false;
@@ -126,17 +198,12 @@ export default function LiveMap() {
 
         const prev = posTrackerRef.current[tail];
         if (!prev || prev.lat !== lat || prev.lng !== lng) {
-          // Position changed — reset freeze timer
           posTrackerRef.current[tail] = { lat, lng, changedAt: now };
         } else {
-          // Position unchanged — check how long it's been frozen
           const frozenS = (now - prev.changedAt) / 1000;
           const alt = ac.altitude_ft_msl != null ? parseFloat(ac.altitude_ft_msl) : 99999;
           const dist = ac.distance_nm != null ? parseFloat(ac.distance_nm) : 99;
-
-          // Short/final: frozen 30s within 5nm at under 3000ft → landed
           if (frozenS > 30 && dist < 5 && alt < 3000) return false;
-          // Anywhere: frozen 60s at under 1500ft → landed
           if (frozenS > 60 && alt < 1500) return false;
         }
 
@@ -175,18 +242,26 @@ export default function LiveMap() {
           }).addTo(map);
         }
 
-        // Icon — tail label above plane circle, plane rotates with heading
+        // Icon — different for airborne vs on-ground (GS only)
         const rotation = ac.heading || 0;
         const c = color;
-        const iconHtml = `
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-            <div style="font-size:9px;font-weight:700;color:${c};white-space:nowrap;background:rgba(0,0,0,0.65);padding:1px 5px;border-radius:4px;letter-spacing:0.04em;opacity:${fresh.opacity};">${ac.tail_number}</div>
-            <div style="width:28px;height:28px;background:${c}20;border:1.5px solid ${c};border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:${fresh.opacity};transform:rotate(${rotation}deg);box-shadow:0 0 8px ${c}40;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="${c}" stroke="none">
-                <path d="M12 2L8 10H4l4 4-1.5 6L12 17l5.5 3L16 14l4-4h-4L12 2z"/>
-              </svg>
-            </div>
-          </div>`;
+        const iconHtml = ac.on_ground
+          ? `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="font-size:9px;font-weight:700;color:${c};white-space:nowrap;background:rgba(0,0,0,0.65);padding:1px 5px;border-radius:4px;letter-spacing:0.04em;opacity:${fresh.opacity};">${ac.tail_number}</div>
+              <div style="width:28px;height:28px;background:${c}20;border:1.5px solid ${c};border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:${fresh.opacity};box-shadow:0 0 8px ${c}40;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="${c}" stroke="none">
+                  <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+              </div>
+            </div>`
+          : `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="font-size:9px;font-weight:700;color:${c};white-space:nowrap;background:rgba(0,0,0,0.65);padding:1px 5px;border-radius:4px;letter-spacing:0.04em;opacity:${fresh.opacity};">${ac.tail_number}</div>
+              <div style="width:28px;height:28px;background:${c}20;border:1.5px solid ${c};border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:${fresh.opacity};transform:rotate(${rotation}deg);box-shadow:0 0 8px ${c}40;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="${c}" stroke="none">
+                  <path d="M12 2L8 10H4l4 4-1.5 6L12 17l5.5 3L16 14l4-4h-4L12 2z"/>
+                </svg>
+              </div>
+            </div>`;
         const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [70, 44], iconAnchor: [35, 30] });
 
         const status = ac.is_approaching ? 'approaching' : (ac.status || 'outside');
