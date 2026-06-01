@@ -111,8 +111,8 @@ export default function LiveMap() {
       const nonZeroCount = rangeNm.filter(v => v > 0).length;
       const maxRange = Math.max(...rangeNm);
 
-      // Need real data before drawing — don't show a blob from sparse readings
-      if (nonZeroCount < 8 || maxRange < 10) return;
+      // Need at least a few real readings before drawing
+      if (nonZeroCount < 3 || maxRange < 3) return;
 
       // Interpolate empty buckets from nearest non-zero neighbors
       const smoothed = [...rangeNm];
