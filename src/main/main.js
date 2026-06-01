@@ -179,6 +179,7 @@ function createWindow() {
     mainWindow.webContents.focus();
     if (isPackaged) {
       setTimeout(() => autoUpdater.checkForUpdates(), 1000);
+      setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
     }
   });
 
