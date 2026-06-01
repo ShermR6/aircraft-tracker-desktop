@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plane, RefreshCw, Loader, Navigation } from 'lucide-react';
 import APIService from '../services/api';
+import { backgroundTracker } from '../services/backgroundTracker';
 import { getColor, ensureLoaded } from '../services/aircraftColors';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -10,10 +11,6 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
-
-// Module-level so trail data and position tracker persist across tab navigation
-const _trailData = {};
-const _posTracker = {};
 
 function nmToMeters(nm) { return nm * 1852; }
 
@@ -37,12 +34,11 @@ export default function LiveMap() {
   const mapRef = useRef(null);
   const markersRef = useRef({});
   const trailsRef = useRef({});
-  const trailDataRef = useRef(_trailData);
-  const posTrackerRef = useRef(_posTracker); // { [tail]: { lat, lng, changedAt } }
+  const trailDataRef = useRef(backgroundTracker.getTrailData());
+  const posTrackerRef = useRef(backgroundTracker.getPosTracker());
   const ringsRef = useRef([]);
   const airportMarkerRef = useRef(null);
   const rangePolygonRef = useRef(null);
-  const intervalRef = useRef(null);
 
   const [airportConfig, setAirportConfig] = useState(null);
   const [aircraft, setAircraft] = useState([]);
@@ -97,7 +93,7 @@ export default function LiveMap() {
     });
 
     setLoading(false);
-    fetchAircraft(map);
+    fetchAircraft(map, backgroundTracker.getData());
     fetchRangePolygon(map, lat, lng);
 
     // Refresh range polygon every 10 minutes
@@ -166,12 +162,11 @@ export default function LiveMap() {
     }
   }, []);
 
-  const fetchAircraft = useCallback(async (mapInstance) => {
+  const fetchAircraft = useCallback((mapInstance, data) => {
     const map = mapInstance || mapRef.current;
     if (!map) return;
 
     try {
-      const data = await APIService.getLiveAircraft();
       const now = Date.now();
 
       // Filter: must have position. On-ground aircraft shown if from ground station.
@@ -211,7 +206,6 @@ export default function LiveMap() {
       });
 
       setAircraft(liveAircraft);
-      setLastUpdate(new Date());
       setError(null);
 
       const seen = new Set();
@@ -225,14 +219,8 @@ export default function LiveMap() {
 
         seen.add(ac.tail_number);
 
-        // Trail
-        if (!trailDataRef.current[ac.tail_number]) trailDataRef.current[ac.tail_number] = [];
-        const trail = trailDataRef.current[ac.tail_number];
-        const last = trail[trail.length - 1];
-        if (!last || last[0] !== lat || last[1] !== lng) {
-          trail.push([lat, lng]);
-          if (trail.length > 30) trail.shift();
-        }
+        // Trail — read from background tracker (accumulates full flight history)
+        const trail = trailDataRef.current[ac.tail_number] || [];
 
         if (trailsRef.current[ac.tail_number]) {
           trailsRef.current[ac.tail_number].setLatLngs(trail).setStyle({ color });
@@ -302,19 +290,22 @@ export default function LiveMap() {
       });
 
     } catch (err) {
-      console.error('Failed to fetch live aircraft:', err);
+      console.error('LiveMap render error:', err);
     }
   }, []);
 
   useEffect(() => {
     if (!mapRef.current) return;
-    intervalRef.current = setInterval(() => fetchAircraft(), 5000);
-    return () => clearInterval(intervalRef.current);
+    // Subscribe to background tracker — map updates whenever new data arrives
+    const unsub = backgroundTracker.subscribe(data => {
+      setLastUpdate(new Date());
+      fetchAircraft(mapRef.current, data);
+    });
+    return unsub;
   }, [fetchAircraft, airportConfig]);
 
   useEffect(() => {
     return () => {
-      clearInterval(intervalRef.current);
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
     };
   }, []);
@@ -338,7 +329,7 @@ export default function LiveMap() {
           <button onClick={handleRecenter} style={{ background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Navigation size={12} /> Recenter
           </button>
-          <button onClick={() => fetchAircraft()} style={{ background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button onClick={() => fetchAircraft(mapRef.current, backgroundTracker.getData())} style={{ background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <RefreshCw size={12} /> Refresh
           </button>
         </div>

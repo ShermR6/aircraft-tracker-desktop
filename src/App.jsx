@@ -4,6 +4,7 @@ import ActivationScreen from './screens/ActivationScreen';
 import Dashboard from './screens/Dashboard';
 import StorageService from './services/storage';
 import APIService from './services/api';
+import { backgroundTracker } from './services/backgroundTracker';
 import './App.css';
 
 function SplashScreen() {
@@ -135,13 +136,13 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
-const CURRENT_VERSION = '1.0.8';
+const CURRENT_VERSION = '1.0.9';
 
 const CHANGELOG = [
-  { type: 'new', text: 'New app icon with runway and radar design' },
-  { type: 'new', text: 'Formatting syntax guide in alert message editor' },
-  { type: 'improved', text: 'Help Center button added to the dashboard toolbar' },
-  { type: 'improved', text: 'macOS installer now available' },
+  { type: 'new', text: 'Live Map trail now records the full flight path in the background — switch to any tab and come back to see the complete route from takeoff' },
+  { type: 'fix', text: 'Landing alerts now fire reliably — cloud tracker detects on-ground transitions directly instead of waiting for signal loss' },
+  { type: 'fix', text: 'Takeoff alerts added to cloud tracker — fires when aircraft transitions from on-ground to airborne' },
+  { type: 'fix', text: 'Dashboard Recent Alerts timestamps now display correctly instead of showing "Just now"' },
 ];
 
 const TAG = {
@@ -267,6 +268,7 @@ function App() {
         }
         setIsAuthenticated(true);
         setLicenseExpired(false);
+        backgroundTracker.start();
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -275,6 +277,7 @@ function App() {
         // Keep them authenticated so they can see the app, just show overlay
         setIsAuthenticated(true);
         setLicenseExpired(true);
+        backgroundTracker.start();
       } else {
         await StorageService.logout();
         setIsAuthenticated(false);
@@ -294,11 +297,13 @@ function App() {
     });
     APIService.setToken(authData.access_token);
     setIsAuthenticated(true);
+    backgroundTracker.start();
     // Restore input focus after React re-render
     setTimeout(() => window.electronAPI?.focusWindow?.(), 150);
   };
 
   const handleLogout = async () => {
+    backgroundTracker.stop();
     await StorageService.logout();
     APIService.clearToken();
     setIsAuthenticated(false);

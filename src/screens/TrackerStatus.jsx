@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, CheckCircle } from 'lucide-react';
+import { Radio, Antenna } from 'lucide-react';
 import APIService from '../services/api';
 
 export default function TrackerStatus() {
   const [backendOnline, setBackendOnline] = useState(null);
+  const [groundOnline, setGroundOnline] = useState(null);   // null = no ground station
+  const [groundChecked, setGroundChecked] = useState(false);
 
   useEffect(() => {
     checkBackend();
-    const interval = setInterval(checkBackend, 30000);
+    checkGround();
+    const interval = setInterval(() => {
+      checkBackend();
+      checkGround();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -20,43 +26,94 @@ export default function TrackerStatus() {
     }
   };
 
-  const online = backendOnline === true;
-  const color = online ? '#34d399' : backendOnline === false ? '#f87171' : '#6b7280';
-  const label = online ? 'Active' : backendOnline === false ? 'Offline' : 'Checking...';
+  const checkGround = async () => {
+    try {
+      const data = await APIService.getGroundStationStatus();
+      setGroundOnline(data.online);
+    } catch (e) {
+      if (e?.response?.status === 403) {
+        // Account doesn't have ground station — hide the row
+        setGroundOnline(null);
+      } else {
+        setGroundOnline(false);
+      }
+    } finally {
+      setGroundChecked(true);
+    }
+  };
+
+  const cloudColor = backendOnline === true ? '#34d399' : backendOnline === false ? '#f87171' : '#6b7280';
+  const cloudLabel = backendOnline === true ? 'Active' : backendOnline === false ? 'Offline' : 'Checking...';
+
+  const gsColor = groundOnline === true ? '#34d399' : groundOnline === false ? '#f87171' : '#6b7280';
+  const gsLabel = groundOnline === true ? 'Online' : groundOnline === false ? 'Offline' : 'Checking...';
+
+  const showGround = groundChecked && groundOnline !== null;
 
   return (
-    <div style={{
-      background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)',
-      border: `1px solid ${color}30`,
-      borderRadius: '14px',
-      padding: '18px 24px',
-      marginBottom: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      fontFamily: "'Segoe UI', system-ui, sans-serif",
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Radio size={20} color={color} />
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", marginBottom: '20px' }}>
+      {/* Cloud Tracker */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)',
+        border: `1px solid ${cloudColor}30`,
+        borderRadius: showGround ? '14px 14px 0 0' : '14px',
+        padding: '18px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: `${cloudColor}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Radio size={20} color={cloudColor} />
+          </div>
+          <div>
+            <p style={{ fontSize: '15px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>Cloud Tracker</p>
+            <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Monitoring your aircraft 24/7 — no action needed</p>
+          </div>
         </div>
-        <div>
-          <p style={{ fontSize: '15px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>Cloud Tracker</p>
-          <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Monitoring your aircraft 24/7 — no action needed</p>
-        </div>
+        <StatusBadge color={cloudColor} label={cloudLabel} online={backendOnline === true} />
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '20px', background: `${color}15`, border: `1px solid ${color}30` }}>
+      {/* Ground Station — only shown if account has it */}
+      {showGround && (
         <div style={{
-          width: '7px', height: '7px', borderRadius: '50%',
-          background: color,
-          boxShadow: online ? `0 0 6px ${color}` : 'none',
-          animation: online ? 'trackerPulse 2s ease-in-out infinite' : 'none',
-        }} />
-        <span style={{ fontSize: '12px', fontWeight: '600', color }}>{label}</span>
-      </div>
+          background: 'linear-gradient(135deg, #1a2030 0%, #171e2e 100%)',
+          border: `1px solid ${gsColor}30`,
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '0 0 14px 14px',
+          padding: '18px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: `${gsColor}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Antenna size={20} color={gsColor} />
+            </div>
+            <div>
+              <p style={{ fontSize: '15px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>Ground Station</p>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Local SDR receiver — hyperlocal ADS-B tracking</p>
+            </div>
+          </div>
+          <StatusBadge color={gsColor} label={gsLabel} online={groundOnline === true} />
+        </div>
+      )}
 
       <style>{`@keyframes trackerPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+    </div>
+  );
+}
+
+function StatusBadge({ color, label, online }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '20px', background: `${color}15`, border: `1px solid ${color}30` }}>
+      <div style={{
+        width: '7px', height: '7px', borderRadius: '50%',
+        background: color,
+        boxShadow: online ? `0 0 6px ${color}` : 'none',
+        animation: online ? 'trackerPulse 2s ease-in-out infinite' : 'none',
+      }} />
+      <span style={{ fontSize: '12px', fontWeight: '600', color }}>{label}</span>
     </div>
   );
 }

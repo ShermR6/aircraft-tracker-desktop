@@ -35,7 +35,10 @@ const s = {
 };
 
 function timeAgo(isoString) {
-  const diff = Date.now() - new Date(isoString).getTime();
+  // Backend returns UTC without Z suffix; append it so JS parses as UTC not local time
+  const utc = isoString && !isoString.endsWith('Z') && !isoString.includes('+')
+    ? isoString + 'Z' : isoString;
+  const diff = Date.now() - new Date(utc).getTime();
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(mins / 60);
   const days = Math.floor(hours / 24);

@@ -261,6 +261,16 @@ class APIService {
     return response.data;
   }
 
+  async getGroundStationStatus() {
+    const response = await this.client.get('/api/ground/status');
+    return response.data;
+  }
+
+  async getGroundStationRange() {
+    const response = await this.client.get('/api/ground/range');
+    return response.data;
+  }
+
   async getRecentNotifications(limit = 8) {
     const response = await this.client.get(`/api/notifications/recent?limit=${limit}`);
     return response.data;
