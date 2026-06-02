@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Loader, Plus, Trash2 } from 'lucide-react';
+import { Save, Loader, Plus, Trash2, Lock } from 'lucide-react';
 import APIService from '../services/api';
+import { getLimits } from '../config/tierLimits';
 
 function Toggle({ checked, onChange }) {
   return (
@@ -70,11 +71,13 @@ export default function AlertSettings({ isViewOnly = false }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [confirmModal, setConfirmModal] = useState(null);
+  const [tier, setTier] = useState('starter');
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
+      APIService.getCurrentUser().then(d => { if (d?.license_tier) setTier(d.license_tier); }).catch(() => {});
       const [alertData, airportConfig] = await Promise.all([
         APIService.getAlertSettings(),
         APIService.getAirportConfig().catch(() => null),
@@ -100,6 +103,11 @@ export default function AlertSettings({ isViewOnly = false }) {
   };
 
   const handleAddAlert = () => {
+    const limits = getLimits(tier);
+    if (alerts.length >= limits.zones) {
+      setMessage({ type: 'error', text: `Your ${tier} plan allows up to ${limits.zones} approach zones. Upgrade to add more.` });
+      return;
+    }
     const newId = Math.max(...alerts.map(a => a.id), 0) + 1;
     setAlerts([...alerts, { id: newId, distance: 15, enabled: true, message: '**{tail_number}** – **{distance}nm** from **{airport}**\nETA ~{eta}min, Alt {altitude}ft MSL' }]);
   };
@@ -191,13 +199,18 @@ export default function AlertSettings({ isViewOnly = false }) {
           <h2 style={s.hdrTitle}>Alert Settings</h2>
           <p style={s.hdrSub}>Configure custom notification distances</p>
         </div>
-        {!isViewOnly && (
-          <button style={s.addBtn} onClick={handleAddAlert}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            <Plus size={14} /> Add Alert
-          </button>
-        )}
+        {!isViewOnly && (() => {
+          const atZoneLimit = alerts.length >= getLimits(tier).zones;
+          return (
+            <button style={{ ...s.addBtn, opacity: atZoneLimit ? 0.5 : 1, cursor: atZoneLimit ? 'not-allowed' : 'pointer' }}
+              onClick={handleAddAlert}
+              onMouseEnter={e => { if (!atZoneLimit) e.currentTarget.style.opacity = '0.85'; }}
+              onMouseLeave={e => { if (!atZoneLimit) e.currentTarget.style.opacity = '1'; }}>
+              {atZoneLimit ? <Lock size={14} /> : <Plus size={14} />}
+              {atZoneLimit ? 'Zone limit reached' : 'Add Alert'}
+            </button>
+          );
+        })()}
       </div>
 
       {/* Toast */}
@@ -205,7 +218,7 @@ export default function AlertSettings({ isViewOnly = false }) {
 
       {/* Distance Alerts */}
       <div style={s.section}>
-        <span style={s.sectionLabel}>Distance Alerts</span>
+        <span style={s.sectionLabel}>Distance Alerts — {alerts.length} / {getLimits(tier).zones} zones used</span>
         {sortedAlerts.map((alert, index) => (
           <div key={alert.id} style={s.alertRow}>
             <div style={s.alertRowTop}>

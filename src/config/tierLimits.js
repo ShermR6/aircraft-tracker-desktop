@@ -3,17 +3,20 @@
 export const TIER_LIMITS = {
   starter: {
     aircraft: 3,
-    integrations: 2,
+    integrations: 1,
+    zones: 2,
     allowedChannels: ['discord', 'email'],
   },
   premium: {
     aircraft: 7,
-    integrations: 4,
+    integrations: 3,
+    zones: 5,
     allowedChannels: ['discord', 'email', 'slack', 'teams', 'google_chat'],
   },
   pro: {
     aircraft: 15,
-    integrations: 8,
+    integrations: 5,
+    zones: 7,
     allowedChannels: ['discord', 'email', 'slack', 'teams', 'google_chat', 'sms', 'telegram', 'webhook'],
   },
 };
