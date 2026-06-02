@@ -296,6 +296,7 @@ const s = {
 
 export default function ActivationScreen({ onSuccess }) {
   const [tab, setTab] = useState('signin'); // 'signin' | 'activate'
+  const [appVersion, setAppVersion] = useState('');
 
   // Sign in state
   const [loginEmail, setLoginEmail] = useState('');
@@ -310,6 +311,10 @@ export default function ActivationScreen({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false);
+
+  React.useEffect(() => {
+    window.electronAPI?.getAppVersion().then(v => setAppVersion(v)).catch(() => {});
+  }, []);
 
   const openLink = (url) => {
     if (window.electronAPI?.openExternal) window.electronAPI.openExternal(url);
@@ -444,7 +449,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>v1.0.6 · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingApp.com</a></p>
+          <p style={s.leftFooterText}>{appVersion ? `v${appVersion}` : ''} · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingApp.com</a></p>
         </div>
       </div>
 
