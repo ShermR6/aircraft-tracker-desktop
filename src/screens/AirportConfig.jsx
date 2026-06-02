@@ -358,7 +358,7 @@ export default function AirportConfig({ isViewOnly = false }) {
       const ringsText = Array.from(activeRings).sort((a, b) => b - a).map(n => `${n}nm`).join(', ');
       setMessage({ type: 'success', text: `${config.airport_code} configured · ${ringsText}` });
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to save configuration' });
+      const d = error.response?.data?.detail; setMessage({ type: 'error', text: typeof d === 'string' ? d : 'Failed to save configuration' });
     } finally { setSaving(false); }
   };
 
@@ -381,7 +381,7 @@ export default function AirportConfig({ isViewOnly = false }) {
       });
       setMessage({ type: 'success', text: 'Airport configuration deleted.' });
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to delete configuration' });
+      const d = error.response?.data?.detail; setMessage({ type: 'error', text: typeof d === 'string' ? d : 'Failed to delete configuration' });
     } finally {
       setDeleting(false);
     }

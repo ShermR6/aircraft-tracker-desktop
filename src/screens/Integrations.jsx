@@ -163,7 +163,7 @@ export default function Integrations({ isViewOnly = false }) {
       setMessage({ type: 'success', text: 'Integration saved successfully!' });
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to save integration' });
+      const d = error.response?.data?.detail; setMessage({ type: 'error', text: typeof d === 'string' ? d : 'Failed to save integration' });
     }
   };
 

@@ -152,7 +152,9 @@ export default function AlertSettings({ isViewOnly = false }) {
       }
       setMessage({ type: 'success', text: 'Alert settings saved.' });
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'Failed to save settings' });
+      const detail = error.response?.data?.detail;
+      const text = typeof detail === 'string' ? detail : 'Failed to save settings';
+      setMessage({ type: 'error', text });
     } finally { setSaving(false); }
   };
 
