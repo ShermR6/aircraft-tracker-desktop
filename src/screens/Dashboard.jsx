@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare, BookOpen } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare, BookOpen, Radio } from 'lucide-react';
 import StorageService from '../services/storage';
 import APIService from '../services/api';
 import AirportConfig from './AirportConfig';
@@ -11,6 +11,7 @@ import AircraftManager from './AircraftManager';
 import TrackerStatus from './TrackerStatus';
 import LiveMap from './LiveMap';
 import Logs from './Logs';
+import GroundStationSetup from './GroundStationSetup';
 
 const ONBOARDING_STEPS = [
   {
@@ -498,6 +499,7 @@ export default function Dashboard({ onLogout }) {
             <NavItem to="/dashboard/team" icon={Users} label="Team" active={path === '/dashboard/team'} />
           )}
           <NavItem to="/dashboard/logs" icon={ScrollText} label="Logs" active={path === '/dashboard/logs'} />
+          <NavItem to="/dashboard/ground-station" icon={Radio} label="Ground Station" active={path === '/dashboard/ground-station'} />
         </nav>
 
         <div style={s.sidebarBottom}>
@@ -569,6 +571,7 @@ export default function Dashboard({ onLogout }) {
           <Route path="/alerts" element={<div style={s.content}><AlertSettings isViewOnly={isViewOnly} /></div>} />
           <Route path="/integrations" element={<div style={s.content}><Integrations isViewOnly={isViewOnly} /></div>} />
           <Route path="/logs" element={<div style={s.content}><Logs /></div>} />
+          <Route path="/ground-station" element={<div style={s.content}><GroundStationSetup /></div>} />
         </Routes>
       </div>
     </div>
