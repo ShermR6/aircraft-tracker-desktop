@@ -31,6 +31,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('tracker-status');
   },
 
+  // Google OAuth deep link callback
+  onOAuthCallback: (callback) => {
+    ipcRenderer.on('oauth-callback', (event, data) => callback(data));
+  },
+  offOAuthCallback: () => {
+    ipcRenderer.removeAllListeners('oauth-callback');
+  },
+
   // Auto-updater
   onUpdateAvailable: (callback) => {
     ipcRenderer.on('update-available', (event, version) => callback(version));

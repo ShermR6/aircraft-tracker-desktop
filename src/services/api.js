@@ -139,6 +139,12 @@ class APIService {
     return response.data;
   }
 
+  async googleDesktopLogin(token, email) {
+    const response = await this.client.post('/api/auth/google-desktop', { token, email });
+    this.setToken(response.data.access_token);
+    return response.data;
+  }
+
   async activateLicense(licenseKey, email) {
     const response = await this.client.post('/api/activate', {
       license_key: licenseKey,

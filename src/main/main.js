@@ -20,15 +20,55 @@ let mainWindow;
 let tray = null;
 let forceQuit = false;
 
+// Register custom protocol for OAuth deep link callback
+if (isPackaged) {
+  app.setAsDefaultProtocolClient('finalpingapp');
+} else {
+  app.setAsDefaultProtocolClient('finalpingapp', process.execPath, [path.resolve(process.argv[1])]);
+}
+
+function handleOAuthCallback(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'auth') {
+      const token = parsed.searchParams.get('token');
+      const email = parsed.searchParams.get('email');
+      const error = parsed.searchParams.get('error');
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+        mainWindow.webContents.send('oauth-callback', { token, email, error });
+      }
+    }
+  } catch (e) {
+    console.error('OAuth callback parse error:', e);
+  }
+}
+
+// macOS: protocol URL comes via open-url (before or after ready)
+let pendingOAuthUrl = null;
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  if (mainWindow) {
+    handleOAuthCallback(url);
+  } else {
+    pendingOAuthUrl = url;
+  }
+});
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (event, commandLine) => {
     if (mainWindow) {
       if (mainWindow.isMinimized() || !mainWindow.isVisible()) mainWindow.show();
       mainWindow.focus();
     }
+    // Windows: deep link URL arrives in command line args
+    const url = commandLine.find(arg => arg.startsWith('finalpingapp://'));
+    if (url) handleOAuthCallback(url);
   });
 }
 
@@ -181,6 +221,14 @@ function createWindow() {
       setTimeout(() => autoUpdater.checkForUpdates(), 1000);
       setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
     }
+    // Handle OAuth callback that arrived before the window was ready
+    if (pendingOAuthUrl) {
+      handleOAuthCallback(pendingOAuthUrl);
+      pendingOAuthUrl = null;
+    }
+    // Windows: check initial launch args for deep link
+    const deepLink = process.argv.find(arg => arg.startsWith('finalpingapp://'));
+    if (deepLink) handleOAuthCallback(deepLink);
   });
 
   // Push tracker status updates to the renderer
