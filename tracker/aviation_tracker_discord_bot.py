@@ -142,14 +142,15 @@ class AviationTracker:
                         except (ValueError, IndexError):
                             tail_number = aircraft_icao
 
+                        gs = aircraft.get('gs')
                         aircraft_list.append({
                             'icao24': aircraft_icao,
                             'callsign': aircraft.get('flight', tail_number).strip() or tail_number,
                             'longitude': aircraft.get('lon'),
                             'latitude': aircraft.get('lat'),
                             'baro_altitude': aircraft.get('alt_baro', 0) * 0.3048 if aircraft.get('alt_baro') and aircraft.get('alt_baro') != 'ground' else None,
-                            'on_ground': aircraft.get('alt_baro') == 'ground' or aircraft.get('gs', 0) < 30,
-                            'velocity': aircraft.get('gs', 0) * 0.514444 if aircraft.get('gs') else None,
+                            'on_ground': aircraft.get('alt_baro') == 'ground' or (gs is not None and gs < 50),
+                            'velocity': gs * 0.514444 if gs else None,
                         })
 
             return aircraft_list
@@ -330,14 +331,20 @@ class AviationTracker:
             'consecutive_missing': 0,
         })
 
-        # Takeoff detection - reset flags
-        if in_airspace and not on_ground and was_on_ground == True:
+        # Takeoff detection
+        if not on_ground and was_on_ground == True:
+            if self.should_notify('takeoff', aircraft_id):
+                velocity_kts = (aircraft_data.get('velocity') or 0) * 1.94384
+                message = f"**{callsign} is airborne** — Departed at {velocity_kts:.0f}kts"
+                log(f"  TAKEOFF: {callsign} at {velocity_kts:.0f}kts")
+                self.send_notification(message)
             if aircraft_id in self.distance_alerts_sent:
                 self.distance_alerts_sent[aircraft_id] = set()
-            if aircraft_id in self.aircraft_state:
-                self.aircraft_state[aircraft_id]['landed'] = False
-                self.aircraft_state[aircraft_id]['max_distance'] = distance_nm
-                self.aircraft_state[aircraft_id].pop('left_airspace_time', None)
+            if aircraft_id not in self.aircraft_state:
+                self.aircraft_state[aircraft_id] = {}
+            self.aircraft_state[aircraft_id]['landed'] = False
+            self.aircraft_state[aircraft_id]['max_distance'] = distance_nm
+            self.aircraft_state[aircraft_id].pop('left_airspace_time', None)
 
     async def run(self):
         """Main tracking loop"""
