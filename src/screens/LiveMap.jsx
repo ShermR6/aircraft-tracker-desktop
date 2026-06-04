@@ -155,7 +155,7 @@ export default function LiveMap() {
         fillColor: '#a855f7', fillOpacity: 0.04, dashArray: '8 5',
       }).bindPopup(
         `<span style="font-size:12px;color:#a855f7;">SDR reception range — max ${maxRange.toFixed(0)} nm</span><br/>` +
-        `<span style="color:#6b7280;font-size:10px;">Based on ${nonZeroCount}/36 directions · grows over time</span>`
+        `<span style="color:#6b7280;font-size:10px;">Best range achieved per direction · expands as aircraft are received · not a live coverage indicator</span>`
       ).addTo(map);
     } catch {
       // No ground station or no data yet — silently skip
