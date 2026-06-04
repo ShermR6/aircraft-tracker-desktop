@@ -187,8 +187,8 @@ export default function GroundStationSetup() {
         <div style={s.step}>
           <div style={s.stepNum}>1</div>
           <div style={s.stepContent}>
-            <div style={s.stepTitle}>Copy your API token</div>
-            <div style={s.stepDesc}>This token authenticates your ground station with your account.</div>
+            <div style={s.stepTitle}>Your device key</div>
+            <div style={s.stepDesc}>This is your permanent ground station key. Used for manual setup — the hotspot portal claims it automatically.</div>
             <div style={s.tokenRow}>
               <div style={s.tokenBox}>{showToken ? (deviceKey || '—') : maskedToken}</div>
               <button
