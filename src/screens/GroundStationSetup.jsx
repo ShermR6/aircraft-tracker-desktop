@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Copy, Eye, EyeOff, Terminal, Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import StorageService from '../services/storage';
+import { Copy, Eye, EyeOff, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import APIService from '../services/api';
 
 const s = {
@@ -98,15 +97,10 @@ function CodeLine({ code, label }) {
 }
 
 export default function GroundStationSetup() {
-  const [token, setToken] = useState(null);
   const [showToken, setShowToken] = useState(false);
   const [tokenCopied, setTokenCopied] = useState(false);
   const [status, setStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(true);
-
-  useEffect(() => {
-    StorageService.getToken().then(t => setToken(t));
-  }, []);
 
   const loadStatus = () => {
     setStatusLoading(true);
@@ -121,18 +115,20 @@ export default function GroundStationSetup() {
     return () => clearInterval(id);
   }, []);
 
+  const deviceKey = status?.gs_device_key || null;
+
   const copyToken = () => {
-    if (!token) return;
-    navigator.clipboard.writeText(token).then(() => {
+    if (!deviceKey) return;
+    navigator.clipboard.writeText(deviceKey).then(() => {
       setTokenCopied(true);
       setTimeout(() => setTokenCopied(false), 2000);
     });
   };
 
   const isOnline = status?.online === true;
-  const maskedToken = token ? token.slice(0, 12) + '••••••••••••••••••••••••' : '—';
-  const setupCommand = token
-    ? `curl -sSL https://raw.githubusercontent.com/ShermR6/aircraft-tracker-backend/main/setup.sh | sudo bash -s -- "${token}"`
+  const maskedToken = deviceKey ? deviceKey.slice(0, 8) + '••••••••••••••••••••••••' : '—';
+  const setupCommand = deviceKey
+    ? `curl -sSL https://raw.githubusercontent.com/ShermR6/aircraft-tracker-backend/main/setup.sh | sudo bash -s -- "${deviceKey}"`
     : 'Loading...';
 
   return (
@@ -194,7 +190,7 @@ export default function GroundStationSetup() {
             <div style={s.stepTitle}>Copy your API token</div>
             <div style={s.stepDesc}>This token authenticates your ground station with your account.</div>
             <div style={s.tokenRow}>
-              <div style={s.tokenBox}>{showToken ? token : maskedToken}</div>
+              <div style={s.tokenBox}>{showToken ? (deviceKey || '—') : maskedToken}</div>
               <button
                 style={s.iconBtn}
                 onClick={() => setShowToken(v => !v)}
