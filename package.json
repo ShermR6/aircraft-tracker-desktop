@@ -48,7 +48,8 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
-      "shortcutName": "FinalPing"
+      "shortcutName": "FinalPing",
+      "menuCategory": "FinalPing"
     },
     "win": {
       "target": "nsis",
