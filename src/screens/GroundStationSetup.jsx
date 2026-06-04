@@ -136,6 +136,9 @@ export default function GroundStationSetup() {
       <div style={s.header}>
         <h2 style={s.title}>Ground Station Setup</h2>
         <p style={s.subtitle}>Connect your FinalPing hardware to your account for live ground tracking.</p>
+        <div style={{ fontSize: 12, color: '#fcd34d', marginTop: 8, display: 'flex', gap: 6 }}>
+          <span>💡</span> Place the antenna near a window for best range — the Pi can sit anywhere nearby.
+        </div>
       </div>
 
       {/* Status */}
