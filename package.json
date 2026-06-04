@@ -42,12 +42,13 @@
       "installerIcon": "assets/icon.ico",
       "installerHeaderIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": "ask",
       "createStartMenuShortcut": true,
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": false
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "FinalPing"
     },
     "win": {
       "target": "nsis",
