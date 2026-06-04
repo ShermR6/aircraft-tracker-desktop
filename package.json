@@ -42,7 +42,7 @@
       "installerIcon": "assets/icon.ico",
       "installerHeaderIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
-      "createDesktopShortcut": "ask",
+      "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "oneClick": false,
       "perMachine": false,
