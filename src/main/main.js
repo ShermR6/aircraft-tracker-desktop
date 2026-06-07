@@ -77,7 +77,7 @@ let autoUpdater = null;
 if (isPackaged) {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = false;
   if (process.platform === 'darwin') {
     autoUpdater.verifyUpdateCodeSignature = false;
   }
