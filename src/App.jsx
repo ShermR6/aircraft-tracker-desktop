@@ -136,7 +136,7 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
-const CURRENT_VERSION = '1.0.9';
+const CURRENT_VERSION = '1.1.0';
 
 const CHANGELOG = [
   { type: 'new', text: 'Live Map trail now records the full flight path in the background — switch to any tab and come back to see the complete route from takeoff' },
