@@ -82,12 +82,14 @@ export default function LiveMap() {
       .bindPopup(`<div style="font-size:13px;"><strong style="color:#0ea5e9;">${airportConfig.airport_code || 'Home Base'}</strong><br/><span style="color:#9ca3af;font-size:11px;">${lat.toFixed(4)}, ${lng.toFixed(4)}</span></div>`)
       .addTo(map);
 
-    const ringDistances = airportConfig.alert_distances_nm || ['2.0', '5.0', '10.0'];
+    const ringDistances = [...(airportConfig.alert_distances_nm || ['2.0', '5.0', '10.0'])]
+      .sort((a, b) => parseFloat(b) - parseFloat(a)); // largest first so smallest rings sit on top
     const ringColors = ['#ef4444', '#f59e0b', '#38bdf8'];
     ringsRef.current = ringDistances.map((dist, i) => {
       const nm = parseFloat(dist);
+      const colorIndex = ringDistances.length - 1 - i; // color by size: smallest = red
       return L.circle([lat, lng], {
-        radius: nmToMeters(nm), color: ringColors[i] || '#6b7280',
+        radius: nmToMeters(nm), color: ringColors[colorIndex] || '#6b7280',
         weight: 1, opacity: 0.5, fillOpacity: 0.03, dashArray: '6 4',
       }).bindPopup(`<span style="font-size:12px;color:#9ca3af;">${nm} nm alert ring</span>`).addTo(map);
     });
