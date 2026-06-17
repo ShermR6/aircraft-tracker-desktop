@@ -17,8 +17,8 @@ function nmToMeters(nm) { return nm * 1852; }
 // Returns icon color and opacity based on how old the last ADS-B update is
 function freshnessStyle(lastSeenMs) {
   const ageS = (Date.now() - lastSeenMs) / 1000;
-  if (ageS < 15) return { color: '#38bdf8', opacity: 1 };
-  if (ageS < 30) return { color: '#f59e0b', opacity: 0.85 };
+  if (ageS < 45) return { color: '#38bdf8', opacity: 1 };
+  if (ageS < 90) return { color: '#f59e0b', opacity: 0.85 };
   return { color: '#f87171', opacity: 0.65 };
 }
 
@@ -185,10 +185,10 @@ export default function LiveMap() {
         const lat = parseFloat(ac.latitude);
         const lng = parseFloat(ac.longitude);
 
-        // Staleness: cloud data > 45s old
+        // Staleness: cloud data > 90s old (accounts for 30s polling interval)
         if (ac.last_seen) {
           const ageS = (now - new Date(ac.last_seen).getTime()) / 1000;
-          if (ageS > 45) return false;
+          if (ageS > 90) return false;
         }
 
         const prev = posTrackerRef.current[tail];
@@ -198,8 +198,8 @@ export default function LiveMap() {
           const frozenS = (now - prev.changedAt) / 1000;
           const alt = ac.altitude_ft_msl != null ? parseFloat(ac.altitude_ft_msl) : 99999;
           const dist = ac.distance_nm != null ? parseFloat(ac.distance_nm) : 99;
-          if (frozenS > 30 && dist < 5 && alt < 3000) return false;
-          if (frozenS > 60 && alt < 1500) return false;
+          if (frozenS > 75 && dist < 5 && alt < 3000) return false;
+          if (frozenS > 120 && alt < 1500) return false;
         }
 
         return true;
@@ -321,7 +321,7 @@ export default function LiveMap() {
         <div>
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Live Map</h2>
           <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
-            Real-time aircraft positions · Updates every 5s
+            Real-time aircraft positions · Positions update every 30s
             {lastUpdate && <span style={{ marginLeft: '8px', color: '#4b5563' }}>· Last update: {lastUpdate.toLocaleTimeString()}</span>}
           </p>
         </div>
