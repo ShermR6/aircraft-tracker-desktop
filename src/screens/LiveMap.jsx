@@ -29,7 +29,7 @@ function ageLabel(lastSeenMs) {
   return `${Math.floor(s / 60)}m ago`;
 }
 
-export default function LiveMap() {
+export default function LiveMap({ isTeam = false, teamData = null, onClaim = null, onRelease = null }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef({});
@@ -48,10 +48,20 @@ export default function LiveMap() {
 
   useEffect(() => {
     ensureLoaded();
-    APIService.getAirportConfig()
-      .then(cfg => setAirportConfig(cfg))
-      .catch(() => setError('No airport configured. Please set up your location in Airport Config first.'));
-  }, []);
+    if (isTeam) {
+      APIService.getTeamAirports()
+        .then(airports => {
+          const active = airports.find(a => a.is_active) || airports[0];
+          if (active) setAirportConfig(active);
+          else setError('No active airport configured for this team.');
+        })
+        .catch(() => setError('No airport configured for this team.'));
+    } else {
+      APIService.getAirportConfig()
+        .then(cfg => setAirportConfig(cfg))
+        .catch(() => setError('No airport configured. Please set up your location in Airport Config first.'));
+    }
+  }, [isTeam]);
 
   useEffect(() => {
     if (!airportConfig || mapRef.current) return;
@@ -298,13 +308,21 @@ export default function LiveMap() {
 
   useEffect(() => {
     if (!mapRef.current) return;
-    // Subscribe to background tracker — map updates whenever new data arrives
+    if (isTeam) {
+      // Team map: use teamData.liveAircraft from parent (no background tracker)
+      if (teamData?.liveAircraft) {
+        setLastUpdate(new Date());
+        fetchAircraft(mapRef.current, teamData.liveAircraft);
+      }
+      return;
+    }
+    // Personal map: subscribe to background tracker
     const unsub = backgroundTracker.subscribe(data => {
       setLastUpdate(new Date());
       fetchAircraft(mapRef.current, data);
     });
     return unsub;
-  }, [fetchAircraft, airportConfig]);
+  }, [fetchAircraft, airportConfig, isTeam, teamData?.liveAircraft]);
 
   useEffect(() => {
     return () => {

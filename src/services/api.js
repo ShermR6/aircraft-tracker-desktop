@@ -286,6 +286,253 @@ class APIService {
     const response = await this.client.get('/api/notifications/stats');
     return response.data;
   }
+
+  // ── Teams ─────────────────────────────────────────────────────────────────
+
+  async getMyTeam() {
+    const response = await this.client.get('/api/teams/me');
+    return response.data;
+  }
+
+  // Members
+  async getTeamMembers() {
+    const team = await this.getMyTeam();
+    return team.members;
+  }
+
+  async removeMember(memberId) {
+    const response = await this.client.delete(`/api/teams/members/${memberId}`);
+    return response.data;
+  }
+
+  async assignMemberRole(memberId, data) {
+    const response = await this.client.put(`/api/teams/members/${memberId}/role`, data);
+    return response.data;
+  }
+
+  async setMemberDuty(memberId, onDuty, until = null) {
+    const response = await this.client.put(`/api/teams/members/${memberId}/duty`, { on_duty: onDuty, until });
+    return response.data;
+  }
+
+  // Invites
+  async createInviteToken(note = null) {
+    const response = await this.client.post('/api/teams/invites', { note });
+    return response.data;
+  }
+
+  async listInviteTokens() {
+    const response = await this.client.get('/api/teams/invites');
+    return response.data;
+  }
+
+  async deleteInviteToken(inviteId) {
+    const response = await this.client.delete(`/api/teams/invites/${inviteId}`);
+    return response.data;
+  }
+
+  // Channels
+  async getTeamChannels() {
+    const team = await this.getMyTeam();
+    return team.channels;
+  }
+
+  async addTeamChannel(type, label, value) {
+    const response = await this.client.post('/api/teams/channels', { integration_type: type, label, value });
+    return response.data;
+  }
+
+  async removeTeamChannel(channelId) {
+    const response = await this.client.delete(`/api/teams/channels/${channelId}`);
+    return response.data;
+  }
+
+  // Routing
+  async getTeamRouting() {
+    const team = await this.getMyTeam();
+    return team.routing;
+  }
+
+  async updateTeamRouting(routing) {
+    const response = await this.client.put('/api/teams/routing', { routing });
+    return response.data;
+  }
+
+  // Roles
+  async getTeamRoles() {
+    const response = await this.client.get('/api/teams/roles');
+    return response.data;
+  }
+
+  async createTeamRole(name, permissions = [], color = null) {
+    const response = await this.client.post('/api/teams/roles', { name, permissions, color });
+    return response.data;
+  }
+
+  async updateTeamRole(roleId, data) {
+    const response = await this.client.put(`/api/teams/roles/${roleId}`, data);
+    return response.data;
+  }
+
+  async deleteTeamRole(roleId) {
+    const response = await this.client.delete(`/api/teams/roles/${roleId}`);
+    return response.data;
+  }
+
+  // Team Aircraft
+  async getTeamAircraft() {
+    const response = await this.client.get('/api/teams/aircraft');
+    return response.data;
+  }
+
+  async addTeamAircraft(data) {
+    const response = await this.client.post('/api/teams/aircraft', data);
+    return response.data;
+  }
+
+  async updateTeamAircraft(id, data) {
+    const response = await this.client.put(`/api/teams/aircraft/${id}`, data);
+    return response.data;
+  }
+
+  async deleteTeamAircraft(id) {
+    const response = await this.client.delete(`/api/teams/aircraft/${id}`);
+    return response.data;
+  }
+
+  async getTeamLiveAircraft() {
+    const response = await this.client.get('/api/teams/aircraft/live');
+    return response.data;
+  }
+
+  // Multi-airport
+  async getTeamAirports() {
+    const response = await this.client.get('/api/teams/airports');
+    return response.data;
+  }
+
+  async addTeamAirport(data) {
+    const response = await this.client.post('/api/teams/airports', data);
+    return response.data;
+  }
+
+  async updateTeamAirport(id, data) {
+    const response = await this.client.put(`/api/teams/airports/${id}`, data);
+    return response.data;
+  }
+
+  async deleteTeamAirport(id) {
+    const response = await this.client.delete(`/api/teams/airports/${id}`);
+    return response.data;
+  }
+
+  async setActiveAirport(id) {
+    const response = await this.client.put(`/api/teams/airports/${id}/active`);
+    return response.data;
+  }
+
+  // Alert Settings (team)
+  async getTeamAlertSettings() {
+    const response = await this.client.get('/api/teams/alert-settings');
+    return response.data;
+  }
+
+  async updateTeamAlertSetting(alertType, enabled, template) {
+    const response = await this.client.post('/api/teams/alert-settings', {
+      alert_type: alertType, enabled, message_template: template
+    });
+    return response.data;
+  }
+
+  // Activity
+  async getTeamActivity(limit = 50) {
+    const response = await this.client.get(`/api/teams/activity?limit=${limit}`);
+    return response.data;
+  }
+
+  async ackActivity(logId) {
+    const response = await this.client.post(`/api/teams/activity/${logId}/ack`);
+    return response.data;
+  }
+
+  // Claims
+  async getTeamClaims() {
+    const response = await this.client.get('/api/teams/claims');
+    return response.data;
+  }
+
+  async claimAircraft(icao24, tailNumber, note = null) {
+    const response = await this.client.post('/api/teams/claims', { icao24, tail_number: tailNumber, note });
+    return response.data;
+  }
+
+  async releaseClaim(icao24) {
+    const response = await this.client.delete(`/api/teams/claims/${icao24}`);
+    return response.data;
+  }
+
+  // Shifts & on-duty
+  async getTeamShifts() {
+    const response = await this.client.get('/api/teams/shifts');
+    return response.data;
+  }
+
+  async createTeamShift(data) {
+    const response = await this.client.post('/api/teams/shifts', data);
+    return response.data;
+  }
+
+  async updateTeamShift(id, data) {
+    const response = await this.client.put(`/api/teams/shifts/${id}`, data);
+    return response.data;
+  }
+
+  async deleteTeamShift(id) {
+    const response = await this.client.delete(`/api/teams/shifts/${id}`);
+    return response.data;
+  }
+
+  async setShiftMembers(shiftId, userIds) {
+    const response = await this.client.put(`/api/teams/shifts/${shiftId}/members`, { user_ids: userIds });
+    return response.data;
+  }
+
+  async getOnDutyMembers() {
+    const response = await this.client.get('/api/teams/on-duty');
+    return response.data;
+  }
+
+  // Expected Arrivals
+  async getExpectedArrivals() {
+    const response = await this.client.get('/api/teams/arrivals');
+    return response.data;
+  }
+
+  async createExpectedArrival(data) {
+    const response = await this.client.post('/api/teams/arrivals', data);
+    return response.data;
+  }
+
+  async updateExpectedArrival(id, data) {
+    const response = await this.client.put(`/api/teams/arrivals/${id}`, data);
+    return response.data;
+  }
+
+  async deleteExpectedArrival(id) {
+    const response = await this.client.delete(`/api/teams/arrivals/${id}`);
+    return response.data;
+  }
+
+  // Escalation
+  async getEscalationConfig() {
+    const response = await this.client.get('/api/teams/escalation-config');
+    return response.data;
+  }
+
+  async updateEscalationConfig(data) {
+    const response = await this.client.put('/api/teams/escalation-config', data);
+    return response.data;
+  }
 }
 
 export default new APIService();
