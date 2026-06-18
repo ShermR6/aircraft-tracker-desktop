@@ -10,7 +10,6 @@ import AccountDashboard from './AccountDashboard';
 import AircraftManager from './AircraftManager';
 import TrackerStatus from './TrackerStatus';
 import LiveMap from './LiveMap';
-import Teams from './Teams';
 import Logs from './Logs';
 import GroundStationSetup from './GroundStationSetup';
 
@@ -360,11 +359,8 @@ export default function Dashboard({ onLogout }) {
       const data = await StorageService.getUserData();
       setUserData(data);
       APIService.getCurrentUser().then(async (fresh) => {
-        const changed =
-          (fresh?.license_tier && fresh.license_tier !== data?.license_tier) ||
-          fresh?.has_team !== data?.has_team;
-        if (changed) {
-          const updated = { ...data, license_tier: fresh.license_tier, has_team: fresh.has_team, team_id: fresh.team_id, team_name: fresh.team_name, team_role: fresh.team_role };
+        if (fresh?.license_tier && fresh.license_tier !== data?.license_tier) {
+          const updated = { ...data, license_tier: fresh.license_tier };
           await StorageService.setUserData(updated);
           setUserData(updated);
         }
@@ -499,7 +495,7 @@ export default function Dashboard({ onLogout }) {
           <NavItem to="/dashboard/airport" icon={MapPin} label="Airport Config" active={path === '/dashboard/airport'} />
           <NavItem to="/dashboard/alerts" icon={Bell} label="Alerts" active={path === '/dashboard/alerts'} />
           <NavItem to="/dashboard/integrations" icon={LinkIcon} label="Integrations" active={path === '/dashboard/integrations'} />
-          {userData?.has_team === true && (
+          {userData?.license_tier === 'team' && (
             <NavItem to="/dashboard/team" icon={Users} label="Team" active={path === '/dashboard/team'} />
           )}
           <NavItem to="/dashboard/logs" icon={ScrollText} label="Logs" active={path === '/dashboard/logs'} />
@@ -576,7 +572,6 @@ export default function Dashboard({ onLogout }) {
           <Route path="/integrations" element={<div style={s.content}><Integrations isViewOnly={isViewOnly} /></div>} />
           <Route path="/logs" element={<div style={s.content}><Logs /></div>} />
           <Route path="/ground-station" element={<div style={s.content}><GroundStationSetup /></div>} />
-          <Route path="/team" element={<Teams userData={userData} />} />
         </Routes>
       </div>
     </div>
