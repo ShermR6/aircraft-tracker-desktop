@@ -484,7 +484,7 @@ export default function Dashboard({ onLogout }) {
           <div style={s.logoTop}>Aircraft Alerts</div>
           <div style={s.logoMain}>FinalPing</div>
           <span style={s.logoLine} />
-          <div style={s.logoEmail}>{userData?.email}</div>
+          <div style={s.logoEmail}>{userData?.display_name || userData?.email}</div>
         </div>
 
         <nav style={s.nav}>

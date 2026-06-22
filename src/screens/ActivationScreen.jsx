@@ -341,6 +341,7 @@ export default function ActivationScreen({ onSuccess }) {
         await StorageService.setUserData({
           email: data.email,
           user_id: data.user_id,
+          display_name: data.display_name || null,
           license_tier: data.license_tier,
         });
         onSuccess(data);
@@ -366,6 +367,7 @@ export default function ActivationScreen({ onSuccess }) {
       await StorageService.setUserData({
         email: data.email,
         user_id: data.user_id,
+        display_name: data.display_name || null,
         license_tier: data.license_tier,
       });
       onSuccess(data);
@@ -406,6 +408,7 @@ export default function ActivationScreen({ onSuccess }) {
       await StorageService.setUserData({
         email: data.email,
         user_id: data.user_id,
+        display_name: data.display_name || null,
         license_tier: data.license_tier,
       });
       console.log('Step 6: User data saved');
