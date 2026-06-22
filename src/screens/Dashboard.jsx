@@ -342,6 +342,15 @@ export default function Dashboard({ onLogout }) {
 
   useEffect(() => { loadUserData(); }, []);
 
+  // Hourly display_name sync
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const data = await StorageService.getUserData().catch(() => null);
+      if (data) syncFreshUserData(data);
+    }, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Listen for connection state changes from axios interceptor
   useEffect(() => {
     const unsubscribe = APIService.onConnectionChange((connected) => {
@@ -354,17 +363,25 @@ export default function Dashboard({ onLogout }) {
     window.electronAPI?.getAppVersion().then(v => setAppVersion(v)).catch(() => {});
   }, []);
 
+  const syncFreshUserData = async (data) => {
+    try {
+      const fresh = await APIService.getCurrentUser();
+      if (!fresh) return;
+      const nameChanged = fresh.display_name !== undefined && fresh.display_name !== data?.display_name;
+      const tierChanged = fresh.license_tier && fresh.license_tier !== data?.license_tier;
+      if (nameChanged || tierChanged) {
+        const updated = { ...data, license_tier: fresh.license_tier || data?.license_tier, display_name: fresh.display_name ?? data?.display_name };
+        await StorageService.setUserData(updated);
+        setUserData(updated);
+      }
+    } catch { }
+  };
+
   const loadUserData = async () => {
     try {
       const data = await StorageService.getUserData();
       setUserData(data);
-      APIService.getCurrentUser().then(async (fresh) => {
-        if (fresh?.license_tier && fresh.license_tier !== data?.license_tier) {
-          const updated = { ...data, license_tier: fresh.license_tier };
-          await StorageService.setUserData(updated);
-          setUserData(updated);
-        }
-      }).catch(() => {});
+      syncFreshUserData(data);
 
       // Only check onboarding once per session using a ref
       if (!onboardingChecked.current) {
