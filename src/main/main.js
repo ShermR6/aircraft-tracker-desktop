@@ -268,14 +268,27 @@ app.on('before-quit', () => {
   forceQuit = true;
 });
 
-// ─── Secure store IPC ─────────────────────────────────────────────────────────
-ipcMain.handle('store-get', (event, key) => store.get(key));
-ipcMain.handle('store-set', (event, key, value) => { store.set(key, value); return true; });
-ipcMain.handle('store-delete', (event, key) => { store.delete(key); return true; });
-ipcMain.handle('store-clear', () => { store.clear(); return true; });
+// ─── Secure store IPC (allowlisted keys only) ─────────────────────────────────
+// Restricts the renderer to known keys so injected code can't read/write
+// arbitrary state or wipe the whole store.
+const ALLOWED_STORE_KEYS = new Set(['auth_token', 'user_data', 'aircraft_colors', 'lastSeenVersion']);
+ipcMain.handle('store-get', (event, key) => (ALLOWED_STORE_KEYS.has(key) ? store.get(key) : undefined));
+ipcMain.handle('store-set', (event, key, value) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; store.set(key, value); return true; });
+ipcMain.handle('store-delete', (event, key) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; store.delete(key); return true; });
+ipcMain.handle('store-clear', () => { for (const k of ALLOWED_STORE_KEYS) store.delete(k); return true; });
 
 // ─── External URLs ─────────────────────────────────────────────────────────────
-ipcMain.handle('open-external', (event, url) => shell.openExternal(url));
+// Only open web/mail schemes — never file:, ms-msdt:, etc. which shell.openExternal
+// would otherwise launch, turning a renderer compromise into local code execution.
+ipcMain.handle('open-external', (event, url) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:' || parsed.protocol === 'mailto:') {
+      return shell.openExternal(url);
+    }
+  } catch { /* invalid URL */ }
+  return false;
+});
 
 // ─── Focus window — restores input focus after React navigation ───────────────
 ipcMain.handle('focus-window', () => {
