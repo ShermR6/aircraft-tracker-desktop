@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, safeStorage } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
@@ -174,7 +174,8 @@ function createWindow() {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self' 'unsafe-inline' 'unsafe-eval' file: data:; " +
+          "default-src 'self' file: data:; " +
+          "script-src 'self' 'unsafe-inline'; " +
           "connect-src 'self' https://*.railway.app https://railway.app https://*.cartocdn.com https://*.openstreetmap.org https://api.adsbdb.com; " +
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
           "font-src 'self' https://fonts.gstatic.com data:; " +
@@ -272,8 +273,37 @@ app.on('before-quit', () => {
 // Restricts the renderer to known keys so injected code can't read/write
 // arbitrary state or wipe the whole store.
 const ALLOWED_STORE_KEYS = new Set(['auth_token', 'user_data', 'aircraft_colors', 'lastSeenVersion']);
-ipcMain.handle('store-get', (event, key) => (ALLOWED_STORE_KEYS.has(key) ? store.get(key) : undefined));
-ipcMain.handle('store-set', (event, key, value) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; store.set(key, value); return true; });
+// Sensitive keys are encrypted at rest with the OS keychain (safeStorage)
+// instead of sitting as plaintext in the electron-store JSON file.
+const SENSITIVE_STORE_KEYS = new Set(['auth_token']);
+const ENC_PREFIX = 'enc:v1:';
+
+function storeWrite(key, value) {
+  if (SENSITIVE_STORE_KEYS.has(key) && typeof value === 'string') {
+    try {
+      if (safeStorage.isEncryptionAvailable()) {
+        store.set(key, ENC_PREFIX + safeStorage.encryptString(value).toString('base64'));
+        return;
+      }
+    } catch { /* fall through to plaintext */ }
+  }
+  store.set(key, value);
+}
+
+function storeRead(key) {
+  const raw = store.get(key);
+  if (typeof raw === 'string' && raw.startsWith(ENC_PREFIX)) {
+    try {
+      return safeStorage.decryptString(Buffer.from(raw.slice(ENC_PREFIX.length), 'base64'));
+    } catch {
+      return undefined; // key can't be decrypted (e.g. moved machines) — force re-login
+    }
+  }
+  return raw; // legacy plaintext value, returned as-is (re-encrypted on next set)
+}
+
+ipcMain.handle('store-get', (event, key) => (ALLOWED_STORE_KEYS.has(key) ? storeRead(key) : undefined));
+ipcMain.handle('store-set', (event, key, value) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; storeWrite(key, value); return true; });
 ipcMain.handle('store-delete', (event, key) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; store.delete(key); return true; });
 ipcMain.handle('store-clear', () => { for (const k of ALLOWED_STORE_KEYS) store.delete(k); return true; });
 
