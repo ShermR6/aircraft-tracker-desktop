@@ -185,6 +185,21 @@ function createWindow() {
     });
   });
 
+  // Defense-in-depth: block new-window creation and navigations away from the
+  // app's own origin (external links go through the vetted open-external IPC).
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    try {
+      const target = new URL(navigationUrl);
+      const base = new URL(mainWindow.webContents.getURL());
+      if (target.origin !== base.origin && target.protocol !== 'file:') {
+        event.preventDefault();
+      }
+    } catch {
+      event.preventDefault();
+    }
+  });
+
   if (isPackaged) {
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
   } else {
