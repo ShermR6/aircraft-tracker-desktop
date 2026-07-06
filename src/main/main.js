@@ -284,12 +284,10 @@ app.on('before-quit', () => {
   forceQuit = true;
 });
 
-// ─── Secure store IPC (allowlisted keys only) ─────────────────────────────────
-// Restricts the renderer to known keys so injected code can't read/write
-// arbitrary state or wipe the whole store.
-const ALLOWED_STORE_KEYS = new Set(['auth_token', 'user_data', 'aircraft_colors', 'lastSeenVersion']);
+// ─── Secure store IPC ─────────────────────────────────────────────────────────
 // Sensitive keys are encrypted at rest with the OS keychain (safeStorage)
-// instead of sitting as plaintext in the electron-store JSON file.
+// instead of sitting as plaintext in the electron-store JSON file. Keys are NOT
+// allowlisted — the app uses dynamic keys (e.g. onboardingComplete_<email>).
 const SENSITIVE_STORE_KEYS = new Set(['auth_token']);
 const ENC_PREFIX = 'enc:v1:';
 
@@ -317,10 +315,10 @@ function storeRead(key) {
   return raw; // legacy plaintext value, returned as-is (re-encrypted on next set)
 }
 
-ipcMain.handle('store-get', (event, key) => (ALLOWED_STORE_KEYS.has(key) ? storeRead(key) : undefined));
-ipcMain.handle('store-set', (event, key, value) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; storeWrite(key, value); return true; });
-ipcMain.handle('store-delete', (event, key) => { if (!ALLOWED_STORE_KEYS.has(key)) return false; store.delete(key); return true; });
-ipcMain.handle('store-clear', () => { for (const k of ALLOWED_STORE_KEYS) store.delete(k); return true; });
+ipcMain.handle('store-get', (event, key) => storeRead(key));
+ipcMain.handle('store-set', (event, key, value) => { storeWrite(key, value); return true; });
+ipcMain.handle('store-delete', (event, key) => { store.delete(key); return true; });
+ipcMain.handle('store-clear', () => { store.clear(); return true; });
 
 // ─── External URLs ─────────────────────────────────────────────────────────────
 // Only open web/mail schemes — never file:, ms-msdt:, etc. which shell.openExternal
