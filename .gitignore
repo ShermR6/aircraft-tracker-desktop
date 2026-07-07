@@ -2,5 +2,3 @@ node_modules/
 dist/
 build/
 .env
-# Local env (was tracked; contains stale REACT_APP_VERSION)
-.env*.local

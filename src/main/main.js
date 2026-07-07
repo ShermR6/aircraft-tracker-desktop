@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const tracker = require('./tracker_bridge');
@@ -174,8 +174,7 @@ function createWindow() {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self' file: data:; " +
-          "script-src 'self' 'unsafe-inline'; " +
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' file: data:; " +
           "connect-src 'self' https://*.railway.app https://railway.app https://*.cartocdn.com https://*.openstreetmap.org https://api.adsbdb.com; " +
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
           "font-src 'self' https://fonts.gstatic.com data:; " +
@@ -183,21 +182,6 @@ function createWindow() {
         ],
       },
     });
-  });
-
-  // Defense-in-depth: block new-window creation and navigations away from the
-  // app's own origin (external links go through the vetted open-external IPC).
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
-    try {
-      const target = new URL(navigationUrl);
-      const base = new URL(mainWindow.webContents.getURL());
-      if (target.origin !== base.origin && target.protocol !== 'file:') {
-        event.preventDefault();
-      }
-    } catch {
-      event.preventDefault();
-    }
   });
 
   if (isPackaged) {
@@ -285,53 +269,13 @@ app.on('before-quit', () => {
 });
 
 // ─── Secure store IPC ─────────────────────────────────────────────────────────
-// Sensitive keys are encrypted at rest with the OS keychain (safeStorage)
-// instead of sitting as plaintext in the electron-store JSON file. Keys are NOT
-// allowlisted — the app uses dynamic keys (e.g. onboardingComplete_<email>).
-const SENSITIVE_STORE_KEYS = new Set(['auth_token']);
-const ENC_PREFIX = 'enc:v1:';
-
-function storeWrite(key, value) {
-  if (SENSITIVE_STORE_KEYS.has(key) && typeof value === 'string') {
-    try {
-      if (safeStorage.isEncryptionAvailable()) {
-        store.set(key, ENC_PREFIX + safeStorage.encryptString(value).toString('base64'));
-        return;
-      }
-    } catch { /* fall through to plaintext */ }
-  }
-  store.set(key, value);
-}
-
-function storeRead(key) {
-  const raw = store.get(key);
-  if (typeof raw === 'string' && raw.startsWith(ENC_PREFIX)) {
-    try {
-      return safeStorage.decryptString(Buffer.from(raw.slice(ENC_PREFIX.length), 'base64'));
-    } catch {
-      return undefined; // key can't be decrypted (e.g. moved machines) — force re-login
-    }
-  }
-  return raw; // legacy plaintext value, returned as-is (re-encrypted on next set)
-}
-
-ipcMain.handle('store-get', (event, key) => storeRead(key));
-ipcMain.handle('store-set', (event, key, value) => { storeWrite(key, value); return true; });
+ipcMain.handle('store-get', (event, key) => store.get(key));
+ipcMain.handle('store-set', (event, key, value) => { store.set(key, value); return true; });
 ipcMain.handle('store-delete', (event, key) => { store.delete(key); return true; });
 ipcMain.handle('store-clear', () => { store.clear(); return true; });
 
 // ─── External URLs ─────────────────────────────────────────────────────────────
-// Only open web/mail schemes — never file:, ms-msdt:, etc. which shell.openExternal
-// would otherwise launch, turning a renderer compromise into local code execution.
-ipcMain.handle('open-external', (event, url) => {
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:' || parsed.protocol === 'mailto:') {
-      return shell.openExternal(url);
-    }
-  } catch { /* invalid URL */ }
-  return false;
-});
+ipcMain.handle('open-external', (event, url) => shell.openExternal(url));
 
 // ─── Focus window — restores input focus after React navigation ───────────────
 ipcMain.handle('focus-window', () => {

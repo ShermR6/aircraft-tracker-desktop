@@ -396,24 +396,29 @@ export default function ActivationScreen({ onSuccess }) {
     setLoading(true);
     setError('');
     try {
+      console.log('Step 1: Calling API...');
       const data = await APIService.activateLicense(licenseKey.trim(), email.trim());
+      console.log('Step 2: API response:', JSON.stringify(data));
 
-      // Do not log `data` — it contains the access token, which Sentry would
-      // otherwise capture as a console breadcrumb.
+      console.log('Step 3: Saving token...');
       await StorageService.setToken(data.access_token);
+      console.log('Step 4: Token saved');
 
+      console.log('Step 5: Saving user data...');
       await StorageService.setUserData({
         email: data.email,
         user_id: data.user_id,
         display_name: data.display_name || null,
         license_tier: data.license_tier,
       });
+      console.log('Step 6: User data saved');
 
+      console.log('Step 7: Calling onSuccess...');
       onSuccess(data);
+      console.log('Step 8: Done');
     } catch (err) {
-      // Log only the message — a full serialization can include the request
-      // config with the Authorization header.
-      console.error('Activation error:', err?.response?.status, err?.message);
+      console.error('Activation error:', err);
+      console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
       const msg = err.response?.data?.detail || 'Activation failed. Please check your license key and email.';
       setError(msg);
     } finally {
