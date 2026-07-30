@@ -306,6 +306,12 @@ export default function ActivationScreen({ onSuccess }) {
   const [loginError, setLoginError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  // 2FA login step — shown after the password is accepted for a 2FA account
+  const [twoFA, setTwoFA] = useState(null); // null | { method, methods }
+  const [twoFACode, setTwoFACode] = useState('');
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [twoFAResent, setTwoFAResent] = useState(false);
+
   // Activate state
   const [licenseKey, setLicenseKey] = useState('');
   const [email, setEmail] = useState('');
@@ -363,6 +369,13 @@ export default function ActivationScreen({ onSuccess }) {
     setLoginError('');
     try {
       const data = await APIService.login(loginEmail.trim(), loginPassword);
+      if (data.requires_2fa) {
+        // Password accepted, but the account has 2FA — collect the code next.
+        setTwoFA({ method: data.method, methods: data.methods || [] });
+        setTwoFACode('');
+        setLoginLoading(false);
+        return;
+      }
       await StorageService.setToken(data.access_token);
       await StorageService.setUserData({
         email: data.email,
@@ -377,6 +390,55 @@ export default function ActivationScreen({ onSuccess }) {
     } finally {
       setLoginLoading(false);
     }
+  };
+
+  const handleVerify2FA = async (e) => {
+    e.preventDefault();
+    if (!twoFACode.trim()) {
+      setLoginError('Please enter your verification code.');
+      return;
+    }
+    setTwoFALoading(true);
+    setLoginError('');
+    try {
+      const data = await APIService.login(loginEmail.trim(), loginPassword, twoFACode.trim(), twoFA.method);
+      if (data.requires_2fa) {
+        setLoginError('Invalid or expired code. Please try again.');
+        setTwoFALoading(false);
+        return;
+      }
+      await StorageService.setToken(data.access_token);
+      await StorageService.setUserData({
+        email: data.email,
+        user_id: data.user_id,
+        display_name: data.display_name || null,
+        license_tier: data.license_tier,
+      });
+      onSuccess(data);
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Invalid or expired code.';
+      setLoginError(msg);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleResend2FA = async () => {
+    setLoginError('');
+    try {
+      // Re-issuing the password login dispatches a fresh code for email/SMS.
+      await APIService.login(loginEmail.trim(), loginPassword);
+      setTwoFAResent(true);
+      setTimeout(() => setTwoFAResent(false), 3000);
+    } catch {
+      setLoginError('Could not resend the code. Please try again.');
+    }
+  };
+
+  const cancel2FA = () => {
+    setTwoFA(null);
+    setTwoFACode('');
+    setLoginError('');
   };
 
   const handleSubmit = async (e) => {
@@ -508,7 +570,7 @@ export default function ActivationScreen({ onSuccess }) {
           </div>
 
           {/* ── Sign In Tab ── */}
-          {tab === 'signin' && (
+          {tab === 'signin' && !twoFA && (
             <>
               <h2 style={s.formTitle}>Welcome back</h2>
               <p style={s.formSub}>Sign in with your FinalPing account</p>
@@ -598,6 +660,53 @@ export default function ActivationScreen({ onSuccess }) {
                 <span style={s.tosLink} onClick={() => openLink('https://finalpingapp.com/login/forgot')}>
                   Forgot your password?
                 </span>
+              </p>
+            </>
+          )}
+
+          {/* ── 2FA Verification Step ── */}
+          {tab === 'signin' && twoFA && (
+            <>
+              <h2 style={s.formTitle}>Two-factor authentication</h2>
+              <p style={s.formSub}>
+                {twoFA.method === 'totp'
+                  ? 'Enter the 6-digit code from your authenticator app'
+                  : twoFA.method === 'sms'
+                    ? 'Enter the 6-digit code we texted to your phone'
+                    : 'Enter the 6-digit code we emailed you'}
+              </p>
+
+              {loginError && <div style={s.errorBox}>{loginError}</div>}
+
+              <form onSubmit={handleVerify2FA}>
+                <div style={s.fieldGroup}>
+                  <label style={s.label}>Verification Code</label>
+                  <div style={s.inputWrap}>
+                    <div style={s.inputIcon}><Shield size={15} color="#4b5563" /></div>
+                    <input style={s.input} type="text" inputMode="numeric" autoComplete="one-time-code"
+                      placeholder="123456" maxLength={6} value={twoFACode}
+                      onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
+                      onFocus={focusInput} onBlur={blurInput} autoFocus />
+                  </div>
+                </div>
+
+                <button type="submit" style={s.submitBtn(twoFALoading)} disabled={twoFALoading}>
+                  {twoFALoading
+                    ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Verifying...</>
+                    : <><ArrowRight size={16} />Verify &amp; Sign In</>}
+                </button>
+              </form>
+
+              {twoFA.method !== 'totp' && (
+                <p style={{ ...s.formFooter, marginTop: 16 }}>
+                  {twoFAResent
+                    ? <span style={{ color: '#34d399' }}>A new code has been sent.</span>
+                    : <span style={s.tosLink} onClick={handleResend2FA}>Didn&apos;t get a code? Resend</span>}
+                </p>
+              )}
+
+              <p style={{ ...s.formFooter, marginTop: 8 }}>
+                <span style={s.tosLink} onClick={cancel2FA}>← Back to sign in</span>
               </p>
             </>
           )}
