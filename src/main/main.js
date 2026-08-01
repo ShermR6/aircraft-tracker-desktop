@@ -105,9 +105,12 @@ function createTray() {
   // Use the app icon — falls back to empty image if not found
   let trayIcon;
   try {
+    // Packaged: main runs as build/electron.js, so favicon.ico sits next to it
+    // (CRA copies public/ -> build/, bundled into app.asar). Dev: main runs from
+    // src/main, so the repo-root public/ is two levels up.
     const iconPath = isPackaged
-      ? path.join(process.resourcesPath, 'app', 'build', 'favicon.ico')
-      : path.join(__dirname, '..', 'public', 'favicon.ico');
+      ? path.join(__dirname, 'favicon.ico')
+      : path.join(__dirname, '..', '..', 'public', 'favicon.ico');
     trayIcon = nativeImage.createFromPath(iconPath);
     if (trayIcon.isEmpty()) trayIcon = nativeImage.createEmpty();
   } catch {
