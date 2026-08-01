@@ -7,6 +7,7 @@ All notable changes to the FinalPing desktop app.
 ### Added
 - **Two-factor authentication at sign-in.** If you have 2FA enabled on your FinalPing account, the desktop app now prompts for your verification code (authenticator app, email, or SMS) after your password. Previously the desktop login skipped the second factor — it's now required, matching the website.
 - **Account display name.** The app shows your account's display name, pulled from your account at sign-in and kept in sync in the background.
+- **Update-on-launch splash.** On startup the app briefly checks for updates on a splash screen; if a new version is available it downloads and installs it before opening, so you always start on the latest. Updates found while the app is already running still show a Restart button, so a live session isn't interrupted.
 
 ### Fixed
 - **Live map staleness detection** re-tuned for the 30-second position-update interval, so aircraft are correctly flagged as stale vs. fresh.

@@ -26,6 +26,7 @@ if (isPackaged) {
 const store = new Store();
 
 let mainWindow;
+let splashWindow = null;
 let tray = null;
 let forceQuit = false;
 
@@ -83,8 +84,24 @@ if (!gotLock) {
 
 // ─── Auto-updater (production only) ──────────────────────────────────────────
 let autoUpdater = null;
-let updaterStarted = false;   // wire the check + interval exactly once
-let launchCheckDone = false;  // the first (launch) check installs automatically
+let appLaunched = false;   // true once we leave the splash and open the main app
+let downloading = false;   // an update is actively downloading on the splash
+
+// Drive the splash window's status text + progress bar from the main process.
+function splashStatus(text, percent) {
+  if (!splashWindow || splashWindow.isDestroyed()) return;
+  const pct = percent == null ? null : Math.round(percent);
+  const js =
+    '(function(){' +
+    'var s=document.getElementById("status"); if(s)s.textContent=' + JSON.stringify(text) + ';' +
+    'var b=document.getElementById("bar"),f=document.getElementById("fill");' +
+    (pct == null
+      ? 'if(b)b.classList.remove("show");'
+      : 'if(b)b.classList.add("show"); if(f)f.style.width=' + pct + '+"%";') +
+    '})();';
+  splashWindow.webContents.executeJavaScript(js).catch(() => {});
+}
+
 if (isPackaged) {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
@@ -92,25 +109,26 @@ if (isPackaged) {
   if (process.platform === 'darwin') {
     autoUpdater.verifyUpdateCodeSignature = false;
   }
+
+  autoUpdater.on('checking-for-update', () => splashStatus('Checking for updates…', null));
+  autoUpdater.on('update-available', () => { downloading = true; splashStatus('Downloading update…', 0); });
+  autoUpdater.on('download-progress', (p) => { if (!appLaunched) splashStatus('Downloading update…', p.percent); });
   autoUpdater.on('update-downloaded', (info) => {
-    if (!launchCheckDone) {
-      // Update found on the launch check → apply it right away so opening the
-      // app always lands on the latest version. The app usually starts hidden
-      // to the tray, so the quick relaunch is unobtrusive.
-      autoUpdater.quitAndInstall();
+    if (!appLaunched) {
+      // Still on the splash → install and relaunch straight into the new version.
+      splashStatus('Installing update…', 100);
+      setTimeout(() => autoUpdater.quitAndInstall(), 700);
       return;
     }
-    // App already running (hourly check) → don't interrupt a 24/7 session; let
-    // the user click Restart when they're ready.
+    // Already in the app (hourly check) → let the user click Restart when ready.
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('update-downloaded', info.version);
     }
   });
-  // Once the launch check settles without installing, switch to "notify" mode.
-  autoUpdater.on('update-not-available', () => { launchCheckDone = true; });
+  autoUpdater.on('update-not-available', () => { if (!appLaunched) launchMainApp(); });
   autoUpdater.on('error', (err) => {
-    launchCheckDone = true;
     console.error('Auto-updater error:', err.message);
+    if (!appLaunched) launchMainApp();   // never block startup on an updater error
   });
 }
 
@@ -230,6 +248,7 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
     mainWindow.show();
+    if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
   });
 
   // Fix Electron input focus bug — restore focus on window show/focus
@@ -243,14 +262,6 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
-    if (isPackaged && autoUpdater && !updaterStarted) {
-      updaterStarted = true;
-      // Launch check — auto-installs the update (handled above) so opening the
-      // app lands you on the latest version without clicking anything.
-      setTimeout(() => autoUpdater.checkForUpdates(), 1000);
-      // Keep checking hourly for a 24/7 session — those show the Restart button.
-      setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
-    }
     // Handle OAuth callback that arrived before the window was ready
     if (pendingOAuthUrl) {
       handleOAuthCallback(pendingOAuthUrl);
@@ -269,6 +280,53 @@ function createWindow() {
   });
 }
 
+// ─── Splash + startup ─────────────────────────────────────────────────────────
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 340,
+    height: 400,
+    frame: false,
+    resizable: false,
+    center: true,
+    show: false,
+    backgroundColor: '#0d1117',
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  });
+  const splashPath = isPackaged
+    ? path.join(__dirname, 'splash.html')
+    : path.join(__dirname, '..', '..', 'public', 'splash.html');
+  splashWindow.loadFile(splashPath).catch(() => launchMainApp());
+  splashWindow.once('ready-to-show', () => { if (splashWindow) splashWindow.show(); });
+  splashWindow.on('closed', () => { splashWindow = null; });
+}
+
+// Open the real app window (once). The splash closes itself when the main
+// window is ready to show.
+function launchMainApp() {
+  if (appLaunched) return;
+  appLaunched = true;
+  createWindow();
+  createTray();
+  if (isPackaged && autoUpdater) {
+    // 24/7 hourly checks — these surface the Restart button (appLaunched is true).
+    setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
+  }
+}
+
+// Discord-style launch: show the splash, check for updates, then either open the
+// app (nothing new) or download + relaunch straight into the new version.
+function startWithSplash() {
+  createSplash();
+  setTimeout(() => {
+    try { autoUpdater.checkForUpdates(); } catch (e) { launchMainApp(); }
+  }, 500);
+  // Safety nets so we can never get stuck on the splash:
+  //  - 15s with no download started -> the check stalled, so just go in.
+  setTimeout(() => { if (!downloading) launchMainApp(); }, 15000);
+  //  - 120s absolute ceiling, even mid-download (very slow / hung network).
+  setTimeout(() => { launchMainApp(); }, 120000);
+}
+
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.on('ready', () => {
   // Enable launch at startup
@@ -277,8 +335,11 @@ app.on('ready', () => {
     openAsHidden: true, // start minimized to tray on login
   });
 
-  createWindow();
-  createTray();
+  if (isPackaged && autoUpdater) {
+    startWithSplash();   // check for updates on a splash, then open the app
+  } else {
+    launchMainApp();     // dev: no updater — straight into the app
+  }
 });
 
 app.on('window-all-closed', () => {
