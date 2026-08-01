@@ -136,13 +136,15 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
-const CURRENT_VERSION = '1.1.0';
+const CURRENT_VERSION = '1.1.1';
 
 const CHANGELOG = [
-  { type: 'new', text: 'Live Map trail now records the full flight path in the background — switch to any tab and come back to see the complete route from takeoff' },
-  { type: 'fix', text: 'Landing alerts now fire reliably — cloud tracker detects on-ground transitions directly instead of waiting for signal loss' },
-  { type: 'fix', text: 'Takeoff alerts added to cloud tracker — fires when aircraft transitions from on-ground to airborne' },
-  { type: 'fix', text: 'Dashboard Recent Alerts timestamps now display correctly instead of showing "Just now"' },
+  { type: 'new', text: 'Two-factor authentication at sign-in — enter your code (authenticator app, email, or SMS) after your password' },
+  { type: 'new', text: 'Your account display name now shows in the app, synced from your account' },
+  { type: 'new', text: 'Updates now install on a splash screen at launch, so you always open on the latest version' },
+  { type: 'fix', text: 'Live map now flags stale aircraft correctly for the 30-second update interval' },
+  { type: 'fix', text: 'Alert-ring clicks fixed so the smaller inner rings are selectable' },
+  { type: 'improved', text: 'Sharper app and tray icons' },
 ];
 
 const TAG = {
