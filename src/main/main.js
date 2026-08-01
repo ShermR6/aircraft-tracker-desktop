@@ -83,6 +83,8 @@ if (!gotLock) {
 
 // ─── Auto-updater (production only) ──────────────────────────────────────────
 let autoUpdater = null;
+let updaterStarted = false;   // wire the check + interval exactly once
+let launchCheckDone = false;  // the first (launch) check installs automatically
 if (isPackaged) {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
@@ -91,11 +93,23 @@ if (isPackaged) {
     autoUpdater.verifyUpdateCodeSignature = false;
   }
   autoUpdater.on('update-downloaded', (info) => {
+    if (!launchCheckDone) {
+      // Update found on the launch check → apply it right away so opening the
+      // app always lands on the latest version. The app usually starts hidden
+      // to the tray, so the quick relaunch is unobtrusive.
+      autoUpdater.quitAndInstall();
+      return;
+    }
+    // App already running (hourly check) → don't interrupt a 24/7 session; let
+    // the user click Restart when they're ready.
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('update-downloaded', info.version);
     }
   });
+  // Once the launch check settles without installing, switch to "notify" mode.
+  autoUpdater.on('update-not-available', () => { launchCheckDone = true; });
   autoUpdater.on('error', (err) => {
+    launchCheckDone = true;
     console.error('Auto-updater error:', err.message);
   });
 }
@@ -229,8 +243,12 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
-    if (isPackaged) {
+    if (isPackaged && autoUpdater && !updaterStarted) {
+      updaterStarted = true;
+      // Launch check — auto-installs the update (handled above) so opening the
+      // app lands you on the latest version without clicking anything.
       setTimeout(() => autoUpdater.checkForUpdates(), 1000);
+      // Keep checking hourly for a 24/7 session — those show the Restart button.
       setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
     }
     // Handle OAuth callback that arrived before the window was ready
