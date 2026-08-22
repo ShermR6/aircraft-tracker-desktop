@@ -3,43 +3,56 @@ import { Link as LinkIcon, Save, Trash2, Send, Loader, Check, X, Lock } from 'lu
 import APIService from '../services/api';
 import StorageService from '../services/storage';
 import { getLimits, getLimitDisplay, isChannelAllowed } from '../config/tierLimits';
+import {
+  PageHead, Panel, PanelHead, PanelBody, Count, Button, IconButton, Field,
+  Input, Notice, Empty, Toggle as KitToggle,
+} from '../ui/kit';
+import { Logo, LogoChip } from '../ui/logos';
 
 const INTEGRATION_TYPES = [
-  { type: 'discord',     name: 'Discord',         color: '#5865f2', icon: '💬', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://discord.com/api/webhooks/...', inputType: 'url' }] },
-  { type: 'slack',       name: 'Slack',           color: '#4a154b', icon: '📱', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://hooks.slack.com/services/...',  inputType: 'url' }] },
-  { type: 'teams',       name: 'Microsoft Teams', color: '#6264a7', icon: '👥', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://outlook.office.com/webhook/...', inputType: 'url' }] },
-  { type: 'google_chat', name: 'Google Chat',     color: '#4285f4', icon: '💬', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://chat.googleapis.com/v1/spaces/...', inputType: 'url' }] },
-  { type: 'email',       name: 'Email',           color: 'var(--accent)', icon: '✉️', fields: [{ key: 'to_email',   label: 'Recipient Email', placeholder: 'you@example.com',                       inputType: 'email' }] },
-  { type: 'sms',         name: 'SMS',             color: 'var(--good)', icon: '📲', fields: [{ key: 'to_phone',   label: 'Phone Number',    placeholder: '+11234567890',                           inputType: 'tel' }] },
-  { type: 'telegram',    name: 'Telegram',        color: '#229ed9', icon: '✈️', fields: [
+  { type: 'discord',     name: 'Discord',         color: '#5865f2', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://discord.com/api/webhooks/...', inputType: 'url' }] },
+  { type: 'slack',       name: 'Slack',           color: '#4a154b', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://hooks.slack.com/services/...',  inputType: 'url' }] },
+  { type: 'teams',       name: 'Microsoft Teams', color: '#6264a7', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://outlook.office.com/webhook/...', inputType: 'url' }] },
+  { type: 'google_chat', name: 'Google Chat',     color: '#4285f4', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://chat.googleapis.com/v1/spaces/...', inputType: 'url' }] },
+  { type: 'email',       name: 'Email',           color: 'var(--accent)', fields: [{ key: 'to_email',   label: 'Recipient Email', placeholder: 'you@example.com',                       inputType: 'email' }] },
+  { type: 'sms',         name: 'SMS',             color: 'var(--good)', fields: [{ key: 'to_phone',   label: 'Phone Number',    placeholder: '+11234567890',                           inputType: 'tel' }] },
+  { type: 'telegram',    name: 'Telegram',        color: '#229ed9', fields: [
     { key: 'bot_token', label: 'Bot Token', placeholder: '123456789:ABCdefGHI...', inputType: 'text' },
     { key: 'chat_id',   label: 'Chat ID',   placeholder: '-1001234567890',         inputType: 'text' },
   ]},
-  { type: 'webhook',     name: 'Webhook',         color: 'var(--accent)', icon: '🔗', fields: [
+  { type: 'webhook',     name: 'Webhook',         color: 'var(--accent)', fields: [
     { key: 'url',    label: 'Webhook URL',         placeholder: 'https://your-service.com/webhook', inputType: 'url' },
     { key: 'secret', label: 'Secret (optional)',   placeholder: 'Sent as X-FinalPing-Secret header', inputType: 'text', required: false },
   ]},
 ];
 
 const COMING_SOON_TYPES = [
-  { type: 'whatsapp', name: 'WhatsApp', icon: '🟢' },
+  { type: 'whatsapp', name: 'WhatsApp' },
 ];
 
 const s = {
+  addTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  soon: {
+    fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+    textTransform: 'uppercase', color: 'var(--faint)',
+  },
   page: { maxWidth: '860px', margin: '0 auto', fontFamily: 'var(--font-sans)' },
   header: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' },
   headerIcon: { width: '48px', height: '48px', background: '#3b82f620', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   headerTitle: { fontSize: '26px', fontWeight: '700', color: 'var(--text)', margin: '0 0 2px 0' },
   headerSub: { fontSize: '13px', color: 'var(--muted)', margin: 0 },
-  addGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '24px' },
+  addGrid: {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 11,
+  },
   addCard: (disabled) => ({
-    padding: '20px', borderRadius: '12px', border: `2px dashed ${disabled ? 'var(--border)' : 'var(--border)'}`,
-    background: disabled ? 'var(--panel-2)' : 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.5 : 1, textAlign: 'center', transition: 'border-color 0.2s',
+    background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 10,
+    padding: 14, display: 'flex', flexDirection: 'column', gap: 9,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.55 : 1,
+    transition: 'border-color 0.15s, background 0.15s',
   }),
-  addIcon: { fontSize: '32px', marginBottom: '8px' },
-  addName: { fontSize: '14px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' },
-  addStatus: { fontSize: '12px', color: 'var(--faint)' },
+  addName: { fontSize: 12.5, fontWeight: 600, color: 'var(--text)', margin: 0 },
+  addStatus: { fontSize: 11, color: 'var(--faint)', margin: 0 },
   card: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '24px', marginBottom: '14px' },
   cardTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' },
   cardTopLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
@@ -226,7 +239,7 @@ export default function Integrations({ isViewOnly = false }) {
           maxWidth: 360,
           animation: 'slideIn 0.2s ease',
         }}>
-          <span style={{ fontSize: 18 }}>{toast.type === 'success' ? '✅' : '❌'}</span>
+          {toast.type === 'success' ? <Check size={16} /> : <X size={16} />}
           {toast.text}
         </div>
       )}
@@ -330,70 +343,87 @@ export default function Integrations({ isViewOnly = false }) {
         </div>
       )}
 
-      <div style={s.header}>
-        <div style={s.headerIcon}><LinkIcon size={22} color="var(--accent)" /></div>
-        <div>
-          <h2 style={s.headerTitle}>Integrations</h2>
-          <p style={s.headerSub}>
-            {integrations.length} / {getLimitDisplay(limits.integrations)} channels connected
-            <span style={{ marginLeft: '8px', fontSize: '11px', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {tier}
-            </span>
-          </p>
-        </div>
-      </div>
+      <PageHead
+        title="Integrations"
+        subtitle="Where your alerts get delivered"
+        right={
+          <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--faint)' }}>
+            {integrations.length} / {getLimitDisplay(limits.integrations)} connected
+          </span>
+        }
+      />
 
-      {message.text && <div style={s.alert(message.type)}>{message.text}</div>}
+      {message.text && (
+        <Notice t={message.type === 'error' ? 'bad' : 'good'}>{message.text}</Notice>
+      )}
 
       {/* Upgrade banner */}
       {atLimit && (
-        <div style={s.upgradeBox}>
-          <p style={s.upgradeText}>
-            🔒 You've reached the <strong>{tier}</strong> plan limit of <strong>{getLimitDisplay(limits.integrations)} channel{limits.integrations === 1 ? '' : 's'}</strong>. Upgrade to add more.
-          </p>
-          <span
-            style={s.upgradeLink}
-            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
-          >
-            Upgrade Plan →
-          </span>
-        </div>
+        <Notice
+          t="warn"
+          icon={<Lock size={15} />}
+          right={<Button variant="ghost" onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}>Upgrade</Button>}
+        >
+          <span style={{ textTransform: 'capitalize' }}>{tier}</span>&nbsp;plan allows&nbsp;
+          {getLimitDisplay(limits.integrations)} channel{limits.integrations === 1 ? '' : 's'}.
+        </Notice>
       )}
 
       {/* Add buttons — hidden for view-only */}
       {!isViewOnly && (
-        <div style={s.addGrid}>
-          {INTEGRATION_TYPES.map(t => {
-            const alreadyAdded = hasIntegration(t.type);
-            const channelLocked = !isChannelAllowed(tier, t.type);
-            const disabled = alreadyAdded || atLimit || channelLocked;
-            return (
-              <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
-                onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
-                onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
-                <div style={s.addIcon}>{(channelLocked || (atLimit && !alreadyAdded)) ? <Lock size={24} color="var(--faint)" /> : t.icon}</div>
-                <p style={s.addName}>{t.name}</p>
-                <p style={s.addStatus}>{alreadyAdded ? 'Already added' : channelLocked ? 'Upgrade to unlock' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
-              </div>
-            );
-          })}
-          {COMING_SOON_TYPES.map(t => (
-            <div key={t.type} style={{ ...s.addCard(true), opacity: 0.5 }}>
-              <div style={s.addIcon}>{t.icon}</div>
-              <p style={s.addName}>{t.name}</p>
-              <p style={{ ...s.addStatus, color: 'var(--warn)' }}>Coming Soon</p>
+        <Panel style={{ marginBottom: 14 }}>
+          <PanelHead
+            title="Available"
+            right={<Count>{INTEGRATION_TYPES.filter(t => !hasIntegration(t.type)).length} to add</Count>}
+          />
+          <PanelBody>
+            <div style={s.addGrid}>
+              {INTEGRATION_TYPES.filter(t => !hasIntegration(t.type)).map(t => {
+                const channelLocked = !isChannelAllowed(tier, t.type);
+                const disabled = atLimit || channelLocked;
+                return (
+                  <div
+                    key={t.type}
+                    style={s.addCard(disabled)}
+                    onClick={() => !disabled && handleAdd(t.type)}
+                    onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                    onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  >
+                    <div style={s.addTop}>
+                      <LogoChip type={t.type} />
+                      {disabled && <Lock size={13} color="var(--faint)" />}
+                    </div>
+                    <p style={s.addName}>{t.name}</p>
+                    {disabled && (
+                      <p style={s.addStatus}>{channelLocked ? 'Upgrade to unlock' : 'Limit reached'}</p>
+                    )}
+                  </div>
+                );
+              })}
+              {COMING_SOON_TYPES.map(t => (
+                <div key={t.type} style={{ ...s.addCard(true), opacity: 0.55 }}>
+                  <div style={s.addTop}>
+                    <LogoChip type={t.type} />
+                    <span style={s.soon}>Soon</span>
+                  </div>
+                  <p style={s.addName}>{t.name}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            <p style={{ fontSize: 11.5, color: 'var(--faint)', margin: '13px 0 0' }}>
+              Click a service to add it. FinalPing uses Twilio to deliver SMS &mdash; standard carrier rates apply.
+            </p>
+          </PanelBody>
+        </Panel>
       )}
 
       {/* Integration cards */}
       {integrations.length === 0 ? (
-        <div style={s.empty}>
-          <div style={s.emptyIcon}><LinkIcon size={24} color="var(--faint)" /></div>
-          <p style={s.emptyText}>No integrations yet</p>
-          <p style={s.emptyHint}>Click on a service above to get started</p>
-        </div>
+        <Empty
+          icon={<LinkIcon size={22} />}
+          title="No integrations yet"
+          hint="Pick a service above to start delivering alerts."
+        />
       ) : (
         integrations.map(integration => {
           const t = INTEGRATION_TYPES.find(t => t.type === integration.type);
@@ -416,7 +446,7 @@ export default function Integrations({ isViewOnly = false }) {
             <div key={integration.id} style={s.card}>
               <div style={s.cardTop}>
                 <div style={s.cardTopLeft}>
-                  <div style={s.typeIcon(t.color)}>{t.icon}</div>
+                  <LogoChip type={integration.type} />
                   <div>
                     <p style={s.typeName}>{t.name}</p>
                     <p style={s.typeDesc}>{desc}</p>
@@ -425,7 +455,7 @@ export default function Integrations({ isViewOnly = false }) {
                 <div style={s.cardTopRight}>
                   {!isViewOnly && (
                     <>
-                      <Toggle checked={integration.enabled} onChange={v => handleUpdate(integration.id, 'enabled', v)} />
+                      <KitToggle on={integration.enabled} label={`Enable ${t.name}`} onClick={() => handleUpdate(integration.id, 'enabled', !integration.enabled)} />
                       <button style={s.deleteBtn} onClick={() => handleDelete(integration)}
                         onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
                         onMouseLeave={e => e.currentTarget.style.background = '#ef444415'}>

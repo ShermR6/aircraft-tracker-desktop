@@ -1,62 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Loader, Plus, Trash2, Lock } from 'lucide-react';
 import APIService from '../services/api';
+import {
+  PageHead, Panel, PanelHead, PanelBody, Count, Button, IconButton, Field,
+  Input, Textarea, Toggle as KitToggle, Notice,
+} from '../ui/kit';
 import { getLimits } from '../config/tierLimits';
 
-function Toggle({ checked, onChange }) {
-  return (
-    <div onClick={() => onChange(!checked)} style={{
-      width: '42px', height: '24px', borderRadius: '12px', cursor: 'pointer', flexShrink: 0,
-      background: checked ? 'var(--accent)' : 'var(--panel-2)', position: 'relative', transition: 'background 0.2s',
-    }}>
-      <div style={{
-        position: 'absolute', top: '3px', left: checked ? '21px' : '3px',
-        width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
-      }} />
-    </div>
-  );
-}
-
 const s = {
-  page: { maxWidth: '860px', margin: '0 auto', paddingBottom: '40px', fontFamily: 'var(--font-sans)' },
-  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  hdrMini: { fontSize: '11px', fontWeight: '700', color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
-  hdrTitle: { fontSize: '26px', fontWeight: '800', color: 'var(--text)', margin: '0 0 4px 0' },
-  hdrSub: { fontSize: '13px', color: 'var(--faint)', margin: 0 },
-  addBtn: { display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', background: 'var(--accent)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '700', cursor: 'pointer', flexShrink: 0, marginTop: '4px' },
-  sectionLabel: { fontSize: '11px', fontWeight: '700', color: 'var(--faint)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px', display: 'block' },
-  section: { marginBottom: '28px' },
-  alertRow: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px 18px', marginBottom: '10px' },
-  alertRowTop: { display: 'flex', alignItems: 'center', gap: '12px' },
-  distInput: { width: '62px', padding: '5px 8px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text)', fontSize: '15px', fontWeight: '700', textAlign: 'center', outline: 'none', transition: 'border-color 0.15s' },
-  nmLabel: { fontSize: '13px', color: 'var(--faint)', fontWeight: '600' },
-  alertNum: { fontSize: '12px', color: 'var(--faint)', fontWeight: '500' },
-  deleteBtn: { marginLeft: 'auto', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', color: 'var(--bad)', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s' },
-  msgLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', marginTop: '14px' },
-  textarea: { width: '100%', padding: '10px 14px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '13px', fontFamily: 'monospace', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color 0.15s' },
-  varsRow: { display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px 14px', background: 'var(--panel)', borderRadius: '8px', alignItems: 'center', marginTop: '12px', border: '1px solid var(--border)' },
-  varLabel: { fontSize: '11px', color: 'var(--faint)' },
-  varChip: { fontSize: '11px', padding: '3px 8px', background: 'var(--panel-2)', color: 'var(--muted)', borderRadius: '4px', fontFamily: 'monospace', border: '1px solid var(--border)' },
-  landingCard: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '18px' },
-  landingTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  landingTitle: { fontSize: '15px', fontWeight: '700', color: 'var(--text)' },
-  saveBtn: (saving) => ({
-    width: '100%', padding: '14px', borderRadius: '12px', border: 'none', marginTop: '8px',
-    background: saving ? 'var(--panel-2)' : 'var(--accent)',
-    color: '#fff', fontSize: '15px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-  }),
-  toast: (type) => ({
-    padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', fontSize: '13px',
-    display: 'flex', alignItems: 'center', gap: '10px',
-    background: type === 'success' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)',
-    border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`,
-    color: type === 'success' ? 'var(--good)' : 'var(--bad)',
-  }),
-  infoBox: { marginTop: '20px', padding: '14px 16px', background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.15)', borderRadius: '10px', fontSize: '13px', color: 'var(--accent)', lineHeight: '1.6' },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px', gap: '10px' },
-  overlay: { position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' },
-  modal: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '16px', padding: '32px', maxWidth: '380px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' },
+  varChip: {
+    fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)',
+    background: 'var(--panel-2)', border: '1px solid var(--border-soft)',
+    borderRadius: 5, padding: '2px 7px',
+  },
+  code: {
+    background: 'var(--panel-2)', border: '1px solid var(--border-soft)',
+    borderRadius: 8, padding: '11px 13px', fontFamily: 'var(--font-mono)',
+    fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.8, whiteSpace: 'pre',
+    overflowX: 'auto',
+  },
+  zoneRow: {
+    display: 'flex', alignItems: 'center', gap: 12,
+    paddingBottom: 12, marginBottom: 12,
+    borderBottom: '1px solid var(--border-soft)',
+  },
+  overlay: {
+    position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+  },
+  modal: {
+    background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14,
+    padding: 28, maxWidth: 360, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+  },
+  loading: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    height: 200, color: 'var(--faint)', fontSize: 13, gap: 10,
+  },
 };
 
 export default function AlertSettings({ isViewOnly = false }) {
@@ -168,174 +147,216 @@ export default function AlertSettings({ isViewOnly = false }) {
 
   if (loading) return (
     <div style={s.loading}>
-      <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading...
+      <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />Loading\u2026
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   const sortedAlerts = [...alerts].sort((a, b) => b.distance - a.distance);
+  const zoneLimit = getLimits(tier).zones;
+  const atZoneLimit = alerts.length >= zoneLimit;
 
   return (
-    <div style={s.page}>
-      {/* Confirm delete modal */}
+    <>
       {confirmModal && (
         <div style={s.overlay}>
           <div style={s.modal}>
-            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>🔔</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', textAlign: 'center', margin: '0 0 8px' }}>Remove Alert</h2>
-            <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px' }}>Remove this distance alert?</p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--bad)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <Trash2 size={17} color="var(--bad)" />
+              <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Remove alert</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 22px' }}>
+              Remove this distance alert? Aircraft will no longer notify at this ring.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => confirmModal.onCancel()}>Cancel</Button>
+              <Button variant="danger" onClick={() => confirmModal.onConfirm()}>Remove</Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Header */}
-      <div style={s.hdr}>
-        <div>
-          <p style={s.hdrMini}>Alerts</p>
-          <h2 style={s.hdrTitle}>Alert Settings</h2>
-          <p style={s.hdrSub}>Configure custom notification distances</p>
-        </div>
-        {!isViewOnly && (() => {
-          const atZoneLimit = alerts.length >= getLimits(tier).zones;
-          return (
-            <button style={{ ...s.addBtn, opacity: atZoneLimit ? 0.5 : 1, cursor: atZoneLimit ? 'not-allowed' : 'pointer' }}
-              onClick={handleAddAlert}
-              onMouseEnter={e => { if (!atZoneLimit) e.currentTarget.style.opacity = '0.85'; }}
-              onMouseLeave={e => { if (!atZoneLimit) e.currentTarget.style.opacity = '1'; }}>
-              {atZoneLimit ? <Lock size={14} /> : <Plus size={14} />}
-              {atZoneLimit ? 'Zone limit reached' : 'Add Alert'}
-            </button>
-          );
-        })()}
-      </div>
+      <PageHead
+        title="Alert Settings"
+        subtitle="What gets sent, and what it says"
+        right={!isViewOnly && (
+          <Button onClick={handleSave} disabled={saving} icon={saving
+            ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
+            : <Save size={14} />}>
+            {saving ? 'Saving\u2026' : 'Save alert settings'}
+          </Button>
+        )}
+      />
 
-      {/* Toast */}
-      {message.text && <div style={s.toast(message.type)}>{message.text}</div>}
+      {message.text && (
+        <Notice t={message.type === 'error' ? 'bad' : 'good'}>{message.text}</Notice>
+      )}
 
-      {/* Distance Alerts */}
-      <div style={s.section}>
-        <span style={s.sectionLabel}>Distance Alerts — {alerts.length} / {getLimits(tier).zones} zones used</span>
-        {sortedAlerts.map((alert, index) => (
-          <div key={alert.id} style={s.alertRow}>
-            <div style={s.alertRowTop}>
-              <Toggle checked={alert.enabled} onChange={v => !isViewOnly && updateAlert(alert.id, 'enabled', v)} />
-              <input
-                style={s.distInput}
-                type="number" min="1" max="500"
-                value={alert.distance}
-                onChange={e => updateAlert(alert.id, 'distance', parseInt(e.target.value) || 1)}
-                onFocus={e => e.target.style.borderColor = '#38bdf8'}
-                onBlur={e => e.target.style.borderColor = '#1e2a3a'}
-                disabled={isViewOnly}
+      <Panel>
+        <PanelHead
+          title="Distance alerts"
+          right={
+            <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <Count>{alerts.length} / {zoneLimit} zones</Count>
+              {!isViewOnly && (
+                <Button
+                  variant="ghost" onClick={handleAddAlert} disabled={atZoneLimit}
+                  style={{ padding: '5px 11px', fontSize: 12 }}
+                  icon={atZoneLimit ? <Lock size={13} /> : <Plus size={13} />}
+                >{atZoneLimit ? 'Zone limit reached' : 'Add zone'}</Button>
+              )}
+            </span>
+          }
+        />
+        <PanelBody>
+          {sortedAlerts.map((alert, index) => (
+            <div key={alert.id} style={{
+              ...s.zoneRow,
+              ...(index === sortedAlerts.length - 1 ? { borderBottom: 'none', paddingBottom: 0, marginBottom: 0 } : null),
+              flexWrap: 'wrap',
+            }}>
+              <KitToggle
+                on={alert.enabled}
+                label={`Alert at ${alert.distance} nm`}
+                onClick={() => !isViewOnly && updateAlert(alert.id, 'enabled', !alert.enabled)}
               />
-              <span style={s.nmLabel}>nm</span>
-              <span style={s.alertNum}>Alert #{index + 1}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <Input
+                  mono type="number" min="1" max="500" disabled={isViewOnly}
+                  value={alert.distance}
+                  onChange={e => updateAlert(alert.id, 'distance', parseInt(e.target.value) || 1)}
+                  style={{ width: 74, textAlign: 'center' }}
+                />
+                <span style={{ fontSize: 12, color: 'var(--faint)' }}>nm</span>
+              </span>
+              <span style={{ fontSize: 11.5, color: 'var(--faint)' }}>Zone {index + 1}</span>
+
+              {alert.enabled && (
+                <div style={{ flex: '1 1 100%', marginTop: 4 }}>
+                  <Field label="Message">
+                    <Textarea
+                      mono rows={2} value={alert.message} disabled={isViewOnly}
+                      onChange={e => updateAlert(alert.id, 'message', e.target.value)}
+                    />
+                  </Field>
+                </div>
+              )}
+
               {alerts.length > 1 && !isViewOnly && (
-                <button style={s.deleteBtn} onClick={() => handleRemove(alert.id)}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.2)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}>
+                <IconButton tone="bad" title="Remove zone" onClick={() => handleRemove(alert.id)}
+                  style={{ marginLeft: 'auto' }}>
                   <Trash2 size={13} />
-                </button>
+                </IconButton>
               )}
             </div>
-            {alert.enabled && (
-              <>
-                <label style={s.msgLabel}>Custom Message</label>
-                <textarea style={s.textarea} rows={2} value={alert.message}
-                  onChange={e => updateAlert(alert.id, 'message', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = '#38bdf8'}
-                  onBlur={e => e.target.style.borderColor = '#1e2a3a'}
-                  disabled={isViewOnly} />
-              </>
-            )}
-          </div>
-        ))}
-        <div style={s.varsRow}>
-          <span style={s.varLabel}>Variables:</span>
-          {['{tail_number}', '{airport}', '{distance}', '{altitude}', '{eta}'].map(v => (
-            <span key={v} style={s.varChip}>{v}</span>
           ))}
-        </div>
-        <div style={{ ...s.varsRow, marginTop: 8 }}>
-          <span style={s.varLabel}>Formatting:</span>
-          {[
-            { syntax: '**bold**', label: 'Bold' },
-            { syntax: '_italic_', label: 'Italic' },
-            { syntax: '__underline__', label: 'Underline' },
-            { syntax: '~~strikethrough~~', label: 'Strike' },
-          ].map(f => (
-            <span key={f.syntax} style={{ ...s.varChip, color: 'var(--accent)' }} title={f.label}>{f.syntax}</span>
-          ))}
-        </div>
-      </div>
+        </PanelBody>
+      </Panel>
 
-      {/* Takeoff Alert */}
-      <div style={s.section}>
-        <span style={s.sectionLabel}>Takeoff Alert <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(245,180,0,0.15)', color: 'var(--warn)', border: '1px solid rgba(245,180,0,0.3)', borderRadius: 999, padding: '1px 6px', marginLeft: 6 }}>Ground Station</span></span>
-        <div style={s.landingCard}>
-          <div style={s.landingTop}>
-            <span style={s.landingTitle}>Alert when aircraft takes off</span>
-            <Toggle checked={takeoffAlert.enabled} onChange={v => !isViewOnly && setTakeoffAlert({ ...takeoffAlert, enabled: v })} />
+      <Panel style={{ marginTop: 14 }}>
+        <PanelHead title="Triggers" />
+        <PanelBody style={{ paddingTop: 4, paddingBottom: 6 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 16, padding: '13px 0', borderBottom: '1px solid var(--border-soft)',
+          }}>
+            <div>
+              <h4 style={{ margin: '0 0 3px', fontSize: 13.5, fontWeight: 600 }}>Alert when aircraft lands</h4>
+              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--muted)' }}>
+                Fires once the aircraft is confirmed on the ground
+              </p>
+            </div>
+            <KitToggle
+              on={landingAlert.enabled} label="Landing alert"
+              onClick={() => !isViewOnly && setLandingAlert({ ...landingAlert, enabled: !landingAlert.enabled })}
+            />
           </div>
-          {takeoffAlert.enabled && (
-            <>
-              <label style={s.msgLabel}>Takeoff Message</label>
-              <textarea style={s.textarea} rows={2} value={takeoffAlert.message}
-                onChange={e => setTakeoffAlert({ ...takeoffAlert, message: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#38bdf8'}
-                onBlur={e => e.target.style.borderColor = '#1e2a3a'}
-                disabled={isViewOnly} />
-              <div style={{ ...s.varsRow, marginTop: 12 }}>
-                <span style={s.varLabel}>Variables:</span>
-                {['{tail_number}', '{speed}', '{airport}'].map(v => (
-                  <span key={v} style={s.varChip}>{v}</span>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 16, padding: '13px 0',
+          }}>
+            <div>
+              <h4 style={{ margin: '0 0 3px', fontSize: 13.5, fontWeight: 600 }}>
+                Alert when aircraft takes off
+                <span style={{
+                  fontSize: 10, fontWeight: 700, marginLeft: 8, padding: '1px 7px',
+                  borderRadius: 999, color: 'var(--warn)', background: 'var(--warn-bg)',
+                }}>Ground Station</span>
+              </h4>
+              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--muted)' }}>
+                Fires on wheels-up from your configured airport
+              </p>
+            </div>
+            <KitToggle
+              on={takeoffAlert.enabled} label="Takeoff alert"
+              onClick={() => !isViewOnly && setTakeoffAlert({ ...takeoffAlert, enabled: !takeoffAlert.enabled })}
+            />
+          </div>
+        </PanelBody>
+      </Panel>
 
-      {/* Landing Alert */}
-      <div style={s.section}>
-        <span style={s.sectionLabel}>Landing Alert</span>
-        <div style={s.landingCard}>
-          <div style={s.landingTop}>
-            <span style={s.landingTitle}>Alert when aircraft lands</span>
-            <Toggle checked={landingAlert.enabled} onChange={v => !isViewOnly && setLandingAlert({ ...landingAlert, enabled: v })} />
-          </div>
-          {landingAlert.enabled && (
-            <>
-              <label style={s.msgLabel}>Landing Message</label>
-              <textarea style={s.textarea} rows={2} value={landingAlert.message}
+      {landingAlert.enabled && (
+        <Panel style={{ marginTop: 14 }}>
+          <PanelHead title="Landing message" />
+          <PanelBody>
+            <Field label="Message template">
+              <Textarea
+                mono rows={2} value={landingAlert.message} disabled={isViewOnly}
                 onChange={e => setLandingAlert({ ...landingAlert, message: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#38bdf8'}
-                onBlur={e => e.target.style.borderColor = '#1e2a3a'}
-                disabled={isViewOnly} />
-            </>
-          )}
-        </div>
-      </div>
-
-      {!isViewOnly && (
-        <button style={s.saveBtn(saving)} onClick={handleSave} disabled={saving}>
-          {saving
-            ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</>
-            : <><Save size={16} />Save Alert Settings</>}
-        </button>
+              />
+            </Field>
+          </PanelBody>
+        </Panel>
       )}
 
-      <div style={s.infoBox}>
-        <strong>How variables work:</strong> Use {'{tail_number}'}, {'{airport}'}, {'{distance}'}, {'{altitude}'}, or {'{eta}'} in your messages. The system fills them in with real flight data when sending each notification.
-        <br /><br />
-        <strong>Formatting:</strong> Discord and Slack support markdown — use <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>**text**</code> for bold, <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>_text_</code> for italic, <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>__text__</code> for underline (Discord only), and <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>~~text~~</code> for strikethrough.
-      </div>
+      {takeoffAlert.enabled && (
+        <Panel style={{ marginTop: 14 }}>
+          <PanelHead title="Takeoff message" />
+          <PanelBody>
+            <Field label="Message template">
+              <Textarea
+                mono rows={2} value={takeoffAlert.message} disabled={isViewOnly}
+                onChange={e => setTakeoffAlert({ ...takeoffAlert, message: e.target.value })}
+              />
+            </Field>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11, color: 'var(--faint)' }}>Variables:</span>
+              {['{tail_number}', '{speed}', '{airport}'].map(v => (
+                <span key={v} style={s.varChip}>{v}</span>
+              ))}
+            </div>
+          </PanelBody>
+        </Panel>
+      )}
+
+      <Panel style={{ marginTop: 14 }}>
+        <PanelHead title="Variables and formatting" />
+        <PanelBody>
+          <div style={s.code}>{`{tail_number}   Tail number, e.g. N884JT
+{airport}       ICAO code of your configured airport
+{distance}      Distance to the field at trigger time
+{altitude}      Barometric altitude in feet
+{eta}           Estimated minutes until arrival
+{speed}         Ground speed in knots (takeoff only)`}</div>
+          <p style={{ fontSize: 12, color: 'var(--muted)', margin: '14px 0 9px' }}>
+            Discord and Slack render markdown in message bodies:
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+            {[
+              { syntax: '**bold**', label: 'Bold' },
+              { syntax: '_italic_', label: 'Italic' },
+              { syntax: '__underline__', label: 'Underline \u2014 Discord only' },
+              { syntax: '~~strikethrough~~', label: 'Strikethrough' },
+            ].map(f => (
+              <span key={f.syntax} style={{ ...s.varChip, color: 'var(--accent)' }} title={f.label}>
+                {f.syntax}
+              </span>
+            ))}
+          </div>
+        </PanelBody>
+      </Panel>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </>
   );
 }

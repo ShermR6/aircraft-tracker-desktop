@@ -182,7 +182,9 @@ export default function SavedLocations({ isViewOnly = false }) {
       {confirmModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
-            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>📍</div>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <MapPin size={30} color="var(--bad)" />
+            </div>
             <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'center' }}>Delete Location</h2>
             <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
             <div style={{ display: 'flex', gap: 12 }}>

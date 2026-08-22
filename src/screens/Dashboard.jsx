@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare, BookOpen, Radio } from 'lucide-react';
+import { Plane, Link as LinkIcon, LogOut, Bell, MapPin, LayoutDashboard, Map, ScrollText, CheckCircle, Circle, ArrowRight, X, MessageSquare, BookOpen, Radio, AlertTriangle } from 'lucide-react';
 import StorageService from '../services/storage';
 import APIService from '../services/api';
 import AirportConfig from './AirportConfig';
@@ -15,7 +15,7 @@ import GroundStationSetup from './GroundStationSetup';
 const ONBOARDING_STEPS = [
   {
     key: 'location',
-    icon: '📍',
+    Icon: MapPin,
     title: 'Set your location',
     desc: 'Configure your airport or FBO coordinates so FinalPing knows where to watch for aircraft.',
     action: 'Go to Airport Config',
@@ -23,7 +23,7 @@ const ONBOARDING_STEPS = [
   },
   {
     key: 'aircraft',
-    icon: '✈️',
+    Icon: Plane,
     title: 'Add your first aircraft',
     desc: 'Enter a tail number and ICAO24 code for each aircraft you want to track.',
     action: 'Go to Aircraft',
@@ -31,7 +31,7 @@ const ONBOARDING_STEPS = [
   },
   {
     key: 'integration',
-    icon: '🔔',
+    Icon: Bell,
     title: 'Connect a notification channel',
     desc: 'Link Discord, Slack, Teams, email, or SMS so alerts reach you instantly.',
     action: 'Go to Integrations',
@@ -93,7 +93,7 @@ function OnboardingModal({ onClose, onNavigate, completedSteps }) {
 
         {/* Step content */}
         <div style={{ padding: '24px 24px 8px' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>{step.icon}</div>
+          <div style={{ marginBottom: 16, color: 'var(--accent)' }}><step.Icon size={28} /></div>
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
             Step {currentStep + 1} — {step.title}
           </div>
@@ -437,7 +437,7 @@ export default function Dashboard({ onLogout }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 16, fontSize: 12, color: 'var(--muted)',
         }}>
-          <span>⚠️ <strong style={{ color: 'var(--bad)' }}>Connection lost</strong> — unable to reach the server.</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><AlertTriangle size={14} color="var(--bad)" /><strong style={{ color: 'var(--bad)' }}>Connection lost</strong> — unable to reach the server.</span>
         </div>
       )}
 

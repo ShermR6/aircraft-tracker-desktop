@@ -1,4 +1,5 @@
 import React from 'react';
+import { Plane } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -28,7 +29,9 @@ class ErrorBoundary extends React.Component {
           borderRadius: 20, padding: 40, maxWidth: 440, width: '90%',
           textAlign: 'center', boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
         }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>✈️</div>
+          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+            <Plane size={40} color="var(--accent)" />
+          </div>
           <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>
             Something went wrong
           </h2>

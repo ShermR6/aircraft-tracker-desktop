@@ -295,18 +295,19 @@ export function Button({ variant = 'primary', icon, children, style, ...rest }) 
 }
 
 /** Square icon-only button for row actions. */
-export function IconButton({ tone: t = 'accent', title, children, ...rest }) {
+export function IconButton({ tone: t = 'accent', title, children, style, ...rest }) {
   const c = tone[t] || tone.accent;
   return (
     <button
       title={title}
+      {...rest}
       style={{
         width: 28, height: 28, borderRadius: 7, border: 'none',
         background: c.background, color: c.color, cursor: 'pointer',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         ...(rest.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : null),
+        ...style,
       }}
-      {...rest}
     >{children}</button>
   );
 }

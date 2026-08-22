@@ -4,6 +4,7 @@ import ActivationScreen from './screens/ActivationScreen';
 import Dashboard from './screens/Dashboard';
 import StorageService from './services/storage';
 import APIService from './services/api';
+import { AlertTriangle } from 'lucide-react';
 import { backgroundTracker } from './services/backgroundTracker';
 import './App.css';
 
@@ -93,7 +94,9 @@ function LicenseExpiredOverlay({ onActivateNew }) {
         borderRadius: 20, padding: 40, maxWidth: 420, width: '90%',
         textAlign: 'center', boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
       }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+          <AlertTriangle size={40} color="var(--warn)" />
+        </div>
         <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px 0' }}>
           Your License Has Expired
         </h2>

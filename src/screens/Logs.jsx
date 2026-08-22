@@ -1,22 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, RefreshCw, Filter, CheckCircle, XCircle, Plane, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bell, RefreshCw, Filter, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import APIService from '../services/api';
+import {
+  PageHead, Panel, PanelHead, Count, StatStrip, TableWrap, Table, Th, Td, Tail,
+  Pill, Button, Empty,
+} from '../ui/kit';
 import { getColor, ensureLoaded } from '../services/aircraftColors';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
-
-function aircraftCardColor(tail) {
-  const hex = getColor(tail);
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return {
-    border: hex,
-    bg: `rgba(${r},${g},${b},0.06)`,
-    badge: hex,
-    badgeBg: `rgba(${r},${g},${b},0.14)`,
-  };
-}
 
 function alertTypeLabel(type) {
   if (type === 'landing') return 'Landing';
@@ -24,9 +15,13 @@ function alertTypeLabel(type) {
   return type || 'Alert';
 }
 
-function integrationIcon(type) {
-  const icons = { discord: '🎮', slack: '💬', teams: '🟦', email: '📧', sms: '📱', whatsapp: '🟢' };
-  return icons[type] || '🔔';
+function channelLabel(type) {
+  const names = {
+    discord: 'Discord', slack: 'Slack', teams: 'Microsoft Teams', email: 'Email',
+    sms: 'SMS', whatsapp: 'WhatsApp', telegram: 'Telegram', webhook: 'Webhook',
+    google_chat: 'Google Chat',
+  };
+  return names[type] || type;
 }
 
 function formatDateGroup(iso) {
@@ -162,174 +157,163 @@ export default function Logs() {
   };
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', fontFamily: 'var(--font-sans)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' }}>Alert Logs</h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', margin: 0 }}>
-            Full history of every notification sent · {hasFilters ? `${filteredLogs.length} of ${logs.length}` : logs.length} total
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button style={btnStyle} onClick={downloadLogs}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
-            <Download size={12} /> Export .txt
-          </button>
-          <button style={btnStyle} onClick={() => loadLogs(true)}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
-            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} /> Refresh
-          </button>
-        </div>
-      </div>
+    <>
+      <PageHead
+        title="Alert Logs"
+        subtitle={`Every alert FinalPing has delivered \u00b7 ${hasFilters ? `${filteredLogs.length} of ${logs.length}` : logs.length} total`}
+        right={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="ghost" icon={<Download size={13} />} onClick={downloadLogs}>Export .txt</Button>
+            <Button
+              variant="ghost"
+              icon={<RefreshCw size={13} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />}
+              onClick={() => loadLogs(true)}
+            >Refresh</Button>
+          </div>
+        }
+      />
 
-      {/* Stats */}
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-          {[{ label: 'Today', value: stats.today, color: 'var(--accent)' }, { label: 'This Week', value: stats.this_week, color: 'var(--accent)' }, { label: 'All Time', value: stats.total, color: 'var(--good)' }].map(({ label, value, color }) => (
-            <div key={label} style={{ background: 'var(--panel)', border: `1px solid ${color}20`, borderRadius: '10px', padding: '14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '22px', fontWeight: '700', color, margin: '0 0 2px 0' }}>{value ?? '—'}</p>
-              <p style={{ fontSize: '11px', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
-            </div>
-          ))}
-        </div>
+        <StatStrip items={[
+          { label: 'Today', value: stats.today ?? '\u2014' },
+          { label: 'This Week', value: stats.this_week ?? '\u2014' },
+          { label: 'All Time', value: stats.total ?? '\u2014' },
+        ]} />
       )}
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 8, margin: '14px 0', flexWrap: 'wrap', alignItems: 'center' }}>
         <Filter size={13} color="var(--faint)" />
-        <CheckboxDropdown label="Aircraft" options={aircraft.map(a => a.tail_number)} selected={selectedAircraft}
-          onChange={v => { setSelectedAircraft(v); setPage(1); }} />
-        <CheckboxDropdown label="Alert Types" options={['2nm', '5nm', '10nm', '15nm', 'landing']} selected={selectedTypes}
+        <CheckboxDropdown
+          label="Aircraft" options={aircraft.map(a => a.tail_number)} selected={selectedAircraft}
+          onChange={v => { setSelectedAircraft(v); setPage(1); }}
+        />
+        <CheckboxDropdown
+          label="Alert Types" options={['2nm', '5nm', '10nm', '15nm', 'landing']} selected={selectedTypes}
           onChange={v => { setSelectedTypes(v); setPage(1); }}
-          formatLabel={t => t === 'landing' ? '🛬 Landing' : `📍 ${t} out`} />
-        <CheckboxDropdown label="Channels" options={['discord', 'slack', 'teams', 'email', 'sms', 'whatsapp']} selected={selectedChannels}
+          formatLabel={t => t === 'landing' ? 'Landing' : `${t} out`}
+        />
+        <CheckboxDropdown
+          label="Channels" options={['discord', 'slack', 'teams', 'email', 'sms', 'whatsapp']} selected={selectedChannels}
           onChange={v => { setSelectedChannels(v); setPage(1); }}
-          formatLabel={c => c.charAt(0).toUpperCase() + c.slice(1)} />
+          formatLabel={channelLabel}
+        />
         {hasFilters && (
-          <button style={{ ...btnStyle, color: 'var(--bad)', borderColor: '#f8717130' }} onClick={clearFilters}>✕ Clear</button>
+          <Button variant="ghost" onClick={clearFilters} style={{ color: 'var(--bad)', borderColor: 'var(--bad)' }}>
+            Clear filters
+          </Button>
         )}
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--faint)', fontSize: '13px' }}>Loading logs...</div>
-      ) : filteredLogs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--faint)' }}>
-          <Bell size={28} color="var(--border)" style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
-          <p style={{ margin: '0 0 4px', fontSize: '14px' }}>No alerts found</p>
-          <p style={{ margin: 0, fontSize: '12px', color: 'var(--faint)' }}>
-            {hasFilters ? 'Try adjusting your filters' : 'Alerts will appear here once the tracker sends notifications'}
-          </p>
-        </div>
-      ) : (
-        <>
-          {groups.map(group => (
-            <div key={group.label} style={{ marginBottom: '28px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '10px', paddingLeft: '2px' }}>
-                {group.label}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {group.items.map(log => {
-                  const c = aircraftCardColor(log.aircraft_tail);
-                  return (
-                    <div key={log.id} style={{
-                      background: c.bg,
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderLeft: `4px solid ${c.border}`,
-                      borderRadius: '10px',
-                      padding: '12px 16px',
-                    }}>
-                      {/* Top row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '13px', color: 'var(--text)' }}>
-                          <Plane size={11} color={c.border} />
-                          {log.aircraft_tail}
-                        </span>
-                        <span style={{
-                          fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '999px',
-                          background: c.badgeBg, color: c.badge, border: `1px solid ${c.border}30`,
-                        }}>
-                          {alertTypeLabel(log.alert_type)}
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--faint)' }}>
-                          <span>{integrationIcon(log.integration_type)}</span>
-                          {log.integration_type}
-                        </span>
-                        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {log.status === 'sent'
-                            ? <CheckCircle size={11} color="var(--good)" />
-                            : <XCircle size={11} color="var(--bad)" />}
-                          <span style={{ fontSize: '11px', color: 'var(--faint)' }}>{formatTime(log.sent_at)}</span>
-                        </span>
-                      </div>
-                      {/* Message */}
-                      <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, paddingLeft: '2px' }}>
-                        {log.message}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {/* Pagination */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--faint)' }}>
-                {filteredLogs.length === 0 ? 'No results' : `Showing ${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filteredLogs.length)} of ${filteredLogs.length}`}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--faint)' }}>Per page:</span>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {PAGE_SIZE_OPTIONS.map(n => (
-                    <button key={n} onClick={() => { setPageSize(n); setPage(1); }} style={{
-                      padding: '3px 8px', borderRadius: '6px', border: '1px solid',
-                      borderColor: pageSize === n ? 'rgba(14,165,233,0.4)' : '#374151',
-                      background: pageSize === n ? 'rgba(14,165,233,0.15)' : 'none',
-                      color: pageSize === n ? 'var(--accent)' : 'var(--faint)',
-                      fontSize: '12px', fontWeight: pageSize === n ? '700' : '400',
-                      cursor: 'pointer',
-                    }}>{n}</button>
+      <Panel>
+        <PanelHead
+          title="History"
+          right={<Count>{filteredLogs.length} {filteredLogs.length === 1 ? 'alert' : 'alerts'}</Count>}
+        />
+        {loading ? (
+          <Empty title="Loading logs\u2026" />
+        ) : filteredLogs.length === 0 ? (
+          <Empty
+            icon={<Bell size={22} />}
+            title="No alerts found"
+            hint={hasFilters
+              ? 'Try adjusting your filters.'
+              : 'Alerts appear here once the tracker sends its first notification.'}
+          />
+        ) : (
+          <>
+            <TableWrap>
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>Time</Th>
+                    <Th>Tail</Th>
+                    <Th>Event</Th>
+                    <Th>Channel</Th>
+                    <Th>Message</Th>
+                    <Th>Result</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map(group => (
+                    <React.Fragment key={group.label}>
+                      <tr>
+                        <td colSpan={6} style={{
+                          padding: '8px 17px', background: 'var(--panel-2)',
+                          borderBottom: '1px solid var(--border-soft)',
+                          fontSize: 10, fontWeight: 700, letterSpacing: '0.11em',
+                          textTransform: 'uppercase', color: 'var(--faint)',
+                        }}>{group.label}</td>
+                      </tr>
+                      {group.items.map(log => {
+                        const ok = !log.status || ['sent', 'success', 'delivered'].includes(String(log.status).toLowerCase());
+                        return (
+                          <tr key={log.id}>
+                            <Td mono style={{ color: 'var(--faint)', whiteSpace: 'nowrap' }}>
+                              {formatTime(log.sent_at)}
+                            </Td>
+                            <Td>
+                              <span style={{
+                                width: 8, height: 8, borderRadius: 2, display: 'inline-block',
+                                marginRight: 8, verticalAlign: 'middle',
+                                background: getColor(log.aircraft_tail),
+                              }} />
+                              <Tail>{log.aircraft_tail}</Tail>
+                            </Td>
+                            <Td>
+                              <Pill t={log.alert_type === 'landing' ? 'good' : 'accent'}>
+                                {alertTypeLabel(log.alert_type)}
+                              </Pill>
+                            </Td>
+                            <Td dim>{channelLabel(log.integration_type)}</Td>
+                            <Td dim style={{
+                              maxWidth: 320, overflow: 'hidden',
+                              textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }} title={log.message}>{log.message}</Td>
+                            <Td>
+                              {ok ? <Pill t="good">Delivered</Pill> : <Pill t="warn">{log.status}</Pill>}
+                            </Td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
                   ))}
-                </div>
-              </div>
+                </tbody>
+              </Table>
+            </TableWrap>
+
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '11px 17px', borderTop: '1px solid var(--border-soft)',
+              fontSize: 11.5, color: 'var(--faint)', gap: 12, flexWrap: 'wrap',
+            }}>
+              <span>
+                Showing {(safePage - 1) * pageSize + 1}\u2013{Math.min(safePage * pageSize, filteredLogs.length)} of {filteredLogs.length}
+              </span>
+              {totalPages > 1 && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Button
+                    variant="ghost" disabled={safePage === 1}
+                    onClick={() => setPage(pp => pp - 1)}
+                    style={{ padding: '5px 10px', fontSize: 12 }}
+                    icon={<ChevronLeft size={13} />}
+                  >Prev</Button>
+                  <span style={{ fontFamily: 'var(--font-mono)', padding: '0 4px' }}>
+                    {safePage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="ghost" disabled={safePage === totalPages}
+                    onClick={() => setPage(pp => pp + 1)}
+                    style={{ padding: '5px 10px', fontSize: 12 }}
+                  >Next <ChevronRight size={13} /></Button>
+                </span>
+              )}
+              <span style={{ fontFamily: 'var(--font-mono)' }}>Per page: {pageSize}</span>
             </div>
-            {totalPages > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button disabled={safePage === 1} onClick={() => setPage(p => p - 1)} style={{
-                  ...btnStyle, gap: '4px', opacity: safePage === 1 ? 0.3 : 1, cursor: safePage === 1 ? 'not-allowed' : 'pointer',
-                }}>
-                  <ChevronLeft size={13} /> Prev
-                </button>
-                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                  const p = totalPages <= 7 ? i + 1 : safePage <= 4 ? i + 1 : safePage >= totalPages - 3 ? totalPages - 6 + i : safePage - 3 + i;
-                  return (
-                    <button key={p} onClick={() => setPage(p)} style={{
-                      width: '32px', height: '32px', borderRadius: '8px', border: '1px solid',
-                      borderColor: p === safePage ? 'rgba(14,165,233,0.4)' : '#374151',
-                      background: p === safePage ? 'rgba(14,165,233,0.15)' : 'none',
-                      color: p === safePage ? 'var(--accent)' : 'var(--faint)',
-                      fontSize: '12px', fontWeight: p === safePage ? '700' : '400',
-                      cursor: 'pointer',
-                    }}>{p}</button>
-                  );
-                })}
-                <button disabled={safePage === totalPages} onClick={() => setPage(p => p + 1)} style={{
-                  ...btnStyle, gap: '4px', opacity: safePage === totalPages ? 0.3 : 1, cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
-                }}>
-                  Next <ChevronRight size={13} />
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </Panel>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </>
   );
 }
