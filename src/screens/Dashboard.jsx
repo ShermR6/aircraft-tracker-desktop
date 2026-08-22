@@ -6,9 +6,8 @@ import APIService from '../services/api';
 import AirportConfig from './AirportConfig';
 import AlertSettings from './AlertSettings';
 import Integrations from './Integrations';
-import AccountDashboard from './AccountDashboard';
+import DashboardHome from './DashboardHome';
 import AircraftManager from './AircraftManager';
-import TrackerStatus from './TrackerStatus';
 import LiveMap from './LiveMap';
 import Logs from './Logs';
 import GroundStationSetup from './GroundStationSetup';
@@ -200,107 +199,78 @@ const s = {
     overflow: 'hidden',
   },
   sidebar: {
-    width: '220px',
-    minWidth: '220px',
+    width: 220,
+    minWidth: 220,
     background: 'var(--sidebar)',
-    borderRight: '1px solid rgba(255,255,255,0.08)',
+    borderRight: '1px solid var(--border)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    position: 'relative',
-  },
-  sidebarGlow: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    height: '200px',
-    background: 'none',
-    pointerEvents: 'none',
   },
   logoArea: {
-    padding: '36px 16px 18px',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
-    position: 'relative',
-    zIndex: 1,
+    padding: '22px 16px 18px',
+    borderBottom: '1px solid var(--border-soft)',
     WebkitAppRegion: 'drag',
   },
   logoTop: {
-    fontSize: '8px', fontWeight: '700', letterSpacing: '0.18em',
-    textTransform: 'uppercase', color: 'var(--faint)', lineHeight: 1, marginBottom: '2px',
+    fontSize: 8, fontWeight: 700, letterSpacing: '0.18em',
+    textTransform: 'uppercase', color: 'var(--faint)',
+    lineHeight: 1, marginBottom: 3,
   },
   logoMain: {
-    fontSize: '18px', fontWeight: '800', letterSpacing: '-0.02em',
+    fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em',
     color: 'var(--text)', lineHeight: 1.1,
   },
   logoLine: {
-    display: 'block', width: '40px', height: '2px',
-    background: 'var(--accent)',
-    borderRadius: '999px', marginTop: '4px', marginBottom: '12px',
+    display: 'block', width: 26, height: 2,
+    background: 'var(--accent)', borderRadius: 999, margin: '5px 0 11px',
   },
   logoEmail: {
-    fontSize: '11px', color: 'var(--faint)',
+    fontSize: 11, color: 'var(--faint)',
     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
   },
   nav: {
     flex: 1, padding: '12px 10px',
-    display: 'flex', flexDirection: 'column', gap: '2px',
-    overflowY: 'auto', position: 'relative', zIndex: 1,
+    display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto',
   },
-  navSection: {
-    fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em',
-    textTransform: 'uppercase', color: 'var(--faint)', padding: '8px 12px 4px',
-  },
+  // Active state is a tinted row with an inset accent rail — no gradient, no glow.
   navLink: (active) => ({
-    display: 'flex', alignItems: 'center', gap: '10px',
-    padding: '9px 12px', borderRadius: '10px', textDecoration: 'none',
-    fontSize: '13px', fontWeight: active ? '600' : '500',
-    color: active ? 'var(--text)' : 'var(--faint)',
-    background: active ? 'linear-gradient(135deg, rgba(14,165,233,0.18), rgba(2,132,199,0.08))' : 'transparent',
-    border: active ? '1px solid rgba(14,165,233,0.22)' : '1px solid transparent',
-    boxShadow: active ? '0 0 20px rgba(14,165,233,0.08)' : 'none',
-    transition: 'all 0.15s',
+    display: 'flex', alignItems: 'center', gap: 11,
+    padding: '9px 11px', borderRadius: 8, textDecoration: 'none',
+    fontSize: 13, fontWeight: active ? 600 : 500,
+    color: active ? 'var(--accent)' : 'var(--muted)',
+    background: active ? 'var(--accent-soft)' : 'transparent',
+    boxShadow: active ? 'inset 2px 0 0 var(--accent)' : 'none',
+    transition: 'background 0.15s, color 0.15s',
   }),
-  navDot: {
-    width: '6px', height: '6px', borderRadius: '50%',
-    background: 'var(--accent)', boxShadow: '0 0 6px rgba(14,165,233,0.8)',
-    marginLeft: 'auto', flexShrink: 0,
-  },
   sidebarBottom: {
-    padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.07)',
-    position: 'relative', zIndex: 1,
+    padding: 10, borderTop: '1px solid var(--border-soft)',
+    display: 'flex', flexDirection: 'column', gap: 1,
   },
-  tierBadge: {
-    padding: '10px 14px',
-    background: 'linear-gradient(135deg, rgba(14,165,233,0.08), rgba(2,132,199,0.04))',
-    borderRadius: '10px', marginBottom: '8px',
-    border: '1px solid rgba(14,165,233,0.15)',
-  },
-  tierLabel: {
-    fontSize: '10px', color: 'var(--faint)',
-    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px',
-  },
-  tierValue: { fontSize: '13px', fontWeight: '700', color: 'var(--accent)', textTransform: 'capitalize' },
   logoutBtn: {
-    display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
-    padding: '9px 12px', background: 'none', border: '1px solid transparent',
-    borderRadius: '10px', color: 'var(--faint)', fontSize: '13px',
-    fontWeight: '500', cursor: 'pointer', transition: 'all 0.15s',
+    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+    padding: '8px 11px', background: 'none', border: 'none',
+    borderRadius: 7, color: 'var(--faint)', fontSize: 12,
+    fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+    transition: 'background 0.15s, color 0.15s',
+  },
+  version: {
+    fontSize: 10, color: 'var(--faint)', textAlign: 'center',
+    marginTop: 7, letterSpacing: '0.05em', opacity: 0.7,
+    fontFamily: 'var(--font-mono)',
   },
   main: {
     flex: 1, overflow: 'hidden',
     display: 'flex', flexDirection: 'column',
-    background: 'radial-gradient(ellipse 100% 50% at 50% -10%, #0d1f2d 0%, #0b0b0b 60%)',
+    background: 'var(--bg)',
   },
-  content: { padding: '32px', paddingRight: isWindows ? 150 : 32, overflowY: 'auto', flex: 1 },
+  // 36px clears the frameless window controls that float over the top-right,
+  // so content can use symmetric horizontal padding instead of a 150px gutter.
+  content: { padding: '24px 28px 32px', overflowY: 'auto', flex: 1 },
+  dragStrip: {
+    height: 36, flexShrink: 0, WebkitAppRegion: 'drag',
+  },
 };
-
-function DashboardHome({ isViewOnly }) {
-  return (
-    <>
-      <TrackerStatus />
-      <AccountDashboard />
-    </>
-  );
-}
 
 export default function Dashboard({ onLogout }) {
   const [userData, setUserData] = useState(null);
@@ -495,8 +465,6 @@ export default function Dashboard({ onLogout }) {
         </div>
       )}
       <div style={s.sidebar}>
-        <div style={s.sidebarGlow} />
-
         <div style={s.logoArea}>
           <div style={s.logoTop}>Aircraft Alerts</div>
           <div style={s.logoMain}>FinalPing</div>
@@ -505,7 +473,6 @@ export default function Dashboard({ onLogout }) {
         </div>
 
         <nav style={s.nav}>
-          <div style={s.navSection}>Menu</div>
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" active={path === '/dashboard' || path === '/dashboard/'} />
           <NavItem to="/dashboard/aircraft" icon={Plane} label="Aircraft" active={path === '/dashboard/aircraft'} />
           <NavItem to="/dashboard/map" icon={Map} label="Live Map" active={path === '/dashboard/map'} />
@@ -568,9 +535,7 @@ export default function Dashboard({ onLogout }) {
           >
             <LogOut size={14} /> Logout
           </button>
-          <div style={{ fontSize: '10px', color: 'var(--faint)', textAlign: 'center', marginTop: '8px', letterSpacing: '0.05em' }}>
-            {appVersion ? `v${appVersion}` : ''}
-          </div>
+          <div style={s.version}>{appVersion ? `v${appVersion}` : ''}</div>
         </div>
       </div>
 
@@ -578,12 +543,13 @@ export default function Dashboard({ onLogout }) {
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 36, WebkitAppRegion: 'drag', zIndex: 9999, pointerEvents: 'none' }} />
 
       <div style={{ ...s.main, paddingTop: (connectionLost ? 36 : 0) + (isViewOnly ? 36 : 0) }}>
+        <div style={s.dragStrip} />
         <Routes>
           {/* Full-bleed routes — no maxWidth, no padding wrapper */}
           <Route path="/map" element={<LiveMap />} />
           <Route path="/airport" element={<div style={s.content}><AirportConfig isViewOnly={isViewOnly} /></div>} />
           {/* Standard padded routes */}
-          <Route path="/" element={<div style={s.content}><DashboardHome isViewOnly={isViewOnly} /></div>} />
+          <Route path="/" element={<div style={s.content}><DashboardHome /></div>} />
           <Route path="/aircraft" element={<div style={s.content}><AircraftManager isViewOnly={isViewOnly} /></div>} />
           <Route path="/alerts" element={<div style={s.content}><AlertSettings isViewOnly={isViewOnly} /></div>} />
           <Route path="/integrations" element={<div style={s.content}><Integrations isViewOnly={isViewOnly} /></div>} />
@@ -602,22 +568,19 @@ function NavItem({ to, icon: Icon, label, active }) {
       style={s.navLink(active)}
       onMouseEnter={e => {
         if (!active) {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-          e.currentTarget.style.color = '#9ca3af';
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+          e.currentTarget.style.background = 'var(--row-hover)';
+          e.currentTarget.style.color = 'var(--text)';
         }
       }}
       onMouseLeave={e => {
         if (!active) {
           e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = '#6b7280';
-          e.currentTarget.style.borderColor = 'transparent';
+          e.currentTarget.style.color = 'var(--muted)';
         }
       }}
     >
-      <Icon size={14} />
+      <Icon size={16} style={{ flexShrink: 0, opacity: active ? 1 : 0.85 }} />
       {label}
-      {active && <span style={s.navDot} />}
     </Link>
   );
 }
