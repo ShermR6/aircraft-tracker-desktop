@@ -53,48 +53,48 @@ function makeRingDefs(dists) {
 const s = {
   page: { maxWidth: '860px', margin: '0 auto', paddingBottom: '40px' },
   section: { marginBottom: '20px' },
-  label: { fontSize: '11px', fontWeight: '700', color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', display: 'block' },
-  input: { width: '100%', padding: '11px 14px', background: '#0d1117', border: '2px solid #1e2a3a', borderRadius: '8px', color: '#f9fafb', fontSize: '15px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' },
-  dropdown: { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#131b27', border: '1px solid #1e2a3a', borderRadius: '8px', marginTop: '4px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' },
-  dropdownItem: { display: 'flex', alignItems: 'center', padding: '10px 14px', cursor: 'pointer', gap: '12px', borderBottom: '1px solid #1a2030', transition: 'background 0.1s' },
-  iataBadge: (iata) => ({ minWidth: '36px', height: '36px', background: iata ? '#1e3a5f' : '#1a2030', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: iata ? '#60a5fa' : '#4b5563', flexShrink: 0 }),
-  airportCard: { background: '#131b27', border: '1px solid #1e2a3a', borderRadius: '10px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' },
-  airportCardBadge: { width: '44px', height: '44px', background: '#1e3a5f', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800', color: '#60a5fa', flexShrink: 0 },
+  label: { fontSize: '11px', fontWeight: '700', color: 'var(--faint)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', display: 'block' },
+  input: { width: '100%', padding: '11px 14px', background: 'var(--panel)', border: '2px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '15px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' },
+  dropdown: { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '8px', marginTop: '4px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' },
+  dropdownItem: { display: 'flex', alignItems: 'center', padding: '10px 14px', cursor: 'pointer', gap: '12px', borderBottom: '1px solid var(--border)', transition: 'background 0.1s' },
+  iataBadge: (iata) => ({ minWidth: '36px', height: '36px', background: iata ? 'var(--accent-soft)' : 'var(--panel-2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: iata ? 'var(--accent)' : 'var(--faint)', flexShrink: 0 }),
+  airportCard: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' },
+  airportCardBadge: { width: '44px', height: '44px', background: 'var(--accent-soft)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800', color: 'var(--accent)', flexShrink: 0 },
   airportCardInfo: { flex: 1, minWidth: 0 },
-  airportName: { fontSize: '15px', fontWeight: '700', color: '#f9fafb', marginBottom: '3px' },
-  airportMeta: { fontSize: '12px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  airportName: { fontSize: '15px', fontWeight: '700', color: 'var(--text)', marginBottom: '3px' },
+  airportMeta: { fontSize: '12px', color: 'var(--faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   ringsRow: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
   ringBtn: (active) => ({
-    flex: 1, minWidth: '90px', padding: '14px 10px', borderRadius: '10px', border: `2px solid ${active ? '#38bdf8' : '#1e2a3a'}`,
+    flex: 1, minWidth: '90px', padding: '14px 10px', borderRadius: '10px', border: `2px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
     background: active ? 'rgba(56,189,248,0.12)' : '#0d1117',
-    color: active ? '#38bdf8' : '#4b5563', cursor: 'pointer', textAlign: 'center',
+    color: active ? 'var(--accent)' : 'var(--faint)', cursor: 'pointer', textAlign: 'center',
     transition: 'all 0.15s', outline: 'none',
   }),
   ringBtnNm: { fontSize: '20px', fontWeight: '800', lineHeight: 1.1 },
   ringBtnSub: { fontSize: '11px', fontWeight: '600', letterSpacing: '0.04em', marginTop: '3px' },
-  saveBtn: (saving) => ({ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: saving ? '#374151' : 'linear-gradient(135deg, #38bdf8, #0ea5e9)', color: '#fff', fontSize: '15px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }),
-  deleteBtn: { width: '100%', padding: '11px', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '8px' },
-  toast: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', fontSize: '13px', background: type === 'success' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)', border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`, color: type === 'success' ? '#6ee7b7' : '#fca5a5', marginTop: '16px' }),
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
-  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #1a2030' },
-  hdrMini: { fontSize: '11px', fontWeight: '700', color: '#38bdf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
-  hdrTitle: { fontSize: '26px', fontWeight: '800', color: '#f9fafb', margin: '0 0 4px 0' },
-  hdrSub: { fontSize: '13px', color: '#6b7280', margin: 0 },
+  saveBtn: (saving) => ({ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: saving ? 'var(--panel-2)' : 'var(--accent)', color: '#fff', fontSize: '15px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }),
+  deleteBtn: { width: '100%', padding: '11px', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: 'var(--bad)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '8px' },
+  toast: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', fontSize: '13px', background: type === 'success' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)', border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`, color: type === 'success' ? 'var(--good)' : 'var(--bad)', marginTop: '16px' }),
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px', gap: '10px' },
+  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--border)' },
+  hdrMini: { fontSize: '11px', fontWeight: '700', color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
+  hdrTitle: { fontSize: '26px', fontWeight: '800', color: 'var(--text)', margin: '0 0 4px 0' },
+  hdrSub: { fontSize: '13px', color: 'var(--faint)', margin: 0 },
   iconBtn: (color, bg) => ({ width: '32px', height: '32px', borderRadius: '7px', border: 'none', background: bg, color, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }),
-  manualLink: { background: 'none', border: 'none', color: '#38bdf8', fontSize: '12px', cursor: 'pointer', padding: '6px 0 0 0', display: 'block', textAlign: 'left' },
-  mapSection: { marginTop: '24px', border: '1px solid #1e2a3a', borderRadius: '12px', overflow: 'hidden', background: '#0d1117' },
-  mapLabel: { padding: '10px 16px', fontSize: '11px', fontWeight: '700', color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid #1e2a3a' },
+  manualLink: { background: 'none', border: 'none', color: 'var(--accent)', fontSize: '12px', cursor: 'pointer', padding: '6px 0 0 0', display: 'block', textAlign: 'left' },
+  mapSection: { marginTop: '24px', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', background: 'var(--panel)' },
+  mapLabel: { padding: '10px 16px', fontSize: '11px', fontWeight: '700', color: 'var(--faint)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' },
   mapContainer: { height: '400px', position: 'relative' },
   overlay: { position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' },
-  modal: { background: '#0f1117', border: '1px solid #2d3748', borderRadius: '16px', padding: '28px', maxWidth: '480px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' },
-  modalTitle: { fontSize: '18px', fontWeight: '700', color: '#f9fafb', marginBottom: '4px' },
-  modalSub: { fontSize: '13px', color: '#6b7280', marginBottom: '20px' },
-  modalInput: { width: '100%', padding: '10px 14px', background: '#1a2030', border: '1px solid #374151', borderRadius: '8px', color: '#f9fafb', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' },
-  modalLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' },
-  modalError: { fontSize: '12px', color: '#fca5a5', marginTop: '10px' },
-  modalDivider: { borderTop: '1px solid #1e2a3a', margin: '20px 0' },
+  modal: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', maxWidth: '480px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' },
+  modalTitle: { fontSize: '18px', fontWeight: '700', color: 'var(--text)', marginBottom: '4px' },
+  modalSub: { fontSize: '13px', color: 'var(--faint)', marginBottom: '20px' },
+  modalInput: { width: '100%', padding: '10px 14px', background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' },
+  modalLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' },
+  modalError: { fontSize: '12px', color: 'var(--bad)', marginTop: '10px' },
+  modalDivider: { borderTop: '1px solid var(--border)', margin: '20px 0' },
   runwayRow: { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' },
-  addRwyBtn: { display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: '1px dashed #374151', borderRadius: '7px', color: '#6b7280', fontSize: '12px', padding: '7px 12px', cursor: 'pointer', width: '100%', justifyContent: 'center' },
+  addRwyBtn: { display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: '1px dashed var(--border)', borderRadius: '7px', color: 'var(--faint)', fontSize: '12px', padding: '7px 12px', cursor: 'pointer', width: '100%', justifyContent: 'center' },
 };
 
 export default function AirportConfig({ isViewOnly = false }) {
@@ -195,7 +195,7 @@ export default function AirportConfig({ isViewOnly = false }) {
     setTimeout(() => { map.invalidateSize(); map.setView([lat, lon], 12); }, 50);
 
     const airportIcon = L.divIcon({
-      html: `<div style="width:10px;height:10px;background:#38bdf8;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px #38bdf8"></div>`,
+      html: `<div style="width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px #38bdf8"></div>`,
       className: '', iconSize: [10, 10], iconAnchor: [5, 5],
     });
     markerRef.current = L.marker([lat, lon], { icon: airportIcon }).addTo(map);
@@ -407,7 +407,7 @@ export default function AirportConfig({ isViewOnly = false }) {
           <div style={s.modal}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
               <div style={s.modalTitle}>Enter airport manually</div>
-              <button onClick={() => setManualModal(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '2px' }}><X size={18} /></button>
+              <button onClick={() => setManualModal(false)} style={{ background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer', padding: '2px' }}><X size={18} /></button>
             </div>
             <p style={s.modalSub}>Can't find your airport in the search, or the data is incorrect? Enter it below.</p>
 
@@ -450,7 +450,7 @@ export default function AirportConfig({ isViewOnly = false }) {
 
             <div style={{ marginBottom: '14px' }}>
               <label style={{ ...s.modalLabel, marginBottom: '10px' }}>Runways (optional)</label>
-              <div style={{ fontSize: '11px', color: '#4b5563', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--faint)', marginBottom: '10px' }}>
                 Enter as "09/27" — the app computes heading from runway number.
               </div>
               {manualForm.runways.map((rw, i) => (
@@ -469,7 +469,7 @@ export default function AirportConfig({ isViewOnly = false }) {
                     onChange={e => updateManualRunway(i, 'lengthFt', e.target.value)}
                   />
                   <button onClick={() => removeManualRunway(i)}
-                    style={{ width: '30px', height: '36px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    style={{ width: '30px', height: '36px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', color: 'var(--bad)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <X size={13} />
                   </button>
                 </div>
@@ -482,8 +482,8 @@ export default function AirportConfig({ isViewOnly = false }) {
             {manualError && <p style={s.modalError}>{manualError}</p>}
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-              <button onClick={() => setManualModal(false)} style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={submitManual} style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Use this airport</button>
+              <button onClick={() => setManualModal(false)} style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={submitManual} style={{ flex: 1, padding: '11px', borderRadius: '8px', background: 'var(--accent)', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Use this airport</button>
             </div>
           </div>
         </div>
@@ -494,11 +494,11 @@ export default function AirportConfig({ isViewOnly = false }) {
         <div style={s.overlay}>
           <div style={{ ...s.modal, maxWidth: '380px' }}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>🗑️</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', margin: '0 0 8px 0', textAlign: 'center' }}>Delete Airport Config</h2>
-            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px 0' }}>Remove <strong style={{ color: '#f9fafb' }}>{config.airport_code}</strong> and all its detection settings?</p>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'center' }}>Delete Airport Config</h2>
+            <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px 0' }}>Remove <strong style={{ color: 'var(--text)' }}>{config.airport_code}</strong> and all its detection settings?</p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleDelete} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+              <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleDelete} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--bad)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         </div>
@@ -515,7 +515,7 @@ export default function AirportConfig({ isViewOnly = false }) {
         <label style={s.label}>Search Airport</label>
         <div ref={searchRef} style={{ position: 'relative' }}>
           <input
-            style={{ ...s.input, borderColor: showDropdown ? '#38bdf8' : '#1e2a3a' }}
+            style={{ ...s.input, borderColor: showDropdown ? 'var(--accent)' : 'var(--border)' }}
             type="text" value={searchQuery}
             placeholder="ICAO, IATA, city, or airport name"
             onChange={e => handleSearch(e.target.value)}
@@ -531,11 +531,11 @@ export default function AirportConfig({ isViewOnly = false }) {
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={s.iataBadge(ap.iata)}>{ap.iata || ap.icao.slice(0, 3)}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#f9fafb' }}>
-                      <span style={{ color: '#38bdf8' }}>{ap.icao}</span>
-                      <span style={{ color: '#4b5563', fontWeight: 400 }}> · {ap.name}</span>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text)' }}>
+                      <span style={{ color: 'var(--accent)' }}>{ap.icao}</span>
+                      <span style={{ color: 'var(--faint)', fontWeight: 400 }}> · {ap.name}</span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--faint)', marginTop: '1px' }}>
                       {[ap.city, ap.region, ap.country].filter(Boolean).join(', ')}
                     </div>
                   </div>
@@ -620,18 +620,18 @@ export default function AirportConfig({ isViewOnly = false }) {
           <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
           {!selectedAirport && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              <div style={{ textAlign: 'center', color: '#374151' }}>
+              <div style={{ textAlign: 'center', color: 'var(--faint)' }}>
                 <MapPin size={32} strokeWidth={1} style={{ margin: '0 auto 8px' }} />
                 <div style={{ fontSize: '13px' }}>Search for an airport to preview on map</div>
               </div>
             </div>
           )}
         </div>
-        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 12, padding: '10px 12px', background: '#0d1117', border: '1px solid #1e2a3a', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12, padding: '10px 12px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
           Missing a runway at your airport?
           <button
             onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/contact')}
-            style={{ fontSize: 12, fontWeight: 600, color: '#38bdf8', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
           >Contact us</button>
           and we'll add it to the next update.
         </div>
@@ -639,9 +639,9 @@ export default function AirportConfig({ isViewOnly = false }) {
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .leaflet-container { background: #0d1117; }
-        .leaflet-control-zoom { border-color: #1e2a3a !important; }
-        .leaflet-control-zoom a { background: #131b27 !important; color: #9ca3af !important; border-color: #1e2a3a !important; }
+        .leaflet-container { background: var(--panel); }
+        .leaflet-control-zoom { border-color: var(--border) !important; }
+        .leaflet-control-zoom a { background: var(--panel-2) !important; color: var(--muted) !important; border-color: var(--border) !important; }
         .leaflet-control-zoom a:hover { background: #1a2a3f !important; }
       `}</style>
     </div>

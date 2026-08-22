@@ -17,61 +17,61 @@ const s = {
   left: {},
   right: { position: 'sticky', top: 0, marginTop: '130px' },
 
-  sectionLabel: { fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
-  pageTitle: { fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' },
-  pageCount: { fontSize: '13px', color: '#6b7280', marginBottom: '24px' },
+  sectionLabel: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
+  pageTitle: { fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' },
+  pageCount: { fontSize: '13px', color: 'var(--faint)', marginBottom: '24px' },
 
   table: { width: '100%', borderCollapse: 'collapse' },
-  th: { fontSize: '11px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px 10px', textAlign: 'left', borderBottom: '1px solid #1f2937' },
-  thRight: { fontSize: '11px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px 10px', textAlign: 'right', borderBottom: '1px solid #1f2937' },
-  td: { padding: '14px 12px', borderBottom: '1px solid #111827', verticalAlign: 'middle' },
-  tailNum: { fontSize: '15px', fontWeight: '700', color: '#f9fafb' },
-  icaoText: { fontSize: '11px', color: '#4b5563', fontFamily: 'monospace', marginTop: '2px' },
-  typeText: { fontSize: '12px', color: '#9ca3af', marginTop: '2px' },
-  statusBadge: { fontSize: '11px', fontWeight: '600', padding: '3px 10px', borderRadius: '20px', background: '#34d39920', color: '#34d399', border: '1px solid #34d39930', whiteSpace: 'nowrap' },
+  th: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px 10px', textAlign: 'left', borderBottom: '1px solid var(--border)' },
+  thRight: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px 10px', textAlign: 'right', borderBottom: '1px solid var(--border)' },
+  td: { padding: '14px 12px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' },
+  tailNum: { fontSize: '15px', fontWeight: '700', color: 'var(--text)' },
+  icaoText: { fontSize: '11px', color: 'var(--faint)', fontFamily: 'monospace', marginTop: '2px' },
+  typeText: { fontSize: '12px', color: 'var(--muted)', marginTop: '2px' },
+  statusBadge: { fontSize: '11px', fontWeight: '600', padding: '3px 10px', borderRadius: '20px', background: '#34d39920', color: 'var(--good)', border: '1px solid #34d39930', whiteSpace: 'nowrap' },
   distTag: (active) => ({
     fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '6px', marginRight: '4px',
     background: active ? 'rgba(14,165,233,0.12)' : 'rgba(255,255,255,0.04)',
-    color: active ? '#38bdf8' : '#374151',
+    color: active ? 'var(--accent)' : 'var(--faint)',
     border: `1px solid ${active ? 'rgba(14,165,233,0.25)' : '#1f2937'}`,
   }),
   iconBtn: (color) => ({ width: '30px', height: '30px', borderRadius: '7px', border: 'none', background: `${color}15`, color, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }),
 
   panel: { background: 'linear-gradient(135deg, #1e293b 0%, #172035 100%)', border: '1px solid #3b82f620', borderRadius: '16px', padding: '24px', boxShadow: '0 0 0 1px #3b82f615, 0 8px 32px rgba(59,130,246,0.1)' },
-  panelLabel: { fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
-  panelTitle: { fontSize: '20px', fontWeight: '700', color: '#f9fafb', marginBottom: '20px' },
+  panelLabel: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
+  panelTitle: { fontSize: '20px', fontWeight: '700', color: 'var(--text)', marginBottom: '20px' },
 
-  fieldLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' },
+  fieldLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' },
   fieldRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' },
-  autoTag: { fontSize: '11px', color: '#38bdf8', fontWeight: '600' },
-  input: { width: '100%', padding: '10px 14px', background: '#0d1117', border: '1px solid #1f2937', borderRadius: '8px', color: '#f9fafb', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' },
-  inputHint: { fontSize: '11px', color: '#4b5563', marginTop: '4px' },
+  autoTag: { fontSize: '11px', color: 'var(--accent)', fontWeight: '600' },
+  input: { width: '100%', padding: '10px 14px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' },
+  inputHint: { fontSize: '11px', color: 'var(--faint)', marginTop: '4px' },
   inputGroup: { marginBottom: '16px' },
-  autoFilled: { background: '#0d1117', border: '1px solid #1f2937', borderRadius: '8px', padding: '10px 14px', color: '#9ca3af', fontSize: '14px', minHeight: '40px', display: 'flex', alignItems: 'center' },
+  autoFilled: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 14px', color: 'var(--muted)', fontSize: '14px', minHeight: '40px', display: 'flex', alignItems: 'center' },
 
   distRow: { display: 'flex', gap: '8px', marginTop: '6px' },
   distBtn: (active) => ({
     flex: 1, padding: '10px', borderRadius: '8px', border: `1px solid ${active ? 'rgba(14,165,233,0.4)' : '#1f2937'}`,
     background: active ? 'rgba(14,165,233,0.12)' : '#0d1117',
-    color: active ? '#38bdf8' : '#4b5563',
+    color: active ? 'var(--accent)' : 'var(--faint)',
     fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s',
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
   }),
   distLabel: { fontSize: '9px', fontWeight: '500', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' },
 
-  trackBtn: { width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'opacity 0.2s' },
+  trackBtn: { width: '100%', padding: '12px', background: 'var(--accent)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'opacity 0.2s' },
 
-  alert: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', background: type === 'error' ? '#ef444420' : '#34d39920', border: `1px solid ${type === 'error' ? '#ef444440' : '#34d39940'}`, color: type === 'error' ? '#fca5a5' : '#6ee7b7' }),
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
+  alert: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', background: type === 'error' ? '#ef444420' : '#34d39920', border: `1px solid ${type === 'error' ? '#ef444440' : '#34d39940'}`, color: type === 'error' ? 'var(--bad)' : 'var(--good)' }),
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px', gap: '10px' },
 
   upgradeBox: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#f59e0b10', border: '1px solid #f59e0b30', borderRadius: '12px', marginBottom: '20px', gap: '12px' },
-  upgradeText: { fontSize: '13px', color: '#fcd34d', margin: 0 },
-  upgradeLink: { fontSize: '12px', fontWeight: '700', color: '#f59e0b', background: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 },
+  upgradeText: { fontSize: '13px', color: 'var(--warn)', margin: 0 },
+  upgradeLink: { fontSize: '12px', fontWeight: '700', color: 'var(--warn)', background: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 },
 
-  emptyRow: { textAlign: 'center', padding: '48px 20px', color: '#4b5563', fontSize: '13px' },
+  emptyRow: { textAlign: 'center', padding: '48px 20px', color: 'var(--faint)', fontSize: '13px' },
 
   confirmOverlay: { position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmBox: { background: '#0f1117', border: '1px solid #2d3748', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' },
+  confirmBox: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' },
 };
 
 export default function AircraftManager({ isViewOnly = false }) {
@@ -257,11 +257,11 @@ export default function AircraftManager({ isViewOnly = false }) {
         <div style={s.confirmOverlay}>
           <div style={s.confirmBox}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>✈️</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Aircraft</h2>
-            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Aircraft</h2>
+            <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--bad)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
             </div>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function AircraftManager({ isViewOnly = false }) {
                   </div>
                 </td>
                 <td style={s.td}>
-                  <div style={{ ...s.icaoText, fontSize: '13px', color: '#6b7280' }}>{a.icao24 || '—'}</div>
+                  <div style={{ ...s.icaoText, fontSize: '13px', color: 'var(--faint)' }}>{a.icao24 || '—'}</div>
                 </td>
                 <td style={s.td}>
                   <div style={s.typeText}>{a.aircraft_type || '—'}</div>
@@ -344,7 +344,7 @@ export default function AircraftManager({ isViewOnly = false }) {
                 </td>
                 {!isViewOnly && (
                   <td style={{ ...s.td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button style={s.iconBtn('#60a5fa')} onClick={() => editingId === a.id ? cancelEdit() : startEdit(a)} title={editingId === a.id ? 'Cancel edit' : 'Edit'}>
+                    <button style={s.iconBtn('var(--accent)')} onClick={() => editingId === a.id ? cancelEdit() : startEdit(a)} title={editingId === a.id ? 'Cancel edit' : 'Edit'}>
                       <Edit2 size={13} />
                     </button>
                     {' '}
@@ -379,9 +379,9 @@ export default function AircraftManager({ isViewOnly = false }) {
               />
               <p style={s.inputHint}>
                 Find on{' '}
-                <span style={{ color: '#38bdf8', cursor: 'pointer' }} onClick={() => window.electronAPI?.openExternal('https://globe.adsbexchange.com')}>ADSBExchange</span>
+                <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={() => window.electronAPI?.openExternal('https://globe.adsbexchange.com')}>ADSBExchange</span>
                 {' '}or{' '}
-                <span style={{ color: '#38bdf8', cursor: 'pointer' }} onClick={() => window.electronAPI?.openExternal('https://www.planespotters.net')}>Planespotters</span>
+                <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={() => window.electronAPI?.openExternal('https://www.planespotters.net')}>Planespotters</span>
               </p>
             </div>
 
@@ -408,8 +408,8 @@ export default function AircraftManager({ isViewOnly = false }) {
                 <label style={{ ...s.fieldLabel, marginBottom: 0 }}>AIRCRAFT TYPE</label>
                 <span style={s.autoTag}>+ AUTO</span>
               </div>
-              <div style={{ ...s.autoFilled, marginTop: '6px', color: form.aircraft_type ? '#e5e7eb' : '#374151' }}>
-                {form.aircraft_type || <span style={{ color: '#374151', fontStyle: 'italic', fontSize: '13px' }}>Auto-filled from ICAO lookup</span>}
+              <div style={{ ...s.autoFilled, marginTop: '6px', color: form.aircraft_type ? 'var(--text)' : 'var(--faint)' }}>
+                {form.aircraft_type || <span style={{ color: 'var(--faint)', fontStyle: 'italic', fontSize: '13px' }}>Auto-filled from ICAO lookup</span>}
               </div>
             </div>
 
@@ -473,7 +473,7 @@ export default function AircraftManager({ isViewOnly = false }) {
 
             {editingId && (
               <button
-                style={{ width: '100%', padding: '10px', marginTop: '8px', background: 'none', border: '1px solid #1f2937', borderRadius: '10px', color: '#6b7280', fontSize: '13px', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '10px', marginTop: '8px', background: 'none', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--faint)', fontSize: '13px', cursor: 'pointer' }}
                 onClick={cancelEdit}
               >
                 Cancel edit

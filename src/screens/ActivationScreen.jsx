@@ -7,15 +7,15 @@ const s = {
   shell: {
     display: 'flex',
     height: '100vh',
-    background: '#0a0e1a',
+    background: 'var(--bg)',
     fontFamily: 'var(--font-sans)',
     overflow: 'hidden',
   },
   left: {
     width: '420px',
     minWidth: '420px',
-    background: 'linear-gradient(160deg, #0f1829 0%, #0a0e1a 50%, #0d1520 100%)',
-    borderRight: '1px solid #1a2540',
+    background: 'var(--panel)',
+    borderRight: '1px solid var(--border)',
     display: 'flex',
     flexDirection: 'column',
     padding: '48px 40px',
@@ -28,7 +28,7 @@ const s = {
     left: '-100px',
     width: '400px',
     height: '400px',
-    background: 'radial-gradient(circle, #3b82f615 0%, transparent 70%)',
+    background: 'none',
     pointerEvents: 'none',
   },
   leftGlow2: {
@@ -37,7 +37,7 @@ const s = {
     right: '-50px',
     width: '300px',
     height: '300px',
-    background: 'radial-gradient(circle, #6366f110 0%, transparent 70%)',
+    background: 'none',
     pointerEvents: 'none',
   },
   logoRow: {
@@ -51,7 +51,7 @@ const s = {
   logoIcon: {
     width: '48px',
     height: '48px',
-    background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+    background: 'var(--accent)',
     borderRadius: '14px',
     display: 'flex',
     alignItems: 'center',
@@ -61,26 +61,24 @@ const s = {
   logoText: {
     fontSize: '20px',
     fontWeight: '700',
-    color: '#f9fafb',
+    color: 'var(--text)',
     margin: 0,
   },
   heroTitle: {
     fontSize: '36px',
     fontWeight: '800',
-    color: '#f9fafb',
+    color: 'var(--text)',
     margin: '0 0 16px 0',
     lineHeight: '1.2',
     position: 'relative',
     zIndex: 1,
   },
   heroAccent: {
-    background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: 'var(--accent)',
   },
   heroSub: {
     fontSize: '15px',
-    color: '#6b7280',
+    color: 'var(--faint)',
     lineHeight: '1.6',
     margin: '0 0 48px 0',
     position: 'relative',
@@ -114,12 +112,12 @@ const s = {
   featureTitle: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: 'var(--text)',
     margin: '0 0 3px 0',
   },
   featureSub: {
     fontSize: '12px',
-    color: '#6b7280',
+    color: 'var(--faint)',
     margin: 0,
     lineHeight: '1.5',
   },
@@ -127,11 +125,11 @@ const s = {
     position: 'relative',
     zIndex: 1,
     paddingTop: '32px',
-    borderTop: '1px solid #1a2540',
+    borderTop: '1px solid var(--border)',
   },
   leftFooterText: {
     fontSize: '12px',
-    color: '#4b5563',
+    color: 'var(--faint)',
     margin: 0,
   },
   right: {
@@ -140,7 +138,7 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '40px',
-    background: '#0f1117',
+    background: 'var(--panel)',
   },
   formCard: {
     width: '100%',
@@ -149,12 +147,12 @@ const s = {
   formTitle: {
     fontSize: '26px',
     fontWeight: '700',
-    color: '#f9fafb',
+    color: 'var(--text)',
     margin: '0 0 6px 0',
   },
   formSub: {
     fontSize: '14px',
-    color: '#6b7280',
+    color: 'var(--faint)',
     margin: '0 0 36px 0',
   },
   fieldGroup: {
@@ -164,7 +162,7 @@ const s = {
     display: 'block',
     fontSize: '12px',
     fontWeight: '600',
-    color: '#9ca3af',
+    color: 'var(--muted)',
     textTransform: 'uppercase',
     letterSpacing: '0.07em',
     marginBottom: '8px',
@@ -182,10 +180,10 @@ const s = {
   input: {
     width: '100%',
     padding: '12px 14px 12px 42px',
-    background: '#1a2030',
-    border: '1px solid #2d3748',
+    background: 'var(--panel-2)',
+    border: '1px solid var(--border)',
     borderRadius: '10px',
-    color: '#f9fafb',
+    color: 'var(--text)',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
@@ -195,10 +193,10 @@ const s = {
   submitBtn: (loading) => ({
     width: '100%',
     padding: '14px',
-    background: loading ? '#1f2937' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    background: loading ? 'var(--panel-2)' : 'var(--accent)',
     border: 'none',
     borderRadius: '10px',
-    color: loading ? '#6b7280' : '#fff',
+    color: loading ? 'var(--faint)' : '#fff',
     fontSize: '15px',
     fontWeight: '600',
     cursor: loading ? 'not-allowed' : 'pointer',
@@ -215,7 +213,7 @@ const s = {
     background: '#ef444420',
     border: '1px solid #ef444440',
     borderRadius: '8px',
-    color: '#fca5a5',
+    color: 'var(--bad)',
     fontSize: '13px',
     marginBottom: '16px',
   },
@@ -228,22 +226,22 @@ const s = {
   dividerLine: {
     flex: 1,
     height: '1px',
-    background: '#1f2937',
+    background: 'var(--panel-2)',
   },
   dividerText: {
     fontSize: '12px',
-    color: '#4b5563',
+    color: 'var(--faint)',
   },
   purchaseBox: {
     padding: '16px',
-    background: '#1a2030',
-    border: '1px solid #2d3748',
+    background: 'var(--panel-2)',
+    border: '1px solid var(--border)',
     borderRadius: '10px',
     textAlign: 'center',
   },
   purchaseText: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: 'var(--muted)',
     margin: '0 0 10px 0',
   },
   purchaseBtn: {
@@ -251,10 +249,10 @@ const s = {
     alignItems: 'center',
     gap: '6px',
     padding: '9px 20px',
-    background: 'linear-gradient(135deg, #a78bfa20, #6366f120)',
-    border: '1px solid #6366f140',
+    background: 'var(--cta-soft)',
+    border: '1px solid var(--cta)',
     borderRadius: '8px',
-    color: '#a78bfa',
+    color: 'var(--cta)',
     fontSize: '13px',
     fontWeight: '600',
     textDecoration: 'none',
@@ -265,7 +263,7 @@ const s = {
     textAlign: 'center',
     marginTop: '24px',
     fontSize: '12px',
-    color: '#4b5563',
+    color: 'var(--faint)',
   },
   tosRow: {
     display: 'flex',
@@ -283,12 +281,12 @@ const s = {
   },
   tosLabel: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: 'var(--muted)',
     lineHeight: '1.5',
     cursor: 'default',
   },
   tosLink: {
-    color: '#60a5fa',
+    color: 'var(--accent)',
     cursor: 'pointer',
     textDecoration: 'underline',
   },
@@ -427,7 +425,7 @@ export default function ActivationScreen({ onSuccess }) {
   };
 
   const focusInput = (e) => { e.target.style.borderColor = '#3b82f6'; e.target.style.background = '#1e2840'; };
-  const blurInput = (e) => { e.target.style.borderColor = '#2d3748'; e.target.style.background = '#1a2030'; };
+  const blurInput = (e) => { e.target.style.borderColor = '#2d3748'; e.target.style.background = 'var(--panel-2)'; };
 
   return (
     <div style={s.shell}>
@@ -437,9 +435,9 @@ export default function ActivationScreen({ onSuccess }) {
 
         <div style={s.logoRow}>
           <div>
-            <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#6b7280', lineHeight: 1, marginBottom: '2px' }}>Aircraft Alerts</div>
-            <div style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.02em', color: '#f9fafb', lineHeight: 1.1 }}>FinalPing</div>
-            <div style={{ width: '40px', height: '2px', background: 'linear-gradient(90deg, #0ea5e9, transparent)', borderRadius: '999px', marginTop: '4px' }} />
+            <div style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--faint)', lineHeight: 1, marginBottom: '2px' }}>Aircraft Alerts</div>
+            <div style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--text)', lineHeight: 1.1 }}>FinalPing</div>
+            <div style={{ width: '40px', height: '2px', background: 'var(--accent)', borderRadius: '999px', marginTop: '4px' }} />
           </div>
         </div>
 
@@ -453,28 +451,28 @@ export default function ActivationScreen({ onSuccess }) {
 
         <div style={s.featureList}>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#3b82f6')}><Plane size={16} color="#60a5fa" /></div>
+            <div style={s.featureIcon('#3b82f6')}><Plane size={16} color="var(--accent)" /></div>
             <div>
               <p style={s.featureTitle}>Real-Time Tracking</p>
               <p style={s.featureSub}>Live ADS-B position data updated every few seconds for your tracked aircraft.</p>
             </div>
           </div>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#34d399')}><Bell size={16} color="#34d399" /></div>
+            <div style={s.featureIcon('#34d399')}><Bell size={16} color="var(--good)" /></div>
             <div>
               <p style={s.featureTitle}>Smart Alerts</p>
               <p style={s.featureSub}>Proximity alerts at custom distances — 20nm, 10nm, 5nm, or whatever you need.</p>
             </div>
           </div>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#a78bfa')}><Zap size={16} color="#a78bfa" /></div>
+            <div style={s.featureIcon('var(--accent)')}><Zap size={16} color="var(--accent)" /></div>
             <div>
               <p style={s.featureTitle}>Multi-Channel Notifications</p>
               <p style={s.featureSub}>Push alerts to Discord, Slack, or Microsoft Teams with custom messages.</p>
             </div>
           </div>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#f59e0b')}><Shield size={16} color="#fbbf24" /></div>
+            <div style={s.featureIcon('#f59e0b')}><Shield size={16} color="var(--warn)" /></div>
             <div>
               <p style={s.featureTitle}>Quiet Hours</p>
               <p style={s.featureSub}>Set hours where no notifications are sent — so you can actually sleep.</p>
@@ -483,7 +481,7 @@ export default function ActivationScreen({ onSuccess }) {
         </div>
 
         <div style={s.leftFooter}>
-          <p style={s.leftFooterText}>{appVersion ? `v${appVersion}` : ''} · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>FinalPingApp.com</a></p>
+          <p style={s.leftFooterText}>{appVersion ? `v${appVersion}` : ''} · © 2026 FinalPing · <a href="https://finalpingapp.com/pricing" onClick={e => { e.preventDefault(); window.electronAPI?.openExternal('https://finalpingapp.com'); }} style={{ color: 'var(--faint)', textDecoration: 'none' }}>FinalPingApp.com</a></p>
         </div>
       </div>
 
@@ -492,16 +490,16 @@ export default function ActivationScreen({ onSuccess }) {
 
           {/* Tabs */}
           <div style={{
-            display: 'flex', background: '#1a2030', borderRadius: 12,
-            padding: 4, marginBottom: 32, border: '1px solid #2d3748',
+            display: 'flex', background: 'var(--panel-2)', borderRadius: 12,
+            padding: 4, marginBottom: 32, border: '1px solid var(--border)',
           }}>
             {[{ id: 'signin', label: 'Sign In' }, { id: 'activate', label: 'Activate License' }].map(t => (
               <button key={t.id} onClick={() => { setTab(t.id); setLoginError(''); setError(''); }}
                 style={{
                   flex: 1, padding: '10px', borderRadius: 9, border: 'none',
                   fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                  background: tab === t.id ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                  color: tab === t.id ? '#fff' : '#6b7280',
+                  background: tab === t.id ? 'var(--accent)' : 'transparent',
+                  color: tab === t.id ? '#fff' : 'var(--faint)',
                   boxShadow: tab === t.id ? '0 2px 8px #3b82f640' : 'none',
                 }}>{t.label}</button>
             ))}
@@ -519,8 +517,8 @@ export default function ActivationScreen({ onSuccess }) {
               <button type="button" onClick={handleGoogleSignIn} disabled={googleLoading}
                 style={{
                   width: '100%', padding: '11px', borderRadius: 10,
-                  border: '1px solid #2d3748', background: 'rgba(255,255,255,0.03)',
-                  color: googleLoading ? '#4b5563' : '#f9fafb',
+                  border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)',
+                  color: googleLoading ? 'var(--faint)' : 'var(--text)',
                   fontSize: 14, fontWeight: 600, cursor: googleLoading ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                   marginBottom: 12, transition: 'all 0.15s',
@@ -541,16 +539,16 @@ export default function ActivationScreen({ onSuccess }) {
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <div style={{ flex: 1, height: 1, background: '#2d3748' }} />
-                <span style={{ fontSize: 12, color: '#4b5563' }}>or</span>
-                <div style={{ flex: 1, height: 1, background: '#2d3748' }} />
+                <div style={{ flex: 1, height: 1, background: 'var(--panel-2)' }} />
+                <span style={{ fontSize: 12, color: 'var(--faint)' }}>or</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--panel-2)' }} />
               </div>
 
               <form onSubmit={handleLogin}>
                 <div style={s.fieldGroup}>
                   <label style={s.label}>Email Address</label>
                   <div style={s.inputWrap}>
-                    <div style={s.inputIcon}><Mail size={15} color="#4b5563" /></div>
+                    <div style={s.inputIcon}><Mail size={15} color="var(--faint)" /></div>
                     <input style={s.input} type="email" placeholder="your@email.com"
                       value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
                       onFocus={focusInput} onBlur={blurInput} autoComplete="email" />
@@ -559,12 +557,12 @@ export default function ActivationScreen({ onSuccess }) {
                 <div style={s.fieldGroup}>
                   <label style={s.label}>Password</label>
                   <div style={{ ...s.inputWrap, position: 'relative' }}>
-                    <div style={s.inputIcon}><Shield size={15} color="#4b5563" /></div>
+                    <div style={s.inputIcon}><Shield size={15} color="var(--faint)" /></div>
                     <input style={{ ...s.input, paddingRight: 36 }} type={showLoginPassword ? "text" : "password"} placeholder="••••••••"
                       value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
                       onFocus={focusInput} onBlur={blurInput} autoComplete="current-password" />
                     <button type="button" onClick={() => setShowLoginPassword(v => !v)}
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 0, display: 'flex', alignItems: 'center' }}>
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--faint)', padding: 0, display: 'flex', alignItems: 'center' }}>
                       {showLoginPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
@@ -588,8 +586,8 @@ export default function ActivationScreen({ onSuccess }) {
                 <a href="https://finalpingapp.com/pricing"
                   onClick={e => { e.preventDefault(); openLink('https://finalpingapp.com/pricing'); }}
                   style={s.purchaseBtn}
-                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}>
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.20)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--cta-soft)'}>
                   <Zap size={13} /> Purchase at FinalPingApp.com
                 </a>
               </div>
@@ -614,7 +612,7 @@ export default function ActivationScreen({ onSuccess }) {
                 <div style={s.fieldGroup}>
                   <label style={s.label}>License Key</label>
                   <div style={s.inputWrap}>
-                    <div style={s.inputIcon}><Key size={15} color="#4b5563" /></div>
+                    <div style={s.inputIcon}><Key size={15} color="var(--faint)" /></div>
                     <input style={s.input} type="text" placeholder="FP-XXXX-XXXX-XXXX-XXXX"
                       value={licenseKey} onChange={e => setLicenseKey(e.target.value)}
                       onFocus={focusInput} onBlur={blurInput} autoComplete="off" spellCheck={false} />
@@ -623,7 +621,7 @@ export default function ActivationScreen({ onSuccess }) {
                 <div style={s.fieldGroup}>
                   <label style={s.label}>Email Address</label>
                   <div style={s.inputWrap}>
-                    <div style={s.inputIcon}><Mail size={15} color="#4b5563" /></div>
+                    <div style={s.inputIcon}><Mail size={15} color="var(--faint)" /></div>
                     <input style={s.input} type="email" placeholder="your@email.com"
                       value={email} onChange={e => setEmail(e.target.value)}
                       onFocus={focusInput} onBlur={blurInput} autoComplete="email" />
@@ -657,8 +655,8 @@ export default function ActivationScreen({ onSuccess }) {
                 <a href="https://finalpingapp.com/pricing"
                   onClick={e => { e.preventDefault(); openLink('https://finalpingapp.com/pricing'); }}
                   style={s.purchaseBtn}
-                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa30, #6366f130)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #a78bfa20, #6366f120)'}>
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.20)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--cta-soft)'}>
                   <Zap size={13} /> Purchase at FinalPingApp.com
                 </a>
               </div>

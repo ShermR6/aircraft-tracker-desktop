@@ -6,32 +6,32 @@ import StorageService from '../services/storage';
 const s = {
   page: { maxWidth: '900px', margin: '0 auto', fontFamily: 'var(--font-sans)' },
   header: { marginBottom: '24px' },
-  headerTitle: { fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' },
-  headerSub: { fontSize: '14px', color: '#9ca3af', margin: 0 },
+  headerTitle: { fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' },
+  headerSub: { fontSize: '14px', color: 'var(--muted)', margin: 0 },
   grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' },
-  card: { background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)', border: '1px solid #2d3748', borderRadius: '16px', padding: '24px' },
+  card: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px' },
   cardAccent: (color) => ({ background: `linear-gradient(135deg, ${color}15 0%, #1a2030 100%)`, border: `1px solid ${color}30`, borderRadius: '16px', padding: '24px' }),
   cardTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
   iconBox: (color) => ({ width: '44px', height: '44px', borderRadius: '12px', background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }),
   badge: (color) => ({ fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 10px', borderRadius: '20px', background: `${color}20`, color, border: `1px solid ${color}30` }),
-  cardLabel: { fontSize: '12px', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' },
-  cardValue: { fontSize: '22px', fontWeight: '700', color: '#f9fafb', margin: 0 },
-  row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #1f2937' },
+  cardLabel: { fontSize: '12px', fontWeight: '500', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' },
+  cardValue: { fontSize: '22px', fontWeight: '700', color: 'var(--text)', margin: 0 },
+  row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' },
   rowLast: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' },
-  rowLabel: { fontSize: '13px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '8px' },
-  rowValue: { fontSize: '13px', fontWeight: '600', color: '#e5e7eb' },
-  sectionTitle: { fontSize: '15px', fontWeight: '600', color: '#f9fafb', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' },
+  rowLabel: { fontSize: '13px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '8px' },
+  rowValue: { fontSize: '13px', fontWeight: '600', color: 'var(--text)' },
+  sectionTitle: { fontSize: '15px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' },
   statusDot: (color) => ({ width: '8px', height: '8px', borderRadius: '50%', background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }),
-  refreshBtn: { background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px' },
-  alertRow: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 0', borderBottom: '1px solid #1f2937' },
+  refreshBtn: { background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--muted)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px' },
+  alertRow: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--border)' },
   alertRowLast: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 0' },
   alertIcon: (type) => ({ width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0, background: type === 'landing' ? '#34d39920' : '#38bdf820', display: 'flex', alignItems: 'center', justifyContent: 'center' }),
-  alertTail: { fontSize: '13px', fontWeight: '700', color: '#f9fafb', marginBottom: '2px' },
-  alertType: { fontSize: '11px', color: '#6b7280' },
-  alertTime: { fontSize: '11px', color: '#4b5563', marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 },
-  emptyLog: { textAlign: 'center', padding: '24px', color: '#4b5563', fontSize: '13px' },
+  alertTail: { fontSize: '13px', fontWeight: '700', color: 'var(--text)', marginBottom: '2px' },
+  alertType: { fontSize: '11px', color: 'var(--faint)' },
+  alertTime: { fontSize: '11px', color: 'var(--faint)', marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 },
+  emptyLog: { textAlign: 'center', padding: '24px', color: 'var(--faint)', fontSize: '13px' },
 };
 
 function timeAgo(isoString) {
@@ -125,7 +125,7 @@ export default function AccountDashboard() {
 
   if (loading) return <div style={s.loading}>Loading your dashboard...</div>;
 
-  const color = '#60a5fa';
+  const color = 'var(--accent)';
   const joinDate = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
@@ -166,14 +166,14 @@ export default function AccountDashboard() {
           border: `1px solid ${expiryWarning.urgent ? '#ef444430' : '#f59e0b30'}`,
         }}>
           <AlertTriangle size={16} color={expiryWarning.urgent ? '#f87171' : '#fbbf24'} />
-          <p style={{ fontSize: '13px', color: expiryWarning.urgent ? '#fca5a5' : '#fcd34d', margin: 0, flex: 1 }}>
+          <p style={{ fontSize: '13px', color: expiryWarning.urgent ? 'var(--bad)' : 'var(--warn)', margin: 0, flex: 1 }}>
             {expiryWarning.expired
               ? 'Your license has expired. Renew to continue receiving alerts.'
               : `Your license expires in ${expiryWarning.label}. Renew soon to avoid interruption.`
             }
           </p>
           <span
-            style={{ fontSize: '12px', fontWeight: '700', color: expiryWarning.urgent ? '#f87171' : '#fbbf24', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ fontSize: '12px', fontWeight: '700', color: expiryWarning.urgent ? 'var(--bad)' : 'var(--warn)', cursor: 'pointer', whiteSpace: 'nowrap' }}
             onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}
           >
             Renew →
@@ -196,49 +196,49 @@ export default function AccountDashboard() {
 
         <div style={s.cardAccent('#38bdf8')}>
           <div style={s.cardTop}>
-            <div style={s.iconBox('#38bdf8')}><Plane size={20} color="#38bdf8" /></div>
+            <div style={s.iconBox('#38bdf8')}><Plane size={20} color="var(--accent)" /></div>
             <span style={s.badge('#38bdf8')}>{aircraft.length} tracked</span>
           </div>
           <p style={s.cardLabel}>Aircraft</p>
-          <p style={{ ...s.cardValue, color: '#38bdf8' }}>{aircraft.length}</p>
+          <p style={{ ...s.cardValue, color: 'var(--accent)' }}>{aircraft.length}</p>
         </div>
 
         <div style={s.cardAccent('#34d399')}>
           <div style={s.cardTop}>
-            <div style={s.iconBox('#34d399')}><Zap size={20} color="#34d399" /></div>
+            <div style={s.iconBox('#34d399')}><Zap size={20} color="var(--good)" /></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={s.statusDot('#34d399')} />
-              <span style={{ fontSize: '12px', color: '#34d399', fontWeight: '600' }}>Online</span>
+              <span style={{ fontSize: '12px', color: 'var(--good)', fontWeight: '600' }}>Online</span>
             </div>
           </div>
           <p style={s.cardLabel}>Backend Status</p>
-          <p style={{ ...s.cardValue, color: '#34d399' }}>Active</p>
+          <p style={{ ...s.cardValue, color: 'var(--good)' }}>Active</p>
         </div>
       </div>
 
       {/* Alert stats + Account details */}
       <div style={s.grid2}>
         <div style={s.card}>
-          <p style={s.sectionTitle}><Bell size={15} color="#9ca3af" />Alert Activity</p>
+          <p style={s.sectionTitle}><Bell size={15} color="var(--muted)" />Alert Activity</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             {[
               { label: 'Today', value: stats?.today ?? '—' },
               { label: 'This Week', value: stats?.this_week ?? '—' },
               { label: 'All Time', value: stats?.total ?? '—' },
             ].map(({ label, value }) => (
-              <div key={label} style={{ background: '#111827', borderRadius: '10px', padding: '14px', textAlign: 'center', border: '1px solid #1f2937' }}>
-                <p style={{ fontSize: '22px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>{value}</p>
-                <p style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
+              <div key={label} style={{ background: 'var(--panel)', borderRadius: '10px', padding: '14px', textAlign: 'center', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text)', margin: '0 0 2px 0' }}>{value}</p>
+                <p style={{ fontSize: '11px', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
               </div>
             ))}
           </div>
         </div>
 
         <div style={s.card}>
-          <p style={s.sectionTitle}><User size={15} color="#9ca3af" />Account Details</p>
+          <p style={s.sectionTitle}><User size={15} color="var(--muted)" />Account Details</p>
           <div style={s.row}>
             <span style={s.rowLabel}>Email</span>
-            <span style={{ ...s.rowValue, color: '#a5b4fc', fontSize: '12px' }}>{user?.email || '—'}</span>
+            <span style={{ ...s.rowValue, color: 'var(--accent)', fontSize: '12px' }}>{user?.email || '—'}</span>
           </div>
           <div style={s.row}>
             <span style={s.rowLabel}><Calendar size={13} />Member Since</span>
@@ -250,18 +250,18 @@ export default function AccountDashboard() {
           </div>
           <div style={s.rowLast}>
             <span style={s.rowLabel}><Clock size={13} />Expires</span>
-            <span style={{ ...s.rowValue, fontSize: '12px', color: expiryWarning?.urgent ? '#f87171' : '#e5e7eb' }}>
+            <span style={{ ...s.rowValue, fontSize: '12px', color: expiryWarning?.urgent ? 'var(--bad)' : 'var(--text)' }}>
               {expiresAt ? expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
             </span>
           </div>
-          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1f2937' }}>
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
             <button
               onClick={handleBillingPortal}
               disabled={false}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '10px', borderRadius: '10px', border: '1px solid #3b82f630',
-                background: '#3b82f610', color: '#60a5fa', fontSize: '13px', fontWeight: '600',
+                background: '#3b82f610', color: 'var(--accent)', fontSize: '13px', fontWeight: '600',
                 cursor: 'pointer', transition: 'background 0.2s',
               }}
               onMouseEnter={e => (e.currentTarget.style.background = '#3b82f620')}
@@ -269,7 +269,7 @@ export default function AccountDashboard() {
             >
               <CreditCard size={14} />
               Manage Subscription
-              <ExternalLink size={12} color="#4b5563" />
+              <ExternalLink size={12} color="var(--faint)" />
             </button>
           </div>
         </div>
@@ -278,10 +278,10 @@ export default function AccountDashboard() {
       {/* Recent alerts + Aircraft list */}
       <div style={s.grid2}>
         <div style={s.card}>
-          <p style={s.sectionTitle}><Bell size={15} color="#9ca3af" />Recent Alerts</p>
+          <p style={s.sectionTitle}><Bell size={15} color="var(--muted)" />Recent Alerts</p>
           {notifications.length === 0 ? (
             <div style={s.emptyLog}>
-              <Bell size={24} color="#2d3748" style={{ marginBottom: '8px', display: 'block', margin: '0 auto 8px' }} />
+              <Bell size={24} color="var(--border)" style={{ marginBottom: '8px', display: 'block', margin: '0 auto 8px' }} />
               <p style={{ margin: 0 }}>No alerts sent yet</p>
               <p style={{ margin: '4px 0 0', fontSize: '12px' }}>Alerts will appear here once the tracker runs</p>
             </div>
@@ -304,9 +304,9 @@ export default function AccountDashboard() {
         </div>
 
         <div style={s.card}>
-          <p style={s.sectionTitle}><Plane size={15} color="#9ca3af" />Tracked Aircraft</p>
+          <p style={s.sectionTitle}><Plane size={15} color="var(--muted)" />Tracked Aircraft</p>
           {aircraft.length === 0 ? (
-            <p style={{ color: '#6b7280', fontSize: '13px', marginTop: '8px' }}>
+            <p style={{ color: 'var(--faint)', fontSize: '13px', marginTop: '8px' }}>
               No aircraft added yet. Go to the Aircraft tab to add one.
             </p>
           ) : (
@@ -324,12 +324,12 @@ export default function AccountDashboard() {
                   <span style={s.rowLabel}>
                     <div style={{ ...s.statusDot(dotColor), animation: isAirborne ? 'acPulse 2s ease-in-out infinite' : 'none' }} />
                     <div>
-                      <div style={{ fontSize: '13px', color: '#e5e7eb', fontWeight: '600' }}>{a.tail_number}</div>
-                      {a.friendly_name && <div style={{ fontSize: '11px', color: '#6b7280' }}>{a.friendly_name}</div>}
+                      <div style={{ fontSize: '13px', color: 'var(--text)', fontWeight: '600' }}>{a.tail_number}</div>
+                      {a.friendly_name && <div style={{ fontSize: '11px', color: 'var(--faint)' }}>{a.friendly_name}</div>}
                     </div>
                   </span>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: 'monospace' }}>{a.icao24 || 'No ICAO'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--faint)', fontFamily: 'monospace' }}>{a.icao24 || 'No ICAO'}</div>
                     <div style={{ fontSize: '11px', color: dotColor, marginTop: '2px', fontWeight: '600' }}>{statusLabel}</div>
                   </div>
                 </div>

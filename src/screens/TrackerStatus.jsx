@@ -54,7 +54,7 @@ export default function TrackerStatus() {
     <div style={{ fontFamily: 'var(--font-sans)', marginBottom: '20px' }}>
       {/* Cloud Tracker */}
       <div style={{
-        background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)',
+        background: 'var(--panel-2)',
         border: `1px solid ${cloudColor}30`,
         borderRadius: showGround ? '14px 14px 0 0' : '14px',
         padding: '18px 24px',
@@ -67,8 +67,8 @@ export default function TrackerStatus() {
             <Radio size={20} color={cloudColor} />
           </div>
           <div>
-            <p style={{ fontSize: '15px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>Cloud Tracker</p>
-            <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Monitoring your aircraft 24/7 — no action needed</p>
+            <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text)', margin: '0 0 2px 0' }}>Cloud Tracker</p>
+            <p style={{ fontSize: '12px', color: 'var(--faint)', margin: 0 }}>Monitoring your aircraft 24/7 — no action needed</p>
           </div>
         </div>
         <StatusBadge color={cloudColor} label={cloudLabel} online={backendOnline === true} />
@@ -91,8 +91,8 @@ export default function TrackerStatus() {
               <Antenna size={20} color={gsColor} />
             </div>
             <div>
-              <p style={{ fontSize: '15px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' }}>Ground Station</p>
-              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Local SDR receiver — hyperlocal ADS-B tracking</p>
+              <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text)', margin: '0 0 2px 0' }}>Ground Station</p>
+              <p style={{ fontSize: '12px', color: 'var(--faint)', margin: 0 }}>Local SDR receiver — hyperlocal ADS-B tracking</p>
             </div>
           </div>
           <StatusBadge color={gsColor} label={gsLabel} online={groundOnline === true} />

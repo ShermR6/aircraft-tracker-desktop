@@ -65,7 +65,7 @@ function CheckboxDropdown({ label, options, selected, onChange, formatLabel }) {
         padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600',
         background: active ? 'rgba(59,130,246,0.15)' : '#111827',
         border: active ? '1px solid rgba(59,130,246,0.4)' : '1px solid #374151',
-        color: active ? '#60a5fa' : '#9ca3af',
+        color: active ? 'var(--accent)' : 'var(--muted)',
         cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '6px',
       }}>
         {label}{active ? ` (${selected.length})` : ''} ▾
@@ -73,11 +73,11 @@ function CheckboxDropdown({ label, options, selected, onChange, formatLabel }) {
       {open && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
-          background: '#1a2030', border: '1px solid #2d3748', borderRadius: '10px',
+          background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '10px',
           padding: '8px 0', minWidth: '180px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}>
           {options.map(opt => (
-            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 14px', cursor: 'pointer', fontSize: '13px', color: selected.includes(opt) ? '#f9fafb' : '#9ca3af' }}
+            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 14px', cursor: 'pointer', fontSize: '13px', color: selected.includes(opt) ? 'var(--text)' : 'var(--muted)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)}
@@ -156,8 +156,8 @@ export default function Logs() {
   };
 
   const btnStyle = {
-    background: 'none', border: '1px solid #374151', borderRadius: '8px',
-    color: '#9ca3af', padding: '7px 12px', fontSize: '12px',
+    background: 'none', border: '1px solid var(--border)', borderRadius: '8px',
+    color: 'var(--muted)', padding: '7px 12px', fontSize: '12px',
     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
   };
 
@@ -166,8 +166,8 @@ export default function Logs() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Alert Logs</h2>
-          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+          <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' }}>Alert Logs</h2>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', margin: 0 }}>
             Full history of every notification sent · {hasFilters ? `${filteredLogs.length} of ${logs.length}` : logs.length} total
           </p>
         </div>
@@ -188,10 +188,10 @@ export default function Logs() {
       {/* Stats */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-          {[{ label: 'Today', value: stats.today, color: '#38bdf8' }, { label: 'This Week', value: stats.this_week, color: '#a78bfa' }, { label: 'All Time', value: stats.total, color: '#34d399' }].map(({ label, value, color }) => (
-            <div key={label} style={{ background: '#111827', border: `1px solid ${color}20`, borderRadius: '10px', padding: '14px', textAlign: 'center' }}>
+          {[{ label: 'Today', value: stats.today, color: 'var(--accent)' }, { label: 'This Week', value: stats.this_week, color: 'var(--accent)' }, { label: 'All Time', value: stats.total, color: 'var(--good)' }].map(({ label, value, color }) => (
+            <div key={label} style={{ background: 'var(--panel)', border: `1px solid ${color}20`, borderRadius: '10px', padding: '14px', textAlign: 'center' }}>
               <p style={{ fontSize: '22px', fontWeight: '700', color, margin: '0 0 2px 0' }}>{value ?? '—'}</p>
-              <p style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
+              <p style={{ fontSize: '11px', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
             </div>
           ))}
         </div>
@@ -199,7 +199,7 @@ export default function Logs() {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <Filter size={13} color="#4b5563" />
+        <Filter size={13} color="var(--faint)" />
         <CheckboxDropdown label="Aircraft" options={aircraft.map(a => a.tail_number)} selected={selectedAircraft}
           onChange={v => { setSelectedAircraft(v); setPage(1); }} />
         <CheckboxDropdown label="Alert Types" options={['2nm', '5nm', '10nm', '15nm', 'landing']} selected={selectedTypes}
@@ -209,18 +209,18 @@ export default function Logs() {
           onChange={v => { setSelectedChannels(v); setPage(1); }}
           formatLabel={c => c.charAt(0).toUpperCase() + c.slice(1)} />
         {hasFilters && (
-          <button style={{ ...btnStyle, color: '#f87171', borderColor: '#f8717130' }} onClick={clearFilters}>✕ Clear</button>
+          <button style={{ ...btnStyle, color: 'var(--bad)', borderColor: '#f8717130' }} onClick={clearFilters}>✕ Clear</button>
         )}
       </div>
 
       {/* Content */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280', fontSize: '13px' }}>Loading logs...</div>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--faint)', fontSize: '13px' }}>Loading logs...</div>
       ) : filteredLogs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#4b5563' }}>
-          <Bell size={28} color="#2d3748" style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--faint)' }}>
+          <Bell size={28} color="var(--border)" style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
           <p style={{ margin: '0 0 4px', fontSize: '14px' }}>No alerts found</p>
-          <p style={{ margin: 0, fontSize: '12px', color: '#374151' }}>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--faint)' }}>
             {hasFilters ? 'Try adjusting your filters' : 'Alerts will appear here once the tracker sends notifications'}
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function Logs() {
         <>
           {groups.map(group => (
             <div key={group.label} style={{ marginBottom: '28px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4b5563', marginBottom: '10px', paddingLeft: '2px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '10px', paddingLeft: '2px' }}>
                 {group.label}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -244,7 +244,7 @@ export default function Logs() {
                     }}>
                       {/* Top row */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '13px', color: '#f9fafb' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '13px', color: 'var(--text)' }}>
                           <Plane size={11} color={c.border} />
                           {log.aircraft_tail}
                         </span>
@@ -254,19 +254,19 @@ export default function Logs() {
                         }}>
                           {alertTypeLabel(log.alert_type)}
                         </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#6b7280' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--faint)' }}>
                           <span>{integrationIcon(log.integration_type)}</span>
                           {log.integration_type}
                         </span>
                         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {log.status === 'sent'
-                            ? <CheckCircle size={11} color="#34d399" />
-                            : <XCircle size={11} color="#f87171" />}
-                          <span style={{ fontSize: '11px', color: '#6b7280' }}>{formatTime(log.sent_at)}</span>
+                            ? <CheckCircle size={11} color="var(--good)" />
+                            : <XCircle size={11} color="var(--bad)" />}
+                          <span style={{ fontSize: '11px', color: 'var(--faint)' }}>{formatTime(log.sent_at)}</span>
                         </span>
                       </div>
                       {/* Message */}
-                      <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: 1.5, paddingLeft: '2px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, paddingLeft: '2px' }}>
                         {log.message}
                       </div>
                     </div>
@@ -277,20 +277,20 @@ export default function Logs() {
           ))}
 
           {/* Pagination */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid #1f2937', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '13px', color: '#6b7280' }}>
+              <span style={{ fontSize: '13px', color: 'var(--faint)' }}>
                 {filteredLogs.length === 0 ? 'No results' : `Showing ${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filteredLogs.length)} of ${filteredLogs.length}`}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: '#4b5563' }}>Per page:</span>
+                <span style={{ fontSize: '12px', color: 'var(--faint)' }}>Per page:</span>
                 <div style={{ display: 'flex', gap: '4px' }}>
                   {PAGE_SIZE_OPTIONS.map(n => (
                     <button key={n} onClick={() => { setPageSize(n); setPage(1); }} style={{
                       padding: '3px 8px', borderRadius: '6px', border: '1px solid',
                       borderColor: pageSize === n ? 'rgba(14,165,233,0.4)' : '#374151',
                       background: pageSize === n ? 'rgba(14,165,233,0.15)' : 'none',
-                      color: pageSize === n ? '#38bdf8' : '#6b7280',
+                      color: pageSize === n ? 'var(--accent)' : 'var(--faint)',
                       fontSize: '12px', fontWeight: pageSize === n ? '700' : '400',
                       cursor: 'pointer',
                     }}>{n}</button>
@@ -312,7 +312,7 @@ export default function Logs() {
                       width: '32px', height: '32px', borderRadius: '8px', border: '1px solid',
                       borderColor: p === safePage ? 'rgba(14,165,233,0.4)' : '#374151',
                       background: p === safePage ? 'rgba(14,165,233,0.15)' : 'none',
-                      color: p === safePage ? '#38bdf8' : '#6b7280',
+                      color: p === safePage ? 'var(--accent)' : 'var(--faint)',
                       fontSize: '12px', fontWeight: p === safePage ? '700' : '400',
                       cursor: 'pointer',
                     }}>{p}</button>

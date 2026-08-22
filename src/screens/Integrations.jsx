@@ -9,13 +9,13 @@ const INTEGRATION_TYPES = [
   { type: 'slack',       name: 'Slack',           color: '#4a154b', icon: '📱', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://hooks.slack.com/services/...',  inputType: 'url' }] },
   { type: 'teams',       name: 'Microsoft Teams', color: '#6264a7', icon: '👥', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://outlook.office.com/webhook/...', inputType: 'url' }] },
   { type: 'google_chat', name: 'Google Chat',     color: '#4285f4', icon: '💬', fields: [{ key: 'webhook_url', label: 'Webhook URL',    placeholder: 'https://chat.googleapis.com/v1/spaces/...', inputType: 'url' }] },
-  { type: 'email',       name: 'Email',           color: '#0ea5e9', icon: '✉️', fields: [{ key: 'to_email',   label: 'Recipient Email', placeholder: 'you@example.com',                       inputType: 'email' }] },
-  { type: 'sms',         name: 'SMS',             color: '#10b981', icon: '📲', fields: [{ key: 'to_phone',   label: 'Phone Number',    placeholder: '+11234567890',                           inputType: 'tel' }] },
+  { type: 'email',       name: 'Email',           color: 'var(--accent)', icon: '✉️', fields: [{ key: 'to_email',   label: 'Recipient Email', placeholder: 'you@example.com',                       inputType: 'email' }] },
+  { type: 'sms',         name: 'SMS',             color: 'var(--good)', icon: '📲', fields: [{ key: 'to_phone',   label: 'Phone Number',    placeholder: '+11234567890',                           inputType: 'tel' }] },
   { type: 'telegram',    name: 'Telegram',        color: '#229ed9', icon: '✈️', fields: [
     { key: 'bot_token', label: 'Bot Token', placeholder: '123456789:ABCdefGHI...', inputType: 'text' },
     { key: 'chat_id',   label: 'Chat ID',   placeholder: '-1001234567890',         inputType: 'text' },
   ]},
-  { type: 'webhook',     name: 'Webhook',         color: '#6366f1', icon: '🔗', fields: [
+  { type: 'webhook',     name: 'Webhook',         color: 'var(--accent)', icon: '🔗', fields: [
     { key: 'url',    label: 'Webhook URL',         placeholder: 'https://your-service.com/webhook', inputType: 'url' },
     { key: 'secret', label: 'Secret (optional)',   placeholder: 'Sent as X-FinalPing-Secret header', inputType: 'text', required: false },
   ]},
@@ -29,59 +29,59 @@ const s = {
   page: { maxWidth: '860px', margin: '0 auto', fontFamily: 'var(--font-sans)' },
   header: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' },
   headerIcon: { width: '48px', height: '48px', background: '#3b82f620', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  headerTitle: { fontSize: '26px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' },
-  headerSub: { fontSize: '13px', color: '#9ca3af', margin: 0 },
+  headerTitle: { fontSize: '26px', fontWeight: '700', color: 'var(--text)', margin: '0 0 2px 0' },
+  headerSub: { fontSize: '13px', color: 'var(--muted)', margin: 0 },
   addGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '24px' },
   addCard: (disabled) => ({
-    padding: '20px', borderRadius: '12px', border: `2px dashed ${disabled ? '#2d3748' : '#374151'}`,
-    background: disabled ? '#1a2030' : 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
+    padding: '20px', borderRadius: '12px', border: `2px dashed ${disabled ? 'var(--border)' : 'var(--border)'}`,
+    background: disabled ? 'var(--panel-2)' : 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.5 : 1, textAlign: 'center', transition: 'border-color 0.2s',
   }),
   addIcon: { fontSize: '32px', marginBottom: '8px' },
-  addName: { fontSize: '14px', fontWeight: '600', color: '#e5e7eb', marginBottom: '4px' },
-  addStatus: { fontSize: '12px', color: '#6b7280' },
-  card: { background: '#1a2030', border: '1px solid #2d3748', borderRadius: '14px', padding: '24px', marginBottom: '14px' },
+  addName: { fontSize: '14px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' },
+  addStatus: { fontSize: '12px', color: 'var(--faint)' },
+  card: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '24px', marginBottom: '14px' },
   cardTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' },
   cardTopLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
   typeIcon: (color) => ({ width: '42px', height: '42px', borderRadius: '10px', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }),
-  typeName: { fontSize: '16px', fontWeight: '600', color: '#f9fafb', margin: '0 0 2px 0' },
-  typeDesc: { fontSize: '12px', color: '#9ca3af', margin: 0 },
+  typeName: { fontSize: '16px', fontWeight: '600', color: 'var(--text)', margin: '0 0 2px 0' },
+  typeDesc: { fontSize: '12px', color: 'var(--muted)', margin: 0 },
   cardTopRight: { display: 'flex', alignItems: 'center', gap: '10px' },
-  deleteBtn: { background: '#ef444415', border: 'none', borderRadius: '8px', color: '#f87171', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  label: { display: 'block', fontSize: '12px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' },
-  input: { width: '100%', padding: '10px 14px', background: '#111827', border: '1px solid #374151', borderRadius: '8px', color: '#f9fafb', fontSize: '13px', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' },
+  deleteBtn: { background: '#ef444415', border: 'none', borderRadius: '8px', color: 'var(--bad)', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  label: { display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' },
+  input: { width: '100%', padding: '10px 14px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '13px', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' },
   btnRow: { display: 'flex', gap: '10px' },
-  saveBtn: { flex: 1, padding: '10px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' },
-  testBtn: (disabled) => ({ flex: 1, padding: '10px', background: disabled ? '#1f2937' : '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: disabled ? '#4b5563' : '#e5e7eb', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }),
-  empty: { textAlign: 'center', padding: '60px 20px', background: '#111827', borderRadius: '14px', border: '1px dashed #2d3748' },
-  emptyIcon: { width: '56px', height: '56px', background: '#1a2030', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
-  emptyText: { fontSize: '16px', fontWeight: '600', color: '#e5e7eb', marginBottom: '6px' },
-  emptyHint: { fontSize: '13px', color: '#6b7280' },
+  saveBtn: { flex: 1, padding: '10px', background: 'var(--accent)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' },
+  testBtn: (disabled) => ({ flex: 1, padding: '10px', background: disabled ? 'var(--panel-2)' : 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '8px', color: disabled ? 'var(--faint)' : 'var(--text)', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }),
+  empty: { textAlign: 'center', padding: '60px 20px', background: 'var(--panel)', borderRadius: '14px', border: '1px dashed var(--border)' },
+  emptyIcon: { width: '56px', height: '56px', background: 'var(--panel-2)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
+  emptyText: { fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '6px' },
+  emptyHint: { fontSize: '13px', color: 'var(--faint)' },
   alert: (type) => ({
     padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '13px',
     background: type === 'success' ? '#34d39920' : '#ef444420',
     border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`,
-    color: type === 'success' ? '#6ee7b7' : '#fca5a5',
+    color: type === 'success' ? 'var(--good)' : 'var(--bad)',
   }),
-  infoBox: { marginTop: '20px', padding: '14px 16px', background: '#3b82f610', border: '1px solid #3b82f630', borderRadius: '10px', fontSize: '13px', color: '#93c5fd', lineHeight: '1.7' },
+  infoBox: { marginTop: '20px', padding: '14px 16px', background: '#3b82f610', border: '1px solid #3b82f630', borderRadius: '10px', fontSize: '13px', color: 'var(--accent)', lineHeight: '1.7' },
   upgradeBox: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '14px 18px', background: '#f59e0b10', border: '1px solid #f59e0b30',
     borderRadius: '12px', marginBottom: '20px', gap: '12px',
   },
-  upgradeText: { fontSize: '13px', color: '#fcd34d', margin: 0 },
+  upgradeText: { fontSize: '13px', color: 'var(--warn)', margin: 0 },
   upgradeLink: {
-    fontSize: '12px', fontWeight: '700', color: '#f59e0b',
+    fontSize: '12px', fontWeight: '700', color: 'var(--warn)',
     background: '#f59e0b15', border: '1px solid #f59e0b30',
     borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
     whiteSpace: 'nowrap', flexShrink: 0,
   },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px', gap: '10px' },
 };
 
 function Toggle({ checked, onChange }) {
   return (
-    <div onClick={() => onChange(!checked)} style={{ width: '42px', height: '24px', borderRadius: '12px', cursor: 'pointer', flexShrink: 0, background: checked ? '#3b82f6' : '#374151', position: 'relative', transition: 'background 0.2s' }}>
+    <div onClick={() => onChange(!checked)} style={{ width: '42px', height: '24px', borderRadius: '12px', cursor: 'pointer', flexShrink: 0, background: checked ? 'var(--accent)' : 'var(--panel-2)', position: 'relative', transition: 'background 0.2s' }}>
       <div style={{ position: 'absolute', top: '3px', left: checked ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
     </div>
   );
@@ -217,9 +217,9 @@ export default function Integrations({ isViewOnly = false }) {
         <div style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
           padding: '14px 20px', borderRadius: 12,
-          background: toast.type === 'success' ? '#0f2a1a' : '#2a0f0f',
+          background: toast.type === 'success' ? 'var(--good-bg)' : 'var(--bad-bg)',
           border: `1px solid ${toast.type === 'success' ? '#34d39940' : '#ef444440'}`,
-          color: toast.type === 'success' ? '#34d399' : '#f87171',
+          color: toast.type === 'success' ? 'var(--good)' : 'var(--bad)',
           fontSize: 13, fontWeight: 600,
           display: 'flex', alignItems: 'center', gap: 10,
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
@@ -238,13 +238,13 @@ export default function Integrations({ isViewOnly = false }) {
       {/* Confirm delete modal */}
       {confirmModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: '#0f1117', border: '1px solid #2d3748', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+          <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>🗑️</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Integration</h2>
-            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Integration</h2>
+            <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--bad)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
             </div>
           </div>
         </div>
@@ -259,34 +259,34 @@ export default function Integrations({ isViewOnly = false }) {
           padding: 24,
         }}>
           <div style={{
-            background: '#0f1117', border: '1px solid #2d3748',
+            background: 'var(--panel)', border: '1px solid var(--border)',
             borderRadius: 16, padding: 32, maxWidth: 440, width: '100%',
             boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
           }}>
             <div style={{ fontSize: 36, marginBottom: 16, textAlign: 'center' }}>📲</div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f9fafb', margin: '0 0 12px 0', textAlign: 'center' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px 0', textAlign: 'center' }}>
               SMS Messaging Charges
             </h2>
-            <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, margin: '0 0 16px 0' }}>
+            <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.7, margin: '0 0 16px 0' }}>
               By enabling SMS alerts, you acknowledge that:
             </p>
-            <ul style={{ fontSize: 13, color: '#9ca3af', lineHeight: 2, margin: '0 0 20px 0', paddingLeft: 20 }}>
-              <li>Standard carrier <strong style={{ color: '#e5e7eb' }}>messaging rates may apply</strong> depending on your mobile plan.</li>
-              <li>FinalPing uses Twilio to deliver messages — <strong style={{ color: '#e5e7eb' }}>message frequency depends on aircraft activity</strong> and your configured alert distances.</li>
+            <ul style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 2, margin: '0 0 20px 0', paddingLeft: 20 }}>
+              <li>Standard carrier <strong style={{ color: 'var(--text)' }}>messaging rates may apply</strong> depending on your mobile plan.</li>
+              <li>FinalPing uses Twilio to deliver messages — <strong style={{ color: 'var(--text)' }}>message frequency depends on aircraft activity</strong> and your configured alert distances.</li>
               <li>You are responsible for any charges incurred by your carrier.</li>
               <li>You can disable SMS alerts at any time from this screen.</li>
             </ul>
-            <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, fontStyle: 'italic' }}>
+            <p style={{ fontSize: 12, color: 'var(--faint)', marginBottom: 16, fontStyle: 'italic' }}>
               Reply STOP to any message to unsubscribe immediately.
             </p>
             <label
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer', fontSize: 13, color: '#9ca3af', lineHeight: 1.5 }}
+              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer', fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}
               onClick={() => setChargesAccepted(!chargesAccepted)}
             >
               <div style={{
                 width: 20, height: 20, minWidth: 20, borderRadius: 4, marginTop: 1,
                 border: chargesAccepted ? '2px solid #3b82f6' : '2px solid #4b5563',
-                background: chargesAccepted ? '#3b82f6' : 'transparent',
+                background: chargesAccepted ? 'var(--accent)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.15s',
               }}>
@@ -299,8 +299,8 @@ export default function Integrations({ isViewOnly = false }) {
                 onClick={() => { setShowChargesModal(false); setPendingAddType(null); }}
                 style={{
                   flex: 1, padding: '11px', borderRadius: 8,
-                  background: 'transparent', border: '1px solid #374151',
-                  color: '#9ca3af', fontSize: 14, cursor: 'pointer',
+                  background: 'transparent', border: '1px solid var(--border)',
+                  color: 'var(--muted)', fontSize: 14, cursor: 'pointer',
                 }}
               >
                 Cancel
@@ -314,9 +314,9 @@ export default function Integrations({ isViewOnly = false }) {
                 }}
                 style={{
                   flex: 1, padding: '11px', borderRadius: 8,
-                  background: chargesAccepted ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#1f2937',
+                  background: chargesAccepted ? 'var(--accent)' : 'var(--panel-2)',
                   border: chargesAccepted ? 'none' : '1px solid #374151',
-                  color: chargesAccepted ? '#fff' : '#4b5563',
+                  color: chargesAccepted ? '#fff' : 'var(--faint)',
                   fontSize: 14, fontWeight: 600,
                   cursor: chargesAccepted ? 'pointer' : 'not-allowed',
                   boxShadow: chargesAccepted ? '0 4px 12px #3b82f640' : 'none',
@@ -331,12 +331,12 @@ export default function Integrations({ isViewOnly = false }) {
       )}
 
       <div style={s.header}>
-        <div style={s.headerIcon}><LinkIcon size={22} color="#60a5fa" /></div>
+        <div style={s.headerIcon}><LinkIcon size={22} color="var(--accent)" /></div>
         <div>
           <h2 style={s.headerTitle}>Integrations</h2>
           <p style={s.headerSub}>
             {integrations.length} / {getLimitDisplay(limits.integrations)} channels connected
-            <span style={{ marginLeft: '8px', fontSize: '11px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ marginLeft: '8px', fontSize: '11px', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {tier}
             </span>
           </p>
@@ -371,7 +371,7 @@ export default function Integrations({ isViewOnly = false }) {
               <div key={t.type} style={s.addCard(disabled)} onClick={() => handleAdd(t.type)}
                 onMouseEnter={e => { if (!disabled) e.currentTarget.style.borderColor = '#3b82f6'; }}
                 onMouseLeave={e => { if (!disabled) e.currentTarget.style.borderColor = '#374151'; }}>
-                <div style={s.addIcon}>{(channelLocked || (atLimit && !alreadyAdded)) ? <Lock size={24} color="#6b7280" /> : t.icon}</div>
+                <div style={s.addIcon}>{(channelLocked || (atLimit && !alreadyAdded)) ? <Lock size={24} color="var(--faint)" /> : t.icon}</div>
                 <p style={s.addName}>{t.name}</p>
                 <p style={s.addStatus}>{alreadyAdded ? 'Already added' : channelLocked ? 'Upgrade to unlock' : atLimit ? 'Upgrade to add' : 'Click to add'}</p>
               </div>
@@ -381,7 +381,7 @@ export default function Integrations({ isViewOnly = false }) {
             <div key={t.type} style={{ ...s.addCard(true), opacity: 0.5 }}>
               <div style={s.addIcon}>{t.icon}</div>
               <p style={s.addName}>{t.name}</p>
-              <p style={{ ...s.addStatus, color: '#f59e0b' }}>Coming Soon</p>
+              <p style={{ ...s.addStatus, color: 'var(--warn)' }}>Coming Soon</p>
             </div>
           ))}
         </div>
@@ -390,7 +390,7 @@ export default function Integrations({ isViewOnly = false }) {
       {/* Integration cards */}
       {integrations.length === 0 ? (
         <div style={s.empty}>
-          <div style={s.emptyIcon}><LinkIcon size={24} color="#4b5563" /></div>
+          <div style={s.emptyIcon}><LinkIcon size={24} color="var(--faint)" /></div>
           <p style={s.emptyText}>No integrations yet</p>
           <p style={s.emptyHint}>Click on a service above to get started</p>
         </div>
@@ -452,12 +452,12 @@ export default function Integrations({ isViewOnly = false }) {
               ))}
 
               {integration.type === 'sms' && (
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: '-8px 0 14px 0' }}>
+                <p style={{ fontSize: '12px', color: 'var(--faint)', margin: '-8px 0 14px 0' }}>
                   Tip: Save the sender number as "FinalPing" in your contacts for easy recognition.
                 </p>
               )}
               {integration.type === 'telegram' && (
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: '-8px 0 14px 0' }}>
+                <p style={{ fontSize: '12px', color: 'var(--faint)', margin: '-8px 0 14px 0' }}>
                   Create a bot via @BotFather, add it to your chat, then get the Chat ID via @userinfobot.
                 </p>
               )}
@@ -469,8 +469,8 @@ export default function Integrations({ isViewOnly = false }) {
                   </button>
                   <button style={s.testBtn(isTestDisabled)} onClick={() => !isTestDisabled && handleTest(integration)} disabled={isTestDisabled}>
                     {testing === integration.id ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Testing...</>
-                      : testResult === 'success' ? <><Check size={14} color="#34d399" /><span style={{ color: '#34d399' }}>Success!</span></>
-                      : testResult === 'error' ? <><X size={14} color="#f87171" /><span style={{ color: '#f87171' }}>Failed</span></>
+                      : testResult === 'success' ? <><Check size={14} color="var(--good)" /><span style={{ color: 'var(--good)' }}>Success!</span></>
+                      : testResult === 'error' ? <><X size={14} color="var(--bad)" /><span style={{ color: 'var(--bad)' }}>Failed</span></>
                       : <><Send size={14} />Test</>}
                   </button>
                 </div>

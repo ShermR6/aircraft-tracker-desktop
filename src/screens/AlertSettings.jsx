@@ -7,7 +7,7 @@ function Toggle({ checked, onChange }) {
   return (
     <div onClick={() => onChange(!checked)} style={{
       width: '42px', height: '24px', borderRadius: '12px', cursor: 'pointer', flexShrink: 0,
-      background: checked ? '#38bdf8' : '#1e2a3a', position: 'relative', transition: 'background 0.2s',
+      background: checked ? 'var(--accent)' : 'var(--panel-2)', position: 'relative', transition: 'background 0.2s',
     }}>
       <div style={{
         position: 'absolute', top: '3px', left: checked ? '21px' : '3px',
@@ -19,30 +19,30 @@ function Toggle({ checked, onChange }) {
 
 const s = {
   page: { maxWidth: '860px', margin: '0 auto', paddingBottom: '40px', fontFamily: 'var(--font-sans)' },
-  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #1a2030', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  hdrMini: { fontSize: '11px', fontWeight: '700', color: '#38bdf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
-  hdrTitle: { fontSize: '26px', fontWeight: '800', color: '#f9fafb', margin: '0 0 4px 0' },
-  hdrSub: { fontSize: '13px', color: '#6b7280', margin: 0 },
-  addBtn: { display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '700', cursor: 'pointer', flexShrink: 0, marginTop: '4px' },
-  sectionLabel: { fontSize: '11px', fontWeight: '700', color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px', display: 'block' },
+  hdr: { marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
+  hdrMini: { fontSize: '11px', fontWeight: '700', color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' },
+  hdrTitle: { fontSize: '26px', fontWeight: '800', color: 'var(--text)', margin: '0 0 4px 0' },
+  hdrSub: { fontSize: '13px', color: 'var(--faint)', margin: 0 },
+  addBtn: { display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', background: 'var(--accent)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '700', cursor: 'pointer', flexShrink: 0, marginTop: '4px' },
+  sectionLabel: { fontSize: '11px', fontWeight: '700', color: 'var(--faint)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px', display: 'block' },
   section: { marginBottom: '28px' },
-  alertRow: { background: '#131b27', border: '1px solid #1e2a3a', borderRadius: '10px', padding: '16px 18px', marginBottom: '10px' },
+  alertRow: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px 18px', marginBottom: '10px' },
   alertRowTop: { display: 'flex', alignItems: 'center', gap: '12px' },
-  distInput: { width: '62px', padding: '5px 8px', background: '#0d1117', border: '1px solid #1e2a3a', borderRadius: '6px', color: '#f9fafb', fontSize: '15px', fontWeight: '700', textAlign: 'center', outline: 'none', transition: 'border-color 0.15s' },
-  nmLabel: { fontSize: '13px', color: '#4b5563', fontWeight: '600' },
-  alertNum: { fontSize: '12px', color: '#374151', fontWeight: '500' },
-  deleteBtn: { marginLeft: 'auto', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', color: '#f87171', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s' },
-  msgLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', marginTop: '14px' },
-  textarea: { width: '100%', padding: '10px 14px', background: '#0d1117', border: '1px solid #1e2a3a', borderRadius: '8px', color: '#f9fafb', fontSize: '13px', fontFamily: 'monospace', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color 0.15s' },
-  varsRow: { display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px 14px', background: '#0d1117', borderRadius: '8px', alignItems: 'center', marginTop: '12px', border: '1px solid #1e2a3a' },
-  varLabel: { fontSize: '11px', color: '#4b5563' },
-  varChip: { fontSize: '11px', padding: '3px 8px', background: '#131b27', color: '#d1d5db', borderRadius: '4px', fontFamily: 'monospace', border: '1px solid #1e2a3a' },
-  landingCard: { background: '#131b27', border: '1px solid #1e2a3a', borderRadius: '10px', padding: '18px' },
+  distInput: { width: '62px', padding: '5px 8px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text)', fontSize: '15px', fontWeight: '700', textAlign: 'center', outline: 'none', transition: 'border-color 0.15s' },
+  nmLabel: { fontSize: '13px', color: 'var(--faint)', fontWeight: '600' },
+  alertNum: { fontSize: '12px', color: 'var(--faint)', fontWeight: '500' },
+  deleteBtn: { marginLeft: 'auto', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', color: 'var(--bad)', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s' },
+  msgLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', marginTop: '14px' },
+  textarea: { width: '100%', padding: '10px 14px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '13px', fontFamily: 'monospace', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color 0.15s' },
+  varsRow: { display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px 14px', background: 'var(--panel)', borderRadius: '8px', alignItems: 'center', marginTop: '12px', border: '1px solid var(--border)' },
+  varLabel: { fontSize: '11px', color: 'var(--faint)' },
+  varChip: { fontSize: '11px', padding: '3px 8px', background: 'var(--panel-2)', color: 'var(--muted)', borderRadius: '4px', fontFamily: 'monospace', border: '1px solid var(--border)' },
+  landingCard: { background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '18px' },
   landingTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  landingTitle: { fontSize: '15px', fontWeight: '700', color: '#f9fafb' },
+  landingTitle: { fontSize: '15px', fontWeight: '700', color: 'var(--text)' },
   saveBtn: (saving) => ({
     width: '100%', padding: '14px', borderRadius: '12px', border: 'none', marginTop: '8px',
-    background: saving ? '#374151' : 'linear-gradient(135deg, #38bdf8, #0ea5e9)',
+    background: saving ? 'var(--panel-2)' : 'var(--accent)',
     color: '#fff', fontSize: '15px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
   }),
@@ -51,12 +51,12 @@ const s = {
     display: 'flex', alignItems: 'center', gap: '10px',
     background: type === 'success' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)',
     border: `1px solid ${type === 'success' ? '#34d39940' : '#ef444440'}`,
-    color: type === 'success' ? '#6ee7b7' : '#fca5a5',
+    color: type === 'success' ? 'var(--good)' : 'var(--bad)',
   }),
-  infoBox: { marginTop: '20px', padding: '14px 16px', background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.15)', borderRadius: '10px', fontSize: '13px', color: '#7dd3fc', lineHeight: '1.6' },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '14px', gap: '10px' },
+  infoBox: { marginTop: '20px', padding: '14px 16px', background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.15)', borderRadius: '10px', fontSize: '13px', color: 'var(--accent)', lineHeight: '1.6' },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px', gap: '10px' },
   overlay: { position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' },
-  modal: { background: '#0f1117', border: '1px solid #2d3748', borderRadius: '16px', padding: '32px', maxWidth: '380px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' },
+  modal: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '16px', padding: '32px', maxWidth: '380px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' },
 };
 
 export default function AlertSettings({ isViewOnly = false }) {
@@ -182,11 +182,11 @@ export default function AlertSettings({ isViewOnly = false }) {
         <div style={s.overlay}>
           <div style={s.modal}>
             <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>🔔</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f9fafb', textAlign: 'center', margin: '0 0 8px' }}>Remove Alert</h2>
-            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', margin: '0 0 24px' }}>Remove this distance alert?</p>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', textAlign: 'center', margin: '0 0 8px' }}>Remove Alert</h2>
+            <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px' }}>Remove this distance alert?</p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid #374151', color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--bad)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
             </div>
           </div>
         </div>
@@ -268,14 +268,14 @@ export default function AlertSettings({ isViewOnly = false }) {
             { syntax: '__underline__', label: 'Underline' },
             { syntax: '~~strikethrough~~', label: 'Strike' },
           ].map(f => (
-            <span key={f.syntax} style={{ ...s.varChip, color: '#93c5fd' }} title={f.label}>{f.syntax}</span>
+            <span key={f.syntax} style={{ ...s.varChip, color: 'var(--accent)' }} title={f.label}>{f.syntax}</span>
           ))}
         </div>
       </div>
 
       {/* Takeoff Alert */}
       <div style={s.section}>
-        <span style={s.sectionLabel}>Takeoff Alert <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(245,180,0,0.15)', color: '#f5b400', border: '1px solid rgba(245,180,0,0.3)', borderRadius: 999, padding: '1px 6px', marginLeft: 6 }}>Ground Station</span></span>
+        <span style={s.sectionLabel}>Takeoff Alert <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(245,180,0,0.15)', color: 'var(--warn)', border: '1px solid rgba(245,180,0,0.3)', borderRadius: 999, padding: '1px 6px', marginLeft: 6 }}>Ground Station</span></span>
         <div style={s.landingCard}>
           <div style={s.landingTop}>
             <span style={s.landingTitle}>Alert when aircraft takes off</span>
@@ -332,7 +332,7 @@ export default function AlertSettings({ isViewOnly = false }) {
       <div style={s.infoBox}>
         <strong>How variables work:</strong> Use {'{tail_number}'}, {'{airport}'}, {'{distance}'}, {'{altitude}'}, or {'{eta}'} in your messages. The system fills them in with real flight data when sending each notification.
         <br /><br />
-        <strong>Formatting:</strong> Discord and Slack support markdown — use <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>**text**</code> for bold, <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>_text_</code> for italic, <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>__text__</code> for underline (Discord only), and <code style={{ background: '#0d1117', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>~~text~~</code> for strikethrough.
+        <strong>Formatting:</strong> Discord and Slack support markdown — use <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>**text**</code> for bold, <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>_text_</code> for italic, <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>__text__</code> for underline (Discord only), and <code style={{ background: 'var(--panel)', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>~~text~~</code> for strikethrough.
       </div>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

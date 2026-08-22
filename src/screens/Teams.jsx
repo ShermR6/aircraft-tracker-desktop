@@ -4,9 +4,9 @@ import { Plus, X, Phone, Hash, Mail, UserPlus, Check, Clock, Trash2 } from 'luci
 const TABS = ['Members', 'Channels', 'Routing', 'Activity'];
 
 const ROLE_STYLES = {
-  owner: { bg: 'rgba(14,165,233,0.12)', color: '#0ea5e9', label: 'Owner' },
-  admin: { bg: 'rgba(168,85,247,0.12)', color: '#a855f7', label: 'Admin' },
-  member: { bg: 'rgba(107,114,128,0.12)', color: '#9ca3af', label: 'Member' },
+  owner: { bg: 'rgba(14,165,233,0.12)', color: 'var(--accent)', label: 'Owner' },
+  admin: { bg: 'rgba(168,85,247,0.12)', color: 'var(--accent)', label: 'Admin' },
+  member: { bg: 'rgba(107,114,128,0.12)', color: 'var(--muted)', label: 'Member' },
 };
 
 const INTEGRATION_TYPES = [
@@ -22,7 +22,7 @@ const inputStyle = {
   width: '100%', padding: '10px 12px',
   background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: 8, color: '#f9fafb', fontSize: 13,
+  borderRadius: 8, color: 'var(--text)', fontSize: 13,
   outline: 'none', boxSizing: 'border-box',
 };
 
@@ -51,13 +51,13 @@ function Modal({ title, onClose, children }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div style={{
-        background: '#0f1117', border: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--panel)', border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: 16, padding: 28, width: 400, maxWidth: '90%',
         boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-          <span style={{ fontSize: 16, fontWeight: 700, color: '#f9fafb' }}>{title}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 4 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{title}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer', padding: 4 }}>
             <X size={16} />
           </button>
         </div>
@@ -70,7 +70,7 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ children }) {
   return (
     <label style={{
-      fontSize: 11, fontWeight: 600, color: '#6b7280',
+      fontSize: 11, fontWeight: 600, color: 'var(--faint)',
       textTransform: 'uppercase', letterSpacing: '0.08em',
       display: 'block', marginBottom: 6,
     }}>
@@ -85,15 +85,15 @@ function ModalActions({ onCancel, onConfirm, confirmLabel, disabled }) {
       <button onClick={onCancel} style={{
         flex: 1, padding: '11px', borderRadius: 8,
         background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-        color: '#6b7280', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        color: 'var(--faint)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
       }}>Cancel</button>
       <button
         onClick={onConfirm}
         disabled={disabled}
         style={{
           flex: 1, padding: '11px', borderRadius: 8,
-          background: disabled ? 'rgba(14,165,233,0.2)' : 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-          border: 'none', color: disabled ? '#0ea5e9' : '#fff',
+          background: disabled ? 'rgba(14,165,233,0.2)' : 'var(--accent)',
+          border: 'none', color: disabled ? 'var(--accent)' : '#fff',
           fontSize: 13, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer',
         }}
       >{confirmLabel}</button>
@@ -130,14 +130,14 @@ function InviteMemberModal({ onClose, onInvite }) {
                   flex: 1, padding: '9px', borderRadius: 8,
                   border: `1px solid ${role === r ? rs.color + '44' : 'rgba(255,255,255,0.08)'}`,
                   background: role === r ? rs.bg : 'transparent',
-                  color: role === r ? rs.color : '#6b7280',
+                  color: role === r ? rs.color : 'var(--faint)',
                   fontSize: 13, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize',
                 }}
               >{r}</button>
             );
           })}
         </div>
-        <p style={{ fontSize: 11, color: '#4b5563', margin: '6px 0 0', lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11, color: 'var(--faint)', margin: '6px 0 0', lineHeight: 1.5 }}>
           {role === 'admin'
             ? 'Can manage members, channels, and routing rules.'
             : 'Receives alerts. Cannot change team settings.'}
@@ -178,7 +178,7 @@ function AddChannelModal({ type, onClose, onAdd }) {
           placeholder={integ.placeholder}
           style={inputStyle}
         />
-        <p style={{ fontSize: 11, color: '#4b5563', margin: '6px 0 0' }}>{integ.hint}</p>
+        <p style={{ fontSize: 11, color: 'var(--faint)', margin: '6px 0 0' }}>{integ.hint}</p>
       </div>
       <ModalActions
         onCancel={onClose}
@@ -199,7 +199,7 @@ function MembersTab({ members, onInvite, onRemove }) {
         <InviteMemberModal onClose={() => setShowInvite(false)} onInvite={onInvite} />
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span style={{ fontSize: 13, color: '#6b7280' }}>
+        <span style={{ fontSize: 13, color: 'var(--faint)' }}>
           {members.length} member{members.length !== 1 ? 's' : ''}
         </span>
         <button
@@ -207,7 +207,7 @@ function MembersTab({ members, onInvite, onRemove }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '8px 14px', borderRadius: 8,
-            background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+            background: 'var(--accent)',
             border: 'none', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}
         >
@@ -226,10 +226,10 @@ function MembersTab({ members, onInvite, onRemove }) {
             }}>
               <Avatar email={m.email} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', marginBottom: m.name ? 2 : 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: m.name ? 2 : 0 }}>
                   {m.name || m.email}
                 </div>
-                {m.name && <div style={{ fontSize: 12, color: '#4b5563' }}>{m.email}</div>}
+                {m.name && <div style={{ fontSize: 12, color: 'var(--faint)' }}>{m.email}</div>}
               </div>
               <span style={{
                 fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
@@ -237,7 +237,7 @@ function MembersTab({ members, onInvite, onRemove }) {
               }}>{role.label}</span>
               <span style={{
                 display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                fontSize: 11, color: m.status === 'active' ? '#22d3a3' : '#f59e0b',
+                fontSize: 11, color: m.status === 'active' ? 'var(--good)' : 'var(--warn)',
               }}>
                 {m.status === 'active' ? <Check size={12} /> : <Clock size={12} />}
                 {m.status === 'active' ? 'Active' : 'Invited'}
@@ -245,7 +245,7 @@ function MembersTab({ members, onInvite, onRemove }) {
               {m.role !== 'owner' && (
                 <button
                   onClick={() => onRemove(m.id)}
-                  style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
                   onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
                   onMouseLeave={e => e.currentTarget.style.color = '#374151'}
                 >
@@ -272,7 +272,7 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
           onAdd={(type, ch) => { onAddChannel(type, ch); setAddingType(null); }}
         />
       )}
-      <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 24px', lineHeight: 1.6 }}>
+      <p style={{ fontSize: 13, color: 'var(--faint)', margin: '0 0 24px', lineHeight: 1.6 }}>
         Add multiple notification endpoints per integration type. Configure which distances trigger each channel in the Routing tab.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -282,12 +282,12 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
             <div key={key}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Icon size={14} color="#4b5563" />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af' }}>{label}</span>
+                  <Icon size={14} color="var(--faint)" />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>{label}</span>
                   {list.length > 0 && (
                     <span style={{
                       fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
-                      background: 'rgba(14,165,233,0.1)', color: '#0ea5e9',
+                      background: 'rgba(14,165,233,0.1)', color: 'var(--accent)',
                     }}>{list.length}</span>
                   )}
                 </div>
@@ -297,7 +297,7 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '5px 10px', borderRadius: 6,
                     background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#6b7280', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    color: 'var(--faint)', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(14,165,233,0.3)'; e.currentTarget.style.color = '#0ea5e9'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#6b7280'; }}
@@ -310,7 +310,7 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
                   padding: '14px 16px',
                   border: '1px dashed rgba(255,255,255,0.08)',
                   borderRadius: 10, textAlign: 'center',
-                  color: '#374151', fontSize: 12,
+                  color: 'var(--faint)', fontSize: 12,
                 }}>
                   No {label.toLowerCase()} added yet
                 </div>
@@ -323,14 +323,14 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
                       background: 'rgba(255,255,255,0.02)',
                       border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8,
                     }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#d1d5db', flexShrink: 0 }}>{ch.label}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', flexShrink: 0 }}>{ch.label}</span>
                       <span style={{
-                        fontSize: 12, color: '#4b5563',
+                        fontSize: 12, color: 'var(--faint)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                       }}>{ch.value}</span>
                       <button
                         onClick={() => onRemoveChannel(key, ch.id)}
-                        style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
+                        style={{ background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
                         onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
                         onMouseLeave={e => e.currentTarget.style.color = '#374151'}
                       >
@@ -357,8 +357,8 @@ function RoutingTab({ channels, routing, onToggle }) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px' }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>📡</div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#6b7280', marginBottom: 4 }}>No channels configured</div>
-        <div style={{ fontSize: 13, color: '#374151' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--faint)', marginBottom: 4 }}>No channels configured</div>
+        <div style={{ fontSize: 13, color: 'var(--faint)' }}>
           Add channels in the Channels tab first, then configure routing rules here.
         </div>
       </div>
@@ -367,7 +367,7 @@ function RoutingTab({ channels, routing, onToggle }) {
 
   return (
     <div>
-      <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 20px', lineHeight: 1.6 }}>
+      <p style={{ fontSize: 13, color: 'var(--faint)', margin: '0 0 20px', lineHeight: 1.6 }}>
         Choose which channels are notified at each alert distance. All channels are enabled by default.
       </p>
       <div style={{
@@ -377,11 +377,11 @@ function RoutingTab({ channels, routing, onToggle }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-              <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', width: 110 }}>
+              <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', width: 110 }}>
                 Distance
               </th>
               {allChannels.map(ch => (
-                <th key={`${ch.type}_${ch.id}`} style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                <th key={`${ch.type}_${ch.id}`} style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, color: 'var(--faint)', whiteSpace: 'nowrap' }}>
                   {ch.label}
                 </th>
               ))}
@@ -399,7 +399,7 @@ function RoutingTab({ channels, routing, onToggle }) {
                 <td style={{ padding: '13px 16px' }}>
                   <span style={{
                     fontSize: 13, fontWeight: 700,
-                    color: dist === 'Landing' ? '#22d3a3' : '#f1f5f9',
+                    color: dist === 'Landing' ? 'var(--good)' : 'var(--text)',
                   }}>{dist}</span>
                 </td>
                 {allChannels.map(ch => {
@@ -411,8 +411,8 @@ function RoutingTab({ channels, routing, onToggle }) {
                         onClick={() => onToggle(key, !checked)}
                         style={{
                           width: 20, height: 20, borderRadius: 5,
-                          border: `1.5px solid ${checked ? '#0ea5e9' : 'rgba(255,255,255,0.15)'}`,
-                          background: checked ? '#0ea5e9' : 'transparent',
+                          border: `1.5px solid ${checked ? 'var(--accent)' : 'rgba(255,255,255,0.15)'}`,
+                          background: checked ? 'var(--accent)' : 'transparent',
                           cursor: 'pointer',
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                           transition: 'all 0.15s',
@@ -436,8 +436,8 @@ function ActivityTab() {
   return (
     <div style={{ textAlign: 'center', padding: '60px 20px' }}>
       <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
-      <div style={{ fontSize: 14, fontWeight: 600, color: '#6b7280', marginBottom: 4 }}>No activity yet</div>
-      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--faint)', marginBottom: 4 }}>No activity yet</div>
+      <div style={{ fontSize: 13, color: 'var(--faint)', lineHeight: 1.6 }}>
         Alert events and acknowledgments will appear here once your team starts receiving alerts.
       </div>
     </div>
@@ -476,13 +476,13 @@ export default function Teams() {
   return (
     <div style={{ maxWidth: 760 }}>
       <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#0ea5e9', marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 6 }}>
           Team Management
         </div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f9fafb', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
           Your Team
         </h1>
-        <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: 'var(--faint)', margin: 0, lineHeight: 1.6 }}>
           Manage members, notification channels, and alert routing for your team.
         </p>
       </div>
@@ -499,8 +499,8 @@ export default function Teams() {
             style={{
               padding: '8px 16px',
               background: 'none', border: 'none',
-              borderBottom: `2px solid ${activeTab === tab ? '#0ea5e9' : 'transparent'}`,
-              color: activeTab === tab ? '#0ea5e9' : '#6b7280',
+              borderBottom: `2px solid ${activeTab === tab ? 'var(--accent)' : 'transparent'}`,
+              color: activeTab === tab ? 'var(--accent)' : 'var(--faint)',
               fontSize: 13, fontWeight: activeTab === tab ? 700 : 500,
               cursor: 'pointer', transition: 'all 0.15s', marginBottom: -1,
             }}

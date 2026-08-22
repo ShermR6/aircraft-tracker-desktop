@@ -5,8 +5,8 @@ import APIService from '../services/api';
 const s = {
   page: { padding: '32px 0' },
   header: { marginBottom: 28 },
-  title: { fontSize: 22, fontWeight: 700, color: '#f9fafb', margin: '0 0 6px 0' },
-  subtitle: { fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.6 },
+  title: { fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 6px 0' },
+  subtitle: { fontSize: 13, color: 'var(--faint)', margin: 0, lineHeight: 1.6 },
 
   card: {
     background: 'rgba(255,255,255,0.03)',
@@ -16,28 +16,28 @@ const s = {
     marginBottom: 16,
   },
 
-  cardTitle: { fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0ea5e9', marginBottom: 14 },
+  cardTitle: { fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 14 },
 
   statusRow: { display: 'flex', alignItems: 'center', gap: 10 },
   statusDot: (online) => ({
     width: 8, height: 8, borderRadius: '50%',
-    background: online ? '#22c55e' : '#4b5563',
+    background: online ? 'var(--good)' : '#4b5563',
     boxShadow: online ? '0 0 8px #22c55e80' : 'none',
     flexShrink: 0,
   }),
-  statusText: (online) => ({ fontSize: 14, fontWeight: 600, color: online ? '#22c55e' : '#6b7280' }),
-  statusSub: { fontSize: 12, color: '#4b5563', marginLeft: 18, marginTop: 4 },
+  statusText: (online) => ({ fontSize: 14, fontWeight: 600, color: online ? 'var(--good)' : 'var(--faint)' }),
+  statusSub: { fontSize: 12, color: 'var(--faint)', marginLeft: 18, marginTop: 4 },
 
   tokenRow: { display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 },
   tokenBox: {
-    flex: 1, background: '#0a0e1a', border: '1px solid rgba(255,255,255,0.08)',
+    flex: 1, background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: 8, padding: '9px 12px', fontFamily: 'monospace',
-    fontSize: 12, color: '#9ca3af', overflow: 'hidden', whiteSpace: 'nowrap',
+    fontSize: 12, color: 'var(--muted)', overflow: 'hidden', whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
   },
   iconBtn: {
     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 8, padding: '8px 10px', color: '#9ca3af', cursor: 'pointer',
+    borderRadius: 8, padding: '8px 10px', color: 'var(--muted)', cursor: 'pointer',
     display: 'flex', alignItems: 'center', flexShrink: 0,
     transition: 'all 0.15s',
   },
@@ -47,15 +47,15 @@ const s = {
     width: 24, height: 24, borderRadius: '50%',
     background: 'rgba(14,165,233,0.12)', border: '1px solid rgba(14,165,233,0.25)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 11, fontWeight: 700, color: '#0ea5e9', flexShrink: 0, marginTop: 1,
+    fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0, marginTop: 1,
   },
   stepContent: { flex: 1 },
-  stepTitle: { fontSize: 13, fontWeight: 600, color: '#f9fafb', marginBottom: 4 },
-  stepDesc: { fontSize: 12, color: '#6b7280', lineHeight: 1.6, marginBottom: 8 },
+  stepTitle: { fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 4 },
+  stepDesc: { fontSize: 12, color: 'var(--faint)', lineHeight: 1.6, marginBottom: 8 },
   codeBlock: {
-    background: '#0a0e1a', border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: 8, padding: '10px 14px', fontFamily: 'monospace',
-    fontSize: 11, color: '#7dd3fc', display: 'flex', alignItems: 'center',
+    fontSize: 11, color: 'var(--accent)', display: 'flex', alignItems: 'center',
     justifyContent: 'space-between', gap: 8,
   },
   codeText: { flex: 1, wordBreak: 'break-all', lineHeight: 1.5 },
@@ -63,18 +63,18 @@ const s = {
   copyBtn: (copied) => ({
     background: copied ? 'rgba(34,197,94,0.1)' : 'rgba(14,165,233,0.1)',
     border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(14,165,233,0.2)'}`,
-    borderRadius: 6, padding: '4px 10px', color: copied ? '#22c55e' : '#0ea5e9',
+    borderRadius: 6, padding: '4px 10px', color: copied ? 'var(--good)' : 'var(--accent)',
     cursor: 'pointer', fontSize: 11, fontWeight: 600, flexShrink: 0,
     transition: 'all 0.15s',
   }),
 
   refreshBtn: {
-    background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer',
+    background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer',
     display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '4px 0',
     marginTop: 10,
   },
   note: {
-    fontSize: 11, color: '#4b5563', lineHeight: 1.6,
+    fontSize: 11, color: 'var(--faint)', lineHeight: 1.6,
     background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
     borderRadius: 8, padding: '10px 14px', marginTop: 12,
   },
@@ -136,7 +136,7 @@ export default function GroundStationSetup() {
       <div style={s.header}>
         <h2 style={s.title}>Ground Station Setup</h2>
         <p style={s.subtitle}>Connect your FinalPing hardware to your account for live ground tracking.</p>
-        <div style={{ fontSize: 12, color: '#fcd34d', marginTop: 8, display: 'flex', gap: 6 }}>
+        <div style={{ fontSize: 12, color: 'var(--warn)', marginTop: 8, display: 'flex', gap: 6 }}>
           <span>💡</span> Place the antenna near a window for best range — the Pi can sit anywhere nearby.
         </div>
       </div>
@@ -145,14 +145,14 @@ export default function GroundStationSetup() {
       <div style={s.card}>
         <div style={s.cardTitle}>Station Status</div>
         {statusLoading ? (
-          <div style={{ fontSize: 13, color: '#4b5563' }}>Checking...</div>
+          <div style={{ fontSize: 13, color: 'var(--faint)' }}>Checking...</div>
         ) : (
           <>
             <div style={s.statusRow}>
               <div style={s.statusDot(isOnline)} />
               {isOnline
-                ? <Wifi size={15} color="#22c55e" />
-                : <WifiOff size={15} color="#4b5563" />
+                ? <Wifi size={15} color="var(--good)" />
+                : <WifiOff size={15} color="var(--faint)" />
               }
               <span style={s.statusText(isOnline)}>
                 {isOnline ? 'Ground station online' : 'Ground station offline'}
@@ -173,7 +173,7 @@ export default function GroundStationSetup() {
       {/* One-liner setup */}
       <div style={s.card}>
         <div style={s.cardTitle}>Quick Setup</div>
-        <p style={{ fontSize: 13, color: '#9ca3af', margin: '0 0 12px 0', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 12px 0', lineHeight: 1.6 }}>
           Run this command on your Raspberry Pi. It installs everything automatically.
         </p>
         <CodeLine code={setupCommand} />
@@ -202,7 +202,7 @@ export default function GroundStationSetup() {
                 {showToken ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
               <button
-                style={{ ...s.iconBtn, color: tokenCopied ? '#22c55e' : '#9ca3af' }}
+                style={{ ...s.iconBtn, color: tokenCopied ? 'var(--good)' : 'var(--muted)' }}
                 onClick={copyToken}
                 title="Copy token"
               >
@@ -254,8 +254,8 @@ export default function GroundStationSetup() {
         </div>
 
         <div style={s.note}>
-          The ground station polls dump1090 at <code style={{ color: '#7dd3fc' }}>http://localhost:8080/data/aircraft.json</code>.
-          Override with the <code style={{ color: '#7dd3fc' }}>DUMP1090_URL</code> environment variable if your setup differs.
+          The ground station polls dump1090 at <code style={{ color: 'var(--accent)' }}>http://localhost:8080/data/aircraft.json</code>.
+          Override with the <code style={{ color: 'var(--accent)' }}>DUMP1090_URL</code> environment variable if your setup differs.
         </div>
       </div>
     </div>

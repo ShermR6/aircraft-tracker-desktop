@@ -11,7 +11,7 @@ function SplashScreen() {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 99999,
-      background: '#0b0b0b',
+      background: 'var(--bg)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       fontFamily: 'var(--font-sans)',
@@ -21,17 +21,17 @@ function SplashScreen() {
         @keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(400%)} }
       `}</style>
       <div style={{ animation: 'splashIn 0.5s ease', textAlign: 'center' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#4b5563', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: 10 }}>
           AIRCRAFT ALERTS
         </div>
-        <div style={{ fontSize: 38, fontWeight: 800, color: '#f9fafb', letterSpacing: '-0.03em' }}>
+        <div style={{ fontSize: 38, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em' }}>
           FinalPing
         </div>
-        <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg, #0ea5e9, #6366f1)', borderRadius: 999, margin: '14px auto 0' }} />
+        <div style={{ width: 48, height: 2, background: 'var(--accent)', borderRadius: 999, margin: '14px auto 0' }} />
       </div>
       <div style={{
         position: 'absolute', bottom: 48,
-        width: 100, height: 2, background: '#1a1a1a', borderRadius: 999, overflow: 'hidden',
+        width: 100, height: 2, background: 'var(--panel-2)', borderRadius: 999, overflow: 'hidden',
       }}>
         <div style={{
           position: 'absolute', inset: 0,
@@ -47,19 +47,19 @@ function UpdateBanner({ version, onDismiss }) {
   return (
     <div style={{
       position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
-      background: '#1e293b', border: '1px solid rgba(14,165,233,0.3)',
+      background: 'var(--panel-2)', border: '1px solid rgba(14,165,233,0.3)',
       borderRadius: 12, padding: '12px 16px',
       display: 'flex', alignItems: 'center', gap: 12,
       boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-      fontSize: 13, color: '#e2e8f0',
+      fontSize: 13, color: 'var(--text)',
     }}>
-      <span style={{ color: '#38bdf8', fontSize: 16 }}>↑</span>
+      <span style={{ color: 'var(--accent)', fontSize: 16 }}>↑</span>
       <span>v{version} ready</span>
       <button
         onClick={() => window.electronAPI?.restartAndInstall()}
         style={{
           padding: '4px 12px', borderRadius: 6,
-          background: '#0ea5e9', border: 'none',
+          background: 'var(--accent)', border: 'none',
           color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
         }}
       >Restart</button>
@@ -67,7 +67,7 @@ function UpdateBanner({ version, onDismiss }) {
         onClick={onDismiss}
         style={{
           background: 'none', border: 'none',
-          color: '#4b5563', fontSize: 16, cursor: 'pointer', padding: 0, lineHeight: 1,
+          color: 'var(--faint)', fontSize: 16, cursor: 'pointer', padding: 0, lineHeight: 1,
         }}
       >✕</button>
     </div>
@@ -89,15 +89,15 @@ function LicenseExpiredOverlay({ onActivateNew }) {
       backdropFilter: 'blur(4px)',
     }}>
       <div style={{
-        background: '#0f1117', border: '1px solid #2d3748',
+        background: 'var(--panel)', border: '1px solid var(--border)',
         borderRadius: 20, padding: 40, maxWidth: 420, width: '90%',
         textAlign: 'center', boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
       }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#f9fafb', margin: '0 0 12px 0' }}>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px 0' }}>
           Your License Has Expired
         </h2>
-        <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, margin: '0 0 28px 0' }}>
+        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.7, margin: '0 0 28px 0' }}>
           Your FinalPing license has expired. Aircraft tracking and alerts have been paused. Purchase a new license to restore full access — your new key will be emailed to you instantly.
         </p>
 
@@ -106,7 +106,7 @@ function LicenseExpiredOverlay({ onActivateNew }) {
           onClick={openPricing}
           style={{
             width: '100%', padding: '13px',
-            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            background: 'var(--accent)',
             border: 'none', borderRadius: 10, color: '#fff',
             fontSize: 15, fontWeight: 600, cursor: 'pointer',
             boxShadow: '0 4px 20px #3b82f640', marginBottom: 10,
@@ -121,14 +121,14 @@ function LicenseExpiredOverlay({ onActivateNew }) {
           style={{
             width: '100%', padding: '12px',
             background: 'transparent',
-            border: '1px solid #374151', borderRadius: 10, color: '#9ca3af',
+            border: '1px solid var(--border)', borderRadius: 10, color: 'var(--muted)',
             fontSize: 14, fontWeight: 500, cursor: 'pointer',
           }}
         >
           Already have a license key? Activate it
         </button>
 
-        <p style={{ fontSize: 12, color: '#4b5563', margin: '16px 0 0 0' }}>
+        <p style={{ fontSize: 12, color: 'var(--faint)', margin: '16px 0 0 0' }}>
           Your new license key will be sent to your email after purchase.
         </p>
       </div>
@@ -146,9 +146,9 @@ const CHANGELOG = [
 ];
 
 const TAG = {
-  new: { bg: 'rgba(14,165,233,0.15)', color: '#38bdf8', label: 'New' },
-  improved: { bg: 'rgba(168,85,247,0.15)', color: '#a855f7', label: 'Improved' },
-  fix: { bg: 'rgba(239,68,68,0.15)', color: '#f87171', label: 'Fix' },
+  new: { bg: 'rgba(14,165,233,0.15)', color: 'var(--accent)', label: 'New' },
+  improved: { bg: 'rgba(168,85,247,0.15)', color: 'var(--accent)', label: 'Improved' },
+  fix: { bg: 'rgba(239,68,68,0.15)', color: 'var(--bad)', label: 'Fix' },
 };
 
 function ChangelogModal({ onClose }) {
@@ -159,15 +159,15 @@ function ChangelogModal({ onClose }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div style={{
-        background: '#0f1117', border: '1px solid #1e2a3a',
+        background: 'var(--panel)', border: '1px solid var(--border)',
         borderRadius: 20, padding: 32, maxWidth: 420, width: '90%',
         boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <span style={{ fontSize: 22, fontWeight: 800, color: '#f9fafb' }}>What&apos;s new in v{CURRENT_VERSION}</span>
+          <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)' }}>What&apos;s new in v{CURRENT_VERSION}</span>
           <span style={{
             fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-            background: 'rgba(34,197,94,0.12)', color: '#22c55e',
+            background: 'rgba(34,197,94,0.12)', color: 'var(--good)',
             textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: 'auto',
           }}>Latest</span>
         </div>
@@ -181,7 +181,7 @@ function ChangelogModal({ onClose }) {
                   padding: '2px 7px', borderRadius: 4,
                   background: tag.bg, color: tag.color, marginTop: 1,
                 }}>{tag.label}</span>
-                <span style={{ color: '#d1d5db', lineHeight: 1.5 }}>{c.text}</span>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.5 }}>{c.text}</span>
               </div>
             );
           })}
@@ -191,15 +191,15 @@ function ChangelogModal({ onClose }) {
             onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/changelog')}
             style={{
               flex: 1, padding: '10px', borderRadius: 10,
-              background: 'transparent', border: '1px solid #1e2a3a',
-              color: '#9ca3af', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              background: 'transparent', border: '1px solid var(--border)',
+              color: 'var(--muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >Full Changelog</button>
           <button
             onClick={onClose}
             style={{
               flex: 1, padding: '10px', borderRadius: 10,
-              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+              background: 'var(--accent)',
               border: 'none', color: '#fff',
               fontSize: 13, fontWeight: 700, cursor: 'pointer',
             }}

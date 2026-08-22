@@ -47,6 +47,7 @@
   /* purchase actions ONLY */
   --cta:           #F97316;
   --cta-hover:     #EA6A0F;
+  --cta-soft:      rgba(249, 115, 22, 0.12);
 
   /* semantic */
   --good:          #22D3A3;
@@ -90,6 +91,7 @@
 
   --cta:           #F97316;
   --cta-hover:     #EA6A0F;
+  --cta-soft:      rgba(249, 115, 22, 0.10);
 
   --good:          #15803D;
   --good-bg:       rgba(21, 128, 61, 0.10);

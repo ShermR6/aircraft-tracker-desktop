@@ -17,9 +17,9 @@ function nmToMeters(nm) { return nm * 1852; }
 // Returns icon color and opacity based on how old the last ADS-B update is
 function freshnessStyle(lastSeenMs) {
   const ageS = (Date.now() - lastSeenMs) / 1000;
-  if (ageS < 45) return { color: '#38bdf8', opacity: 1 };
-  if (ageS < 90) return { color: '#f59e0b', opacity: 0.85 };
-  return { color: '#f87171', opacity: 0.65 };
+  if (ageS < 45) return { color: 'var(--accent)', opacity: 1 };
+  if (ageS < 90) return { color: 'var(--warn)', opacity: 0.85 };
+  return { color: 'var(--bad)', opacity: 0.65 };
 }
 
 function ageLabel(lastSeenMs) {
@@ -72,14 +72,14 @@ export default function LiveMap() {
     const airportIcon = L.divIcon({
       className: '',
       html: `<div style="width:36px;height:36px;background:#0ea5e920;border:2px solid #0ea5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px #0ea5e960;">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2.5"><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="3"/></svg>
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="3"/></svg>
              </div>`,
       iconSize: [36, 36],
       iconAnchor: [18, 18],
     });
 
     airportMarkerRef.current = L.marker([lat, lng], { icon: airportIcon })
-      .bindPopup(`<div style="font-size:13px;"><strong style="color:#0ea5e9;">${airportConfig.airport_code || 'Home Base'}</strong><br/><span style="color:#9ca3af;font-size:11px;">${lat.toFixed(4)}, ${lng.toFixed(4)}</span></div>`)
+      .bindPopup(`<div style="font-size:13px;"><strong style="color:var(--accent);">${airportConfig.airport_code || 'Home Base'}</strong><br/><span style="color:var(--muted);font-size:11px;">${lat.toFixed(4)}, ${lng.toFixed(4)}</span></div>`)
       .addTo(map);
 
     const ringDistances = [...(airportConfig.alert_distances_nm || ['2.0', '5.0', '10.0'])]
@@ -91,7 +91,7 @@ export default function LiveMap() {
       return L.circle([lat, lng], {
         radius: nmToMeters(nm), color: ringColors[colorIndex] || '#6b7280',
         weight: 1, opacity: 0.5, fillOpacity: 0.03, dashArray: '6 4',
-      }).bindPopup(`<span style="font-size:12px;color:#9ca3af;">${nm} nm alert ring</span>`).addTo(map);
+      }).bindPopup(`<span style="font-size:12px;color:var(--muted);">${nm} nm alert ring</span>`).addTo(map);
     });
 
     setLoading(false);
@@ -153,11 +153,11 @@ export default function LiveMap() {
       if (rangePolygonRef.current) rangePolygonRef.current.remove();
 
       rangePolygonRef.current = L.polygon(points, {
-        color: '#a855f7', weight: 1.5, opacity: 0.5,
-        fillColor: '#a855f7', fillOpacity: 0.04, dashArray: '8 5',
+        color: 'var(--accent)', weight: 1.5, opacity: 0.5,
+        fillColor: 'var(--accent)', fillOpacity: 0.04, dashArray: '8 5',
       }).bindPopup(
         `<span style="font-size:12px;color:#a855f7;">SDR reception range — max ${maxRange.toFixed(0)} nm</span><br/>` +
-        `<span style="color:#6b7280;font-size:10px;">Best range achieved per direction · expands as aircraft are received · not a live coverage indicator</span>`
+        `<span style="color:var(--faint);font-size:10px;">Best range achieved per direction · expands as aircraft are received · not a live coverage indicator</span>`
       ).addTo(map);
     } catch {
       // No ground station or no data yet — silently skip
@@ -258,14 +258,14 @@ export default function LiveMap() {
         const popupContent = `
           <div style="font-size:13px;min-width:170px;">
             <div style="font-weight:700;color:${c};font-size:15px;margin-bottom:6px;">${ac.tail_number}</div>
-            <div style="color:#9ca3af;font-size:11px;margin-bottom:8px;">${ac.icao24 || ''}</div>
+            <div style="color:var(--muted);font-size:11px;margin-bottom:8px;">${ac.icao24 || ''}</div>
             <div style="display:flex;flex-direction:column;gap:4px;">
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Status</span><span style="color:#e5e7eb;font-weight:600;">${status.replace('_', ' ')}</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Distance</span><span style="color:#e5e7eb;font-weight:600;">${ac.distance_nm?.toFixed(1) ?? '—'} nm</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Altitude</span><span style="color:#e5e7eb;font-weight:600;">${ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft MSL' : '—'}</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Speed</span><span style="color:#e5e7eb;font-weight:600;">${ac.velocity_kts != null ? Math.round(ac.velocity_kts) + ' kts' : '—'}</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Heading</span><span style="color:#e5e7eb;font-weight:600;">${ac.heading != null ? Math.round(ac.heading) + '°' : '—'}</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#6b7280;">Data age</span><span style="color:${c};font-weight:600;">${ageLabel(lastSeenMs)}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--faint);">Status</span><span style="color:var(--text);font-weight:600;">${status.replace('_', ' ')}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--faint);">Distance</span><span style="color:var(--text);font-weight:600;">${ac.distance_nm?.toFixed(1) ?? '—'} nm</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--faint);">Altitude</span><span style="color:var(--text);font-weight:600;">${ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft MSL' : '—'}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--faint);">Speed</span><span style="color:var(--text);font-weight:600;">${ac.velocity_kts != null ? Math.round(ac.velocity_kts) + ' kts' : '—'}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--faint);">Heading</span><span style="color:var(--text);font-weight:600;">${ac.heading != null ? Math.round(ac.heading) + '°' : '—'}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--faint);">Data age</span><span style="color:${c};font-weight:600;">${ageLabel(lastSeenMs)}</span></div>
             </div>
           </div>`;
 
@@ -321,46 +321,46 @@ export default function LiveMap() {
     <div style={{ padding: '28px 32px', fontFamily: 'var(--font-sans)', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px', paddingRight: window.electronAPI?.platform === 'win32' ? 110 : 0 }}>
         <div>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Live Map</h2>
-          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+          <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' }}>Live Map</h2>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', margin: 0 }}>
             Real-time aircraft positions · Positions update every 30s
-            {lastUpdate && <span style={{ marginLeft: '8px', color: '#4b5563' }}>· Last update: {lastUpdate.toLocaleTimeString()}</span>}
+            {lastUpdate && <span style={{ marginLeft: '8px', color: 'var(--faint)' }}>· Last update: {lastUpdate.toLocaleTimeString()}</span>}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={handleRecenter} style={{ background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button onClick={handleRecenter} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--muted)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Navigation size={12} /> Recenter
           </button>
-          <button onClick={() => fetchAircraft(mapRef.current, backgroundTracker.getData())} style={{ background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button onClick={() => fetchAircraft(mapRef.current, backgroundTracker.getData())} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--muted)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <RefreshCw size={12} /> Refresh
           </button>
         </div>
       </div>
 
       {error && (
-        <div style={{ padding: '16px', background: '#ef444415', border: '1px solid #ef444430', borderRadius: '12px', color: '#fca5a5', fontSize: '13px', marginBottom: '16px' }}>
+        <div style={{ padding: '16px', background: '#ef444415', border: '1px solid #ef444430', borderRadius: '12px', color: 'var(--bad)', fontSize: '13px', marginBottom: '16px' }}>
           {error}
         </div>
       )}
 
-      <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748', marginBottom: '16px' }}>
+      <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)', marginBottom: '16px' }}>
         {(loading && !error) && (
-          <div style={{ position: 'absolute', inset: 0, background: '#0d1117', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, gap: '10px', color: '#6b7280', fontSize: '14px' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'var(--panel)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, gap: '10px', color: 'var(--faint)', fontSize: '14px' }}>
             <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading map...
           </div>
         )}
         <div ref={mapContainerRef} style={{ height: 'calc(100vh - 320px)', minHeight: '360px', width: '100%' }} />
       </div>
 
-      <div style={{ background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)', border: '1px solid #2d3748', borderRadius: '16px', padding: '20px' }}>
-        <p style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb', margin: '0 0 14px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plane size={14} color="#9ca3af" />
+      <div style={{ background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px' }}>
+        <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)', margin: '0 0 14px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Plane size={14} color="var(--muted)" />
           Aircraft in Range
-          <span style={{ fontSize: '11px', fontWeight: '400', color: '#4b5563', marginLeft: '4px' }}>({aircraft.length} detected)</span>
+          <span style={{ fontSize: '11px', fontWeight: '400', color: 'var(--faint)', marginLeft: '4px' }}>({aircraft.length} detected)</span>
         </p>
 
         {aircraft.length === 0 ? (
-          <p style={{ color: '#4b5563', fontSize: '13px', margin: 0 }}>No aircraft with position data right now. Start the tracker to see live data.</p>
+          <p style={{ color: 'var(--faint)', fontSize: '13px', margin: 0 }}>No aircraft with position data right now. Start the tracker to see live data.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
             {aircraft.map((ac) => {
@@ -375,16 +375,16 @@ export default function LiveMap() {
                       markersRef.current[ac.tail_number]?.openPopup();
                     }
                   }}
-                  style={{ background: '#111827', border: `1px solid ${fresh.color}30`, borderRadius: '10px', padding: '12px', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                  style={{ background: 'var(--panel)', border: `1px solid ${fresh.color}30`, borderRadius: '10px', padding: '12px', cursor: 'pointer', transition: 'border-color 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = `${fresh.color}60`}
                   onMouseLeave={e => e.currentTarget.style.borderColor = `${fresh.color}30`}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fresh.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#f9fafb' }}>{ac.tail_number}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text)' }}>{ac.tail_number}</span>
                     <span style={{ marginLeft: 'auto', fontSize: '10px', color: fresh.color }}>{ageLabel(lastSeenMs)}</span>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--faint)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span>{ac.distance_nm?.toFixed(1) ?? '—'} nm · {ac.altitude_ft_msl != null ? Math.round(ac.altitude_ft_msl) + ' ft' : '—'}</span>
                     <span>{ac.velocity_kts != null ? Math.round(ac.velocity_kts) + ' kts' : '—'}{ac.heading != null ? ` · ${Math.round(ac.heading)}°` : ''}</span>
                   </div>
@@ -397,12 +397,12 @@ export default function LiveMap() {
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .leaflet-container { background: #0d1117 !important; }
-        .leaflet-control-zoom a { background: #1e2538 !important; color: #9ca3af !important; border-color: #2d3748 !important; }
-        .leaflet-control-zoom a:hover { background: #2d3748 !important; color: #f9fafb !important; }
-        .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: #4b5563 !important; font-size: 10px !important; }
-        .leaflet-control-attribution a { color: #6b7280 !important; }
-        .leaflet-popup-content-wrapper { background: #1e2538 !important; border: 1px solid #2d3748 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; color: #f9fafb !important; }
+        .leaflet-container { background: var(--panel) !important; }
+        .leaflet-control-zoom a { background: #1e2538 !important; color: var(--muted) !important; border-color: var(--border) !important; }
+        .leaflet-control-zoom a:hover { background: var(--panel-2) !important; color: var(--text) !important; }
+        .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: var(--faint) !important; font-size: 10px !important; }
+        .leaflet-control-attribution a { color: var(--faint) !important; }
+        .leaflet-popup-content-wrapper { background: #1e2538 !important; border: 1px solid #2d3748 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; color: var(--text) !important; }
         .leaflet-popup-tip { background: #1e2538 !important; }
         .leaflet-popup-content { margin: 14px 16px !important; }
       `}</style>
