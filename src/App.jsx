@@ -14,7 +14,7 @@ function SplashScreen() {
       background: '#0b0b0b',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'Segoe UI', system-ui, sans-serif",
+      fontFamily: 'var(--font-sans)',
     }}>
       <style>{`
         @keyframes splashIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -313,8 +313,11 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div style={{
+        minHeight: '100vh', background: 'var(--bg)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{ color: 'var(--muted)', fontSize: 13 }}>Loading...</div>
       </div>
     );
   }

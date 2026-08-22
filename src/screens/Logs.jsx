@@ -162,7 +162,7 @@ export default function Logs() {
   };
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div style={{ maxWidth: '860px', margin: '0 auto', fontFamily: 'var(--font-sans)' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>

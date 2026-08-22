@@ -196,7 +196,7 @@ const s = {
     display: 'flex',
     height: '100vh',
     background: '#0b0b0b',
-    fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
+    fontFamily: 'var(--font-sans)',
     overflow: 'hidden',
   },
   sidebar: {

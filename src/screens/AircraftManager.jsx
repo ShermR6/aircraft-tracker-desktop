@@ -13,7 +13,7 @@ function makeEmptyForm(distances) {
 }
 
 const s = {
-  layout: { display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', fontFamily: "'Segoe UI', system-ui, sans-serif", alignItems: 'start' },
+  layout: { display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', fontFamily: 'var(--font-sans)', alignItems: 'start' },
   left: {},
   right: { position: 'sticky', top: 0, marginTop: '130px' },
 

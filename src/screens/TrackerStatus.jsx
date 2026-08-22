@@ -51,7 +51,7 @@ export default function TrackerStatus() {
   const showGround = groundChecked && groundOnline !== null;
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", marginBottom: '20px' }}>
+    <div style={{ fontFamily: 'var(--font-sans)', marginBottom: '20px' }}>
       {/* Cloud Tracker */}
       <div style={{
         background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)',

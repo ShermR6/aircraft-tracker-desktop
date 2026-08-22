@@ -1,8 +1,106 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Self-hosted — no runtime request to fonts.googleapis.com, so the app
+   renders correctly offline and ships no third-party font dependency. */
+@import '@fontsource-variable/plus-jakarta-sans';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens
+
+   Values mirror the website's palette in my-product-site/app/globals.css so the
+   app and finalpingapp.com stay one system. Two differences are deliberate:
+
+   1. The ground is neutral, not navy. The site's dark palette is #0b0b0b /
+      #111111 with no blue in it; the app's old #0d1117 / #1e2a3a navy made the
+      sky-blue accent sit on a blue field and lose its punch.
+   2. Density is the app's own. The site breathes; a fleet table does not.
+
+   --cta (orange) is reserved for purchase actions only — the view-only banner's
+   "View Plans" button. It must not be used for ordinary UI affordances.
+
+   The light palette below is defined but not reachable: the app ships dark-only.
+   It exists so adding a theme toggle later is a switch component plus one
+   attribute, not another sweep through every screen.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* surfaces */
+  --bg:            #161616;
+  --panel:         #1D1D1D;
+  --panel-2:       #242424;
+  --sidebar:       #131313;
+  --titlebar:      #131313;
+  --input:         #242424;
+  --row-hover:     rgba(255, 255, 255, 0.03);
+
+  /* text */
+  --text:          #F5F5F5;
+  --muted:         #ABABAB;
+  --faint:         #767676;
+
+  /* lines */
+  --border:        rgba(255, 255, 255, 0.11);
+  --border-soft:   rgba(255, 255, 255, 0.055);
+
+  /* brand */
+  --accent:        #0EA5E9;
+  --accent-hover:  #0284C7;
+  --accent-soft:   rgba(14, 165, 233, 0.13);
+
+  /* purchase actions ONLY */
+  --cta:           #F97316;
+  --cta-hover:     #EA6A0F;
+
+  /* semantic */
+  --good:          #22D3A3;
+  --good-bg:       rgba(35, 199, 107, 0.15);
+  --bad:           #FF4757;
+  --bad-bg:        rgba(255, 71, 87, 0.13);
+  --warn:          #FBBF24;
+  --warn-bg:       rgba(251, 191, 36, 0.13);
+
+  /* map */
+  --map-bg:        #131313;
+  --map-line:      rgba(255, 255, 255, 0.06);
+
+  /* type */
+  --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', ui-sans-serif,
+               system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas,
+               'Liberation Mono', monospace;
+}
+
+/* Not reachable — the app ships dark-only. See note above. */
+[data-theme="light"] {
+  --bg:            #F8FAFC;
+  --panel:         #FFFFFF;
+  --panel-2:       #F1F5F9;
+  --sidebar:       #FFFFFF;
+  --titlebar:      #FFFFFF;
+  --input:         #FFFFFF;
+  --row-hover:     rgba(15, 23, 42, 0.02);
+
+  --text:          #0F172A;
+  --muted:         #64748B;
+  --faint:         #94A3B8;
+
+  --border:        #E2E8F0;
+  --border-soft:   #EEF2F6;
+
+  --accent:        #0EA5E9;
+  --accent-hover:  #0284C7;
+  --accent-soft:   rgba(14, 165, 233, 0.10);
+
+  --cta:           #F97316;
+  --cta-hover:     #EA6A0F;
+
+  --good:          #15803D;
+  --good-bg:       rgba(21, 128, 61, 0.10);
+  --bad:           #DC2626;
+  --bad-bg:        rgba(220, 38, 38, 0.08);
+  --warn:          #B45309;
+  --warn-bg:       rgba(180, 83, 9, 0.10);
+
+  --map-bg:        #F1F5F9;
+  --map-line:      rgba(15, 23, 42, 0.09);
+}
 
 * {
   margin: 0;
@@ -11,11 +109,42 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+}
+
+/* Tables reset their inherited color in quirks mode; pin it so row text can
+   never fall back to the UA default on a dark ground. */
+table {
+  color: inherit;
+}
+
+/* Digits that stack in columns — altitudes, distances, timestamps, tail
+   numbers — line up instead of drifting. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

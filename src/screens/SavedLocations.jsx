@@ -4,7 +4,7 @@ import APIService from '../services/api';
 import StorageService from '../services/storage';
 
 const s = {
-  page: { maxWidth: '900px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
+  page: { maxWidth: '900px', margin: '0 auto', fontFamily: 'var(--font-sans)' },
   header: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' },
   title: { fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' },
   sub: { fontSize: '14px', color: '#9ca3af', margin: 0 },

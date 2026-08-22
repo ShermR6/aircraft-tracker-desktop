@@ -61,7 +61,7 @@ export default function LiveMap() {
 
     const map = L.map(mapContainerRef.current, { center: [lat, lng], zoom: 10, zoomControl: true });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '© OpenStreetMap contributors © CARTO',
       subdomains: 'abcd',
       maxZoom: 19,
@@ -318,7 +318,7 @@ export default function LiveMap() {
   };
 
   return (
-    <div style={{ padding: '28px 32px', fontFamily: "'Segoe UI', system-ui, sans-serif", display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
+    <div style={{ padding: '28px 32px', fontFamily: 'var(--font-sans)', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px', paddingRight: window.electronAPI?.platform === 'win32' ? 110 : 0 }}>
         <div>
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Live Map</h2>

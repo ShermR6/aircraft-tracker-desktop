@@ -176,8 +176,8 @@ function createWindow() {
         'Content-Security-Policy': [
           "default-src 'self' 'unsafe-inline' 'unsafe-eval' file: data:; " +
           "connect-src 'self' https://*.railway.app https://railway.app https://*.cartocdn.com https://*.openstreetmap.org https://api.adsbdb.com; " +
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-          "font-src 'self' https://fonts.gstatic.com data:; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "font-src 'self' data:; " +
           "img-src 'self' file: data: https: blob:;"
         ],
       },

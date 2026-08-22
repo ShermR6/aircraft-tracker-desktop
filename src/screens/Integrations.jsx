@@ -26,7 +26,7 @@ const COMING_SOON_TYPES = [
 ];
 
 const s = {
-  page: { maxWidth: '860px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
+  page: { maxWidth: '860px', margin: '0 auto', fontFamily: 'var(--font-sans)' },
   header: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' },
   headerIcon: { width: '48px', height: '48px', background: '#3b82f620', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   headerTitle: { fontSize: '26px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' },
@@ -440,7 +440,7 @@ export default function Integrations({ isViewOnly = false }) {
                 <div key={field.key}>
                   <label style={s.label}>{field.label}</label>
                   <input
-                    style={{ ...s.input, fontFamily: field.inputType === 'email' || field.inputType === 'tel' ? "'Segoe UI', sans-serif" : 'monospace' }}
+                    style={{ ...s.input, fontFamily: field.inputType === 'email' || field.inputType === 'tel' ? 'var(--font-sans)' : 'monospace' }}
                     type={field.inputType}
                     value={integration.config[field.key] || ''}
                     placeholder={field.placeholder}

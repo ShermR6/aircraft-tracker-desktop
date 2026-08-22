@@ -8,7 +8,7 @@ const s = {
     display: 'flex',
     height: '100vh',
     background: '#0a0e1a',
-    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    fontFamily: 'var(--font-sans)',
     overflow: 'hidden',
   },
   left: {
