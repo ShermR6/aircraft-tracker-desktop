@@ -264,6 +264,158 @@ export function StageBar({ filled = 0, total = 3 }) {
   );
 }
 
+/* ── buttons ───────────────────────────────────────────────────────────────── */
+
+/**
+ * variant: 'primary' (accent) | 'ghost' (outline) | 'danger' | 'cta'.
+ * 'cta' is orange and reserved for purchase actions — never ordinary UI.
+ */
+export function Button({ variant = 'primary', icon, children, style, ...rest }) {
+  const base = {
+    font: 'inherit', fontSize: 13, fontWeight: 600,
+    padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+    border: 'none', transition: 'filter 0.15s, background 0.15s, color 0.15s',
+    whiteSpace: 'nowrap',
+  };
+  const variants = {
+    primary: { background: 'var(--accent)', color: '#fff' },
+    ghost: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' },
+    danger: { background: 'var(--bad-bg)', border: '1px solid var(--bad)', color: 'var(--bad)' },
+    cta: { background: 'var(--cta-soft)', border: '1px solid var(--cta)', color: 'var(--cta)' },
+  };
+  return (
+    <button
+      style={{ ...base, ...variants[variant], ...(rest.disabled ? { opacity: 0.55, cursor: 'not-allowed' } : null), ...style }}
+      {...rest}
+    >
+      {icon}{children}
+    </button>
+  );
+}
+
+/** Square icon-only button for row actions. */
+export function IconButton({ tone: t = 'accent', title, children, ...rest }) {
+  const c = tone[t] || tone.accent;
+  return (
+    <button
+      title={title}
+      style={{
+        width: 28, height: 28, borderRadius: 7, border: 'none',
+        background: c.background, color: c.color, cursor: 'pointer',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        ...(rest.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : null),
+      }}
+      {...rest}
+    >{children}</button>
+  );
+}
+
+/* ── form ──────────────────────────────────────────────────────────────────── */
+export function Field({ label, right, hint, children }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 6, gap: 8,
+      }}>
+        <label style={{
+          display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '0.11em',
+          textTransform: 'uppercase', color: 'var(--faint)',
+        }}>{label}</label>
+        {right}
+      </div>
+      {children}
+      {hint && (
+        <p style={{ fontSize: 11, color: 'var(--faint)', margin: '6px 0 0' }}>{hint}</p>
+      )}
+    </div>
+  );
+}
+
+export function Input({ mono, style, ...rest }) {
+  return (
+    <input
+      style={{
+        width: '100%', padding: '9px 11px', borderRadius: 8,
+        font: 'inherit', fontSize: 13,
+        background: 'var(--input)', border: '1px solid var(--border)',
+        color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
+        ...(mono ? { fontFamily: 'var(--font-mono)' } : null),
+        ...style,
+      }}
+      onFocus={(e) => { e.target.style.borderColor = 'var(--accent)'; rest.onFocus?.(e); }}
+      onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; rest.onBlur?.(e); }}
+      {...rest}
+    />
+  );
+}
+
+export function Textarea({ mono, style, ...rest }) {
+  return (
+    <textarea
+      style={{
+        width: '100%', padding: '9px 11px', borderRadius: 8,
+        font: 'inherit', fontSize: 13, lineHeight: 1.6,
+        background: 'var(--input)', border: '1px solid var(--border)',
+        color: 'var(--text)', outline: 'none', boxSizing: 'border-box', resize: 'vertical',
+        ...(mono ? { fontFamily: 'var(--font-mono)' } : null),
+        ...style,
+      }}
+      onFocus={(e) => { e.target.style.borderColor = 'var(--accent)'; rest.onFocus?.(e); }}
+      onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; rest.onBlur?.(e); }}
+      {...rest}
+    />
+  );
+}
+
+/** Two equal columns that collapse to one on a narrow pane. */
+export function Row2({ cols = 2, children, style }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 12, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+export function Toggle({ on, onClick, label }) {
+  return (
+    <button
+      role="switch" aria-checked={!!on} aria-label={label} onClick={onClick}
+      style={{
+        width: 38, height: 21, borderRadius: 999, border: 'none', padding: 0,
+        position: 'relative', flexShrink: 0, cursor: 'pointer',
+        background: on ? 'var(--accent)' : 'var(--border)',
+        transition: 'background 0.18s',
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: 2, left: 2, width: 17, height: 17,
+        borderRadius: '50%', background: '#fff',
+        transform: on ? 'translateX(17px)' : 'none',
+        transition: 'transform 0.18s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+      }} />
+    </button>
+  );
+}
+
+/** Notice strip — inline feedback and limit warnings. */
+export function Notice({ t = 'warn', icon, children, right }) {
+  const c = tone[t] || tone.warn;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      padding: '11px 15px', borderRadius: 10, marginBottom: 14,
+      fontSize: 13, color: c.color, background: c.background,
+      border: `1px solid ${c.color}`,
+    }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>{icon}{children}</span>
+      {right}
+    </div>
+  );
+}
+
 /* ── empty state ───────────────────────────────────────────────────────────── */
 export function Empty({ icon, title, hint }) {
   return (

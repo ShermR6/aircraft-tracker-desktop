@@ -4,6 +4,10 @@ import APIService from '../services/api';
 import StorageService from '../services/storage';
 import { getLimits, getLimitDisplay } from '../config/tierLimits';
 import { getColor, setColor, ensureLoaded } from '../services/aircraftColors';
+import {
+  PageHead, Panel, PanelHead, PanelBody, Count, TableWrap, Table, Th, Td, Tail,
+  Button, IconButton, Field, Input, Row2, Notice, Empty,
+} from '../ui/kit';
 
 const FALLBACK_DISTANCES = [10, 5, 2];
 const DIST_LABELS = { 10: 'Inbound', 5: 'Approach', 2: 'Final' };
@@ -13,65 +17,32 @@ function makeEmptyForm(distances) {
 }
 
 const s = {
-  layout: { display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', fontFamily: 'var(--font-sans)', alignItems: 'start' },
-  left: {},
-  right: { position: 'sticky', top: 0, marginTop: '130px' },
-
-  sectionLabel: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
-  pageTitle: { fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' },
-  pageCount: { fontSize: '13px', color: 'var(--faint)', marginBottom: '24px' },
-
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px 10px', textAlign: 'left', borderBottom: '1px solid var(--border)' },
-  thRight: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px 10px', textAlign: 'right', borderBottom: '1px solid var(--border)' },
-  td: { padding: '14px 12px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' },
-  tailNum: { fontSize: '15px', fontWeight: '700', color: 'var(--text)' },
-  icaoText: { fontSize: '11px', color: 'var(--faint)', fontFamily: 'monospace', marginTop: '2px' },
-  typeText: { fontSize: '12px', color: 'var(--muted)', marginTop: '2px' },
-  statusBadge: { fontSize: '11px', fontWeight: '600', padding: '3px 10px', borderRadius: '20px', background: '#34d39920', color: 'var(--good)', border: '1px solid #34d39930', whiteSpace: 'nowrap' },
-  distTag: (active) => ({
-    fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '6px', marginRight: '4px',
-    background: active ? 'rgba(14,165,233,0.12)' : 'rgba(255,255,255,0.04)',
-    color: active ? 'var(--accent)' : 'var(--faint)',
-    border: `1px solid ${active ? 'rgba(14,165,233,0.25)' : '#1f2937'}`,
-  }),
-  iconBtn: (color) => ({ width: '30px', height: '30px', borderRadius: '7px', border: 'none', background: `${color}15`, color, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }),
-
-  panel: { background: 'linear-gradient(135deg, #1e293b 0%, #172035 100%)', border: '1px solid #3b82f620', borderRadius: '16px', padding: '24px', boxShadow: '0 0 0 1px #3b82f615, 0 8px 32px rgba(59,130,246,0.1)' },
-  panelLabel: { fontSize: '11px', fontWeight: '600', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' },
-  panelTitle: { fontSize: '20px', fontWeight: '700', color: 'var(--text)', marginBottom: '20px' },
-
-  fieldLabel: { display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' },
-  fieldRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' },
-  autoTag: { fontSize: '11px', color: 'var(--accent)', fontWeight: '600' },
-  input: { width: '100%', padding: '10px 14px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' },
-  inputHint: { fontSize: '11px', color: 'var(--faint)', marginTop: '4px' },
-  inputGroup: { marginBottom: '16px' },
-  autoFilled: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 14px', color: 'var(--muted)', fontSize: '14px', minHeight: '40px', display: 'flex', alignItems: 'center' },
-
-  distRow: { display: 'flex', gap: '8px', marginTop: '6px' },
   distBtn: (active) => ({
-    flex: 1, padding: '10px', borderRadius: '8px', border: `1px solid ${active ? 'rgba(14,165,233,0.4)' : '#1f2937'}`,
-    background: active ? 'rgba(14,165,233,0.12)' : '#0d1117',
+    flex: 1, padding: '9px', borderRadius: 8,
+    border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+    background: active ? 'var(--accent-soft)' : 'var(--input)',
     color: active ? 'var(--accent)' : 'var(--faint)',
-    fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+    font: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    transition: 'all 0.15s',
   }),
-  distLabel: { fontSize: '9px', fontWeight: '500', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' },
-
-  trackBtn: { width: '100%', padding: '12px', background: 'var(--accent)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'opacity 0.2s' },
-
-  alert: (type) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', background: type === 'error' ? '#ef444420' : '#34d39920', border: `1px solid ${type === 'error' ? '#ef444440' : '#34d39940'}`, color: type === 'error' ? 'var(--bad)' : 'var(--good)' }),
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--faint)', fontSize: '14px', gap: '10px' },
-
-  upgradeBox: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#f59e0b10', border: '1px solid #f59e0b30', borderRadius: '12px', marginBottom: '20px', gap: '12px' },
-  upgradeText: { fontSize: '13px', color: 'var(--warn)', margin: 0 },
-  upgradeLink: { fontSize: '12px', fontWeight: '700', color: 'var(--warn)', background: '#f59e0b15', border: '1px solid #f59e0b30', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 },
-
-  emptyRow: { textAlign: 'center', padding: '48px 20px', color: 'var(--faint)', fontSize: '13px' },
-
-  confirmOverlay: { position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmBox: { background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: 32, maxWidth: 380, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' },
+  distTag: (active) => ({
+    fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, marginRight: 4,
+    background: active ? 'var(--accent-soft)' : 'var(--row-hover)',
+    color: active ? 'var(--accent)' : 'var(--faint)',
+  }),
+  swatch: (c) => ({
+    width: 11, height: 11, borderRadius: 3, background: c,
+    display: 'inline-block', marginRight: 8, verticalAlign: 'middle',
+    cursor: 'pointer', flexShrink: 0,
+  }),
+  confirmOverlay: {
+    position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.7)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+  },
+  confirmBox: {
+    background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14,
+    padding: 28, maxWidth: 360, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+  },
 };
 
 export default function AircraftManager({ isViewOnly = false }) {
@@ -251,239 +222,217 @@ export default function AircraftManager({ isViewOnly = false }) {
   const formColor = form.color || (form.tail_number ? getColor(form.tail_number.toUpperCase()) : '#38bdf8');
 
   return (
-    <div style={s.layout}>
-      {/* CONFIRM MODAL */}
+    <>
       {confirmModal && (
         <div style={s.confirmOverlay}>
           <div style={s.confirmBox}>
-            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 16 }}>✈️</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'center' }}>Remove Aircraft</h2>
-            <p style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', margin: '0 0 24px 0' }}>{confirmModal.message}</p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => confirmModal.onCancel()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => confirmModal.onConfirm()} style={{ flex: 1, padding: '11px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--bad)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <Trash2 size={17} color="var(--bad)" />
+              <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Remove aircraft</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 22px' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => confirmModal.onCancel()}>Cancel</Button>
+              <Button variant="danger" onClick={() => confirmModal.onConfirm()}>Remove</Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* LEFT — Aircraft list */}
-      <div style={s.left}>
-        <div style={s.sectionLabel}>AIRCRAFT</div>
-        <h2 style={s.pageTitle}>My fleet</h2>
-        <p style={s.pageCount}>
-          {aircraft.length} of {getLimitDisplay(limits.aircraft)} tracked
-        </p>
-
-        {atLimit && (
-          <div style={s.upgradeBox}>
-            <p style={s.upgradeText}>🔒 <strong>{tier}</strong> plan limit reached. Upgrade to track more.</p>
-            <span style={s.upgradeLink} onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}>Upgrade →</span>
-          </div>
+      <PageHead
+        title="Aircraft"
+        subtitle={`My fleet — ${aircraft.length} of ${getLimitDisplay(limits.aircraft)} tail numbers used`}
+        right={!isViewOnly && (
+          <Button
+            icon={<Plane size={14} />}
+            disabled={atLimit}
+            onClick={() => document.getElementById('track-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >Add aircraft</Button>
         )}
+      />
 
-        {message && (
-          <div style={s.alert(message.type)}>
-            <AlertCircle size={15} />
-            {message.text}
-          </div>
+      {atLimit && (
+        <Notice
+          t="warn"
+          icon={<Lock size={15} />}
+          right={<Button variant="ghost" onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/pricing')}>Upgrade</Button>}
+        >
+          <span style={{ textTransform: 'capitalize' }}>{tier}</span>&nbsp;plan limit reached — upgrade to track more aircraft.
+        </Notice>
+      )}
+
+      {message && (
+        <Notice t={message.type === 'error' ? 'bad' : 'good'} icon={<AlertCircle size={15} />}>
+          {message.text}
+        </Notice>
+      )}
+
+      <Panel>
+        <PanelHead title="My fleet" right={<Count>{aircraft.length} tracked</Count>} />
+        {aircraft.length === 0 ? (
+          <Empty
+            icon={<Plane size={22} />}
+            title="No aircraft yet"
+            hint="Add your first tail number below to start tracking."
+          />
+        ) : (
+          <TableWrap>
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Tail number</Th>
+                  <Th>ICAO 24-bit</Th>
+                  <Th>Aircraft type</Th>
+                  <Th>Map color</Th>
+                  <Th>Alert distances</Th>
+                  {!isViewOnly && <Th style={{ textAlign: 'right' }} />}
+                </tr>
+              </thead>
+              <tbody>
+                {aircraft.map(a => (
+                  <tr key={a.id} style={{ background: editingId === a.id ? 'var(--accent-soft)' : 'transparent' }}>
+                    <Td><Tail>{a.tail_number}</Tail></Td>
+                    <Td mono dim>{(a.icao24 || '—').toUpperCase()}</Td>
+                    <Td dim>{a.aircraft_type || '—'}</Td>
+                    <Td>
+                      <span
+                        title="Click to change color"
+                        onClick={() => document.getElementById(`cp-${a.id}`)?.click()}
+                        style={s.swatch(getColor(a.tail_number))}
+                      />
+                      <input
+                        id={`cp-${a.id}`}
+                        type="color"
+                        value={getColor(a.tail_number)}
+                        onChange={e => handleColorChange(a.tail_number, e.target.value)}
+                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                      />
+                      <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>
+                        {getColor(a.tail_number)}
+                      </span>
+                    </Td>
+                    <Td>
+                      {globalDistances.map(d => (
+                        <span key={d} style={s.distTag((a.alert_distances || globalDistances).includes(d))}>
+                          {d}nm
+                        </span>
+                      ))}
+                    </Td>
+                    {!isViewOnly && (
+                      <Td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <IconButton
+                          tone="accent"
+                          title={editingId === a.id ? 'Cancel edit' : 'Edit'}
+                          onClick={() => editingId === a.id ? cancelEdit() : startEdit(a)}
+                        ><Edit2 size={13} /></IconButton>
+                        {' '}
+                        <IconButton
+                          tone="bad"
+                          title="Remove"
+                          disabled={deleting === a.id}
+                          onClick={() => handleDelete(a.id, a.tail_number)}
+                        >
+                          {deleting === a.id
+                            ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                            : <Trash2 size={13} />}
+                        </IconButton>
+                      </Td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </TableWrap>
         )}
+      </Panel>
 
-        <table style={s.table}>
-          <thead>
-            <tr>
-              <th style={s.th}>Tail</th>
-              <th style={s.th}>ICAO24</th>
-              <th style={s.th}>Model</th>
-              <th style={s.th}>Alerts</th>
-              <th style={s.thRight}>Status</th>
-              {!isViewOnly && <th style={s.thRight}></th>}
-            </tr>
-          </thead>
-          <tbody>
-            {aircraft.length === 0 ? (
-              <tr>
-                <td colSpan={isViewOnly ? 5 : 6} style={s.emptyRow}>
-                  No aircraft yet — add your first tail number on the right.
-                </td>
-              </tr>
-            ) : aircraft.map(a => (
-              <tr key={a.id} style={{ background: editingId === a.id ? 'rgba(59,130,246,0.05)' : 'transparent' }}>
-                <td style={s.td}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div
-                      title="Click to change color"
-                      onClick={() => document.getElementById(`cp-${a.id}`).click()}
-                      style={{ width: 12, height: 12, borderRadius: '50%', background: getColor(a.tail_number), cursor: 'pointer', flexShrink: 0, border: '1.5px solid rgba(255,255,255,0.2)' }}
-                    />
-                    <input
-                      id={`cp-${a.id}`}
-                      type="color"
-                      value={getColor(a.tail_number)}
-                      onChange={e => handleColorChange(a.tail_number, e.target.value)}
-                      style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
-                    />
-                    <div style={s.tailNum}>{a.tail_number}</div>
-                  </div>
-                </td>
-                <td style={s.td}>
-                  <div style={{ ...s.icaoText, fontSize: '13px', color: 'var(--faint)' }}>{a.icao24 || '—'}</div>
-                </td>
-                <td style={s.td}>
-                  <div style={s.typeText}>{a.aircraft_type || '—'}</div>
-                </td>
-                <td style={s.td}>
-                  {globalDistances.map(d => (
-                    <span key={d} style={s.distTag((a.alert_distances || globalDistances).includes(d))}>
-                      {d}nm
-                    </span>
-                  ))}
-                </td>
-                <td style={{ ...s.td, textAlign: 'right' }}>
-                  <span style={s.statusBadge}>● ACTIVE</span>
-                </td>
-                {!isViewOnly && (
-                  <td style={{ ...s.td, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button style={s.iconBtn('var(--accent)')} onClick={() => editingId === a.id ? cancelEdit() : startEdit(a)} title={editingId === a.id ? 'Cancel edit' : 'Edit'}>
-                      <Edit2 size={13} />
-                    </button>
-                    {' '}
-                    <button style={s.iconBtn('#ef4444')} onClick={() => handleDelete(a.id, a.tail_number)} disabled={deleting === a.id} title="Remove">
-                      {deleting === a.id ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
-                    </button>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* RIGHT — Persistent add / edit panel */}
       {!isViewOnly && (
-        <div style={s.right}>
-          <div style={s.panel}>
-            <div style={s.panelLabel}>ADD AIRCRAFT</div>
-            <div style={s.panelTitle}>{editingId ? 'Edit tail' : 'Track new tail'}</div>
+        <Panel style={{ marginTop: 14 }}>
+          <div id="track-form" />
+          <PanelHead title={editingId ? 'Edit tail' : 'Track new tail'} />
+          <PanelBody>
+            <Row2>
+              <Field
+                label="Tail number"
+                right={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)' }}>
+                  {lookingUp ? 'LOOKING UP…' : 'AUTO'}
+                </span>}
+              >
+                <Input
+                  mono placeholder="N504GR" maxLength={10}
+                  value={form.tail_number}
+                  onChange={e => setForm(p => ({ ...p, tail_number: e.target.value.toUpperCase() }))}
+                />
+              </Field>
+              <Field label="ICAO 24-bit hex" hint="Find it on ADSBExchange or Planespotters.">
+                <Input
+                  mono placeholder="a4992d"
+                  value={form.icao24}
+                  onChange={e => handleIcaoChange(e.target.value)}
+                />
+              </Field>
+            </Row2>
 
-            {/* ICAO24 */}
-            <div style={s.inputGroup}>
-              <label style={s.fieldLabel}>ICAO 24-BIT HEX</label>
-              <input
-                style={s.input}
-                placeholder="a4992d"
-                value={form.icao24}
-                onChange={e => handleIcaoChange(e.target.value)}
-                onFocus={e => e.target.style.borderColor = '#0ea5e9'}
-                onBlur={e => e.target.style.borderColor = '#1f2937'}
+            <Field label="Aircraft type" hint="Auto-filled from ICAO lookup — edit if it looks wrong.">
+              <Input
+                placeholder="Auto-filled from ICAO lookup"
+                value={form.aircraft_type}
+                onChange={e => setForm(p => ({ ...p, aircraft_type: e.target.value }))}
               />
-              <p style={s.inputHint}>
-                Find on{' '}
-                <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={() => window.electronAPI?.openExternal('https://globe.adsbexchange.com')}>ADSBExchange</span>
-                {' '}or{' '}
-                <span style={{ color: 'var(--accent)', cursor: 'pointer' }} onClick={() => window.electronAPI?.openExternal('https://www.planespotters.net')}>Planespotters</span>
-              </p>
-            </div>
+            </Field>
 
-            {/* Tail number — auto-filled */}
-            <div style={s.inputGroup}>
-              <div style={s.fieldRow}>
-                <label style={{ ...s.fieldLabel, marginBottom: 0 }}>TAIL NUMBER</label>
-                <span style={s.autoTag}>{lookingUp ? '● looking up...' : '+ AUTO'}</span>
-              </div>
-              <input
-                style={{ ...s.input, marginTop: '6px' }}
-                placeholder="N504GR"
-                value={form.tail_number}
-                onChange={e => setForm(p => ({ ...p, tail_number: e.target.value.toUpperCase() }))}
-                onFocus={e => e.target.style.borderColor = '#0ea5e9'}
-                onBlur={e => e.target.style.borderColor = '#1f2937'}
-                maxLength={10}
-              />
-            </div>
-
-            {/* Aircraft type — auto-filled */}
-            <div style={s.inputGroup}>
-              <div style={s.fieldRow}>
-                <label style={{ ...s.fieldLabel, marginBottom: 0 }}>AIRCRAFT TYPE</label>
-                <span style={s.autoTag}>+ AUTO</span>
-              </div>
-              <div style={{ ...s.autoFilled, marginTop: '6px', color: form.aircraft_type ? 'var(--text)' : 'var(--faint)' }}>
-                {form.aircraft_type || <span style={{ color: 'var(--faint)', fontStyle: 'italic', fontSize: '13px' }}>Auto-filled from ICAO lookup</span>}
-              </div>
-            </div>
-
-            {/* Map Color */}
-            <div style={s.inputGroup}>
-              <label style={s.fieldLabel}>MAP COLOR</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
-                <div
+            <Field label="Map color">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span
                   title="Open color wheel"
-                  onClick={() => document.getElementById('form-color-pick').click()}
-                  style={{ width: 36, height: 36, borderRadius: '50%', background: formColor, cursor: 'pointer', flexShrink: 0, border: '2px solid rgba(255,255,255,0.15)', boxShadow: `0 0 10px ${formColor}70` }}
+                  onClick={() => document.getElementById('form-color-pick')?.click()}
+                  style={{
+                    width: 32, height: 32, borderRadius: 8, background: formColor,
+                    cursor: 'pointer', flexShrink: 0, border: '1px solid var(--border)',
+                  }}
                 />
                 <input
-                  id="form-color-pick"
-                  type="color"
-                  value={formColor}
+                  id="form-color-pick" type="color" value={formColor}
                   onChange={e => setForm(p => ({ ...p, color: e.target.value }))}
                   style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
                 />
-                <input
-                  style={{ ...s.input, fontFamily: 'monospace', fontSize: '13px' }}
-                  value={formColor}
+                <Input
+                  mono maxLength={7} placeholder="#38bdf8" value={formColor}
                   onChange={e => {
                     const v = e.target.value;
                     if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setForm(p => ({ ...p, color: v }));
                   }}
-                  maxLength={7}
-                  placeholder="#38bdf8"
-                  onFocus={e => e.target.style.borderColor = '#0ea5e9'}
-                  onBlur={e => e.target.style.borderColor = '#1f2937'}
                 />
               </div>
+            </Field>
+
+            <Field label="Alert distances" hint="Inbound · Approach · Final — one alert fires at each ring.">
+              <Row2 cols={globalDistances.length} style={{ gap: 10 }}>
+                {globalDistances.map(d => (
+                  <button
+                    key={d}
+                    style={s.distBtn(form.alert_distances.includes(d))}
+                    onClick={() => toggleDistance(d)}
+                  >{d} nm</button>
+                ))}
+              </Row2>
+            </Field>
+
+            <div style={{ display: 'flex', gap: 9, marginTop: 16 }}>
+              <Button onClick={handleSave} disabled={saving || (atLimit && isAdding)}>
+                {saving
+                  ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</>
+                  : atLimit && isAdding
+                    ? <><Lock size={14} /> Limit reached</>
+                    : editingId ? 'Save changes' : 'Track aircraft'}
+              </Button>
+              {editingId && <Button variant="ghost" onClick={cancelEdit}>Cancel</Button>}
             </div>
-
-            {/* Alert distances */}
-            <div>
-              <label style={s.fieldLabel}>ALERT DISTANCES</label>
-              <div style={s.distRow}>
-                {globalDistances.map(d => {
-                  const active = form.alert_distances.includes(d);
-                  return (
-                    <button key={d} style={s.distBtn(active)} onClick={() => toggleDistance(d)}>
-                      <span style={{ fontWeight: 700 }}>{d} nm</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              style={{ ...s.trackBtn, opacity: saving || atLimit ? 0.6 : 1, cursor: saving || atLimit ? 'not-allowed' : 'pointer' }}
-              onClick={handleSave}
-              disabled={saving || (atLimit && isAdding)}
-            >
-              {saving
-                ? <><Loader size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving...</>
-                : atLimit && isAdding
-                  ? <><Lock size={15} /> Limit Reached</>
-                  : <><Plane size={15} /> {editingId ? 'Save changes' : '+ Track aircraft'}</>}
-            </button>
-
-            {editingId && (
-              <button
-                style={{ width: '100%', padding: '10px', marginTop: '8px', background: 'none', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--faint)', fontSize: '13px', cursor: 'pointer' }}
-                onClick={cancelEdit}
-              >
-                Cancel edit
-              </button>
-            )}
-          </div>
-        </div>
+          </PanelBody>
+        </Panel>
       )}
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </>
   );
 }
