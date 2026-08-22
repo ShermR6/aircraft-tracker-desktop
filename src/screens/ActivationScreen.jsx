@@ -56,7 +56,7 @@ const s = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 0 24px #3b82f640',
+    boxShadow: 'none',
   },
   logoText: {
     fontSize: '20px',
@@ -205,13 +205,13 @@ const s = {
     justifyContent: 'center',
     gap: '8px',
     marginTop: '8px',
-    boxShadow: loading ? 'none' : '0 4px 20px #3b82f640',
+    boxShadow: 'none',
     transition: 'all 0.2s',
   }),
   errorBox: {
     padding: '12px 14px',
-    background: '#ef444420',
-    border: '1px solid #ef444440',
+    background: 'var(--bad-bg)',
+    border: '1px solid var(--bad)',
     borderRadius: '8px',
     color: 'var(--bad)',
     fontSize: '13px',
@@ -276,7 +276,7 @@ const s = {
     width: '15px',
     height: '15px',
     flexShrink: 0,
-    accentColor: '#3b82f6',
+    accentColor: 'var(--accent)',
     cursor: 'pointer',
   },
   tosLabel: {
@@ -424,8 +424,8 @@ export default function ActivationScreen({ onSuccess }) {
     }
   };
 
-  const focusInput = (e) => { e.target.style.borderColor = '#3b82f6'; e.target.style.background = '#1e2840'; };
-  const blurInput = (e) => { e.target.style.borderColor = '#2d3748'; e.target.style.background = 'var(--panel-2)'; };
+  const focusInput = (e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.background = 'var(--input)'; };
+  const blurInput = (e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.background = 'var(--panel-2)'; };
 
   return (
     <div style={s.shell}>
@@ -451,14 +451,14 @@ export default function ActivationScreen({ onSuccess }) {
 
         <div style={s.featureList}>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#3b82f6')}><Plane size={16} color="var(--accent)" /></div>
+            <div style={s.featureIcon('var(--accent)')}><Plane size={16} color="var(--accent)" /></div>
             <div>
               <p style={s.featureTitle}>Real-Time Tracking</p>
               <p style={s.featureSub}>Live ADS-B position data updated every few seconds for your tracked aircraft.</p>
             </div>
           </div>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#34d399')}><Bell size={16} color="var(--good)" /></div>
+            <div style={s.featureIcon('var(--good)')}><Bell size={16} color="var(--good)" /></div>
             <div>
               <p style={s.featureTitle}>Smart Alerts</p>
               <p style={s.featureSub}>Proximity alerts at custom distances — 20nm, 10nm, 5nm, or whatever you need.</p>
@@ -472,7 +472,7 @@ export default function ActivationScreen({ onSuccess }) {
             </div>
           </div>
           <div style={s.featureItem}>
-            <div style={s.featureIcon('#f59e0b')}><Shield size={16} color="var(--warn)" /></div>
+            <div style={s.featureIcon('var(--warn)')}><Shield size={16} color="var(--warn)" /></div>
             <div>
               <p style={s.featureTitle}>Quiet Hours</p>
               <p style={s.featureSub}>Set hours where no notifications are sent — so you can actually sleep.</p>
@@ -500,7 +500,7 @@ export default function ActivationScreen({ onSuccess }) {
                   fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
                   background: tab === t.id ? 'var(--accent)' : 'transparent',
                   color: tab === t.id ? '#fff' : 'var(--faint)',
-                  boxShadow: tab === t.id ? '0 2px 8px #3b82f640' : 'none',
+                  boxShadow: 'none',
                 }}>{t.label}</button>
             ))}
           </div>

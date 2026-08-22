@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Loader, Check, Trash2, Edit2, X, Plus } from 'lucide-react';
 import APIService from '../services/api';
+import {
+  PageHead, Panel, PanelHead, PanelBody, Count, Button, IconButton, Notice,
+} from '../ui/kit';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import airportsData from '../data/airports.json';
@@ -66,7 +69,7 @@ const s = {
   ringsRow: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
   ringBtn: (active) => ({
     flex: 1, minWidth: '90px', padding: '14px 10px', borderRadius: '10px', border: `2px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-    background: active ? 'rgba(56,189,248,0.12)' : '#0d1117',
+    background: active ? 'var(--accent-soft)' : 'var(--input)',
     color: active ? 'var(--accent)' : 'var(--faint)', cursor: 'pointer', textAlign: 'center',
     transition: 'all 0.15s', outline: 'none',
   }),
@@ -232,6 +235,8 @@ export default function AirportConfig({ isViewOnly = false }) {
     // Draw distance rings
     for (const nm of ringDists) {
       const active = activeRings.has(nm);
+      // Leaflet writes these onto an SVG stroke attribute, where var() does not
+      // resolve — these two must stay literal. They mirror --accent and --border.
       const color = active ? '#38bdf8' : '#2d3748';
       const opacity = active ? 0.8 : 0.3;
       const circle = L.circle([lat, lon], {
@@ -504,15 +509,38 @@ export default function AirportConfig({ isViewOnly = false }) {
         </div>
       )}
 
-      <div style={s.hdr}>
-        <p style={s.hdrMini}>Airport Config</p>
-        <h2 style={s.hdrTitle}>Add destination</h2>
-        <p style={s.hdrSub}>Tell FinalPing where this aircraft is heading.</p>
-      </div>
+      <PageHead
+        title="Airport Config"
+        subtitle="Where FinalPing watches for your aircraft"
+        right={!isViewOnly && (
+          <span style={{ display: 'flex', gap: 8 }}>
+            {config.airport_code && (
+              <Button variant="ghost" onClick={() => setConfirmDelete(true)} disabled={deleting}
+                icon={deleting
+                  ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                  : <Trash2 size={14} />}>
+                {deleting ? 'Deleting\u2026' : 'Delete'}
+              </Button>
+            )}
+            <Button onClick={handleSave} disabled={saving}
+              icon={saving ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> : null}>
+              {saving ? 'Saving\u2026' : 'Save airport'}
+            </Button>
+          </span>
+        )}
+      />
 
-      {/* Airport Search */}
-      <div style={{ ...s.section, position: 'relative' }}>
-        <label style={s.label}>Search Airport</label>
+      {message.text && (
+        <Notice t={message.type === 'error' ? 'bad' : 'good'}
+          icon={message.type === 'success' ? <Check size={15} /> : null}>
+          {message.text}
+        </Notice>
+      )}
+
+      <Panel style={{ overflow: 'visible' }}>
+        <PanelHead title="Search airport" />
+        <PanelBody style={{ position: 'relative' }}>
+          <label style={s.label}>Airport</label>
         <div ref={searchRef} style={{ position: 'relative' }}>
           <input
             style={{ ...s.input, borderColor: showDropdown ? 'var(--accent)' : 'var(--border)' }}
@@ -527,7 +555,7 @@ export default function AirportConfig({ isViewOnly = false }) {
               {suggestions.map(ap => (
                 <div key={ap.icao} style={s.dropdownItem}
                   onMouseDown={() => selectAirport(ap)}
-                  onMouseEnter={e => e.currentTarget.style.background = '#1a2a40'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--row-hover)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={s.iataBadge(ap.iata)}>{ap.iata || ap.icao.slice(0, 3)}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -544,16 +572,17 @@ export default function AirportConfig({ isViewOnly = false }) {
             </div>
           )}
         </div>
-        {!isViewOnly && (
-          <button style={s.manualLink} onClick={() => openManualModal()}>
-            Can't find your airport or wrong info? Enter manually →
-          </button>
-        )}
-      </div>
+          {!isViewOnly && (
+            <button style={s.manualLink} onClick={() => openManualModal()}>
+              Can&apos;t find it, or the details are wrong? Enter manually
+            </button>
+          )}
+        </PanelBody>
+      </Panel>
 
-      {/* Selected airport card */}
       {selectedAirport && (
-        <div style={s.section}>
+        <Panel style={{ marginTop: 14 }}>
+          <PanelBody>
           <div style={s.airportCard}>
             <div style={s.airportCardBadge}>{selectedAirport.iata || selectedAirport.icao.slice(0, 3)}</div>
             <div style={s.airportCardInfo}>
@@ -563,59 +592,39 @@ export default function AirportConfig({ isViewOnly = false }) {
             {!isViewOnly && (
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                 <button onClick={() => openManualModal(selectedAirport)} title="Edit airport info"
-                  style={s.iconBtn('#38bdf8', 'rgba(56,189,248,0.1)')}>
+                  style={s.iconBtn('var(--accent)', 'var(--accent-soft)')}>
                   <Edit2 size={14} />
                 </button>
                 <button onClick={clearAirport} title="Remove airport"
-                  style={s.iconBtn('#ef4444', 'rgba(239,68,68,0.1)')}>
+                  style={s.iconBtn('var(--bad)', 'var(--bad-bg)')}>
                   <Trash2 size={14} />
                 </button>
               </div>
             )}
           </div>
-        </div>
+          </PanelBody>
+        </Panel>
       )}
 
-      {/* Detection Rings */}
-      <div style={s.section}>
-        <label style={s.label}>Detection Ring</label>
-        <div style={s.ringsRow}>
+      <Panel style={{ marginTop: 14 }}>
+        <PanelHead title="Detection ring" right={<Count>{activeRings.size} active</Count>} />
+        <PanelBody>
+          <div style={s.ringsRow}>
           {makeRingDefs(ringDists).map(({ nm, label }) => (
             <button key={nm} type="button" style={s.ringBtn(activeRings.has(nm))}
               onClick={() => !isViewOnly && toggleRing(nm)}>
               <div style={s.ringBtnNm}>{label}</div>
-            </button>
-          ))}
-        </div>
-      </div>
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: 11.5, color: 'var(--faint)', margin: '10px 0 0' }}>
+            An alert fires the first time an aircraft crosses each ring inbound. Crossing back out does not re-trigger.
+          </p>
+        </PanelBody>
+      </Panel>
 
-      {/* Save / Delete */}
-      {!isViewOnly && (
-        <div style={s.section}>
-          <button type="button" onClick={handleSave} disabled={saving} style={s.saveBtn(saving)}>
-            {saving ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />Saving...</> : 'Save airport'}
-          </button>
-          {config.airport_code && (
-            <button type="button" onClick={() => setConfirmDelete(true)} disabled={deleting} style={s.deleteBtn}>
-              {deleting
-                ? <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />Deleting...</>
-                : <><Trash2 size={14} />Delete airport</>}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Toast */}
-      {message.text && (
-        <div style={s.toast(message.type)}>
-          {message.type === 'success' && <Check size={15} />}
-          {message.text}
-        </div>
-      )}
-
-      {/* Map */}
-      <div style={s.mapSection}>
-        <div style={s.mapLabel}>Map Preview</div>
+      <Panel style={{ marginTop: 14 }}>
+        <PanelHead title="Map preview" />
         <div style={s.mapContainer}>
           <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
           {!selectedAirport && (
@@ -627,22 +636,26 @@ export default function AirportConfig({ isViewOnly = false }) {
             </div>
           )}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12, padding: '10px 12px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{
+          fontSize: 12, color: 'var(--muted)', padding: '11px 17px',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+        }}>
           Missing a runway at your airport?
           <button
             onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/contact')}
-            style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+            style={{ font: 'inherit', fontSize: 12, fontWeight: 600, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >Contact us</button>
-          and we'll add it to the next update.
+          and we&apos;ll add it in the next update.
         </div>
-      </div>
+      </Panel>
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .leaflet-container { background: var(--panel); }
         .leaflet-control-zoom { border-color: var(--border) !important; }
         .leaflet-control-zoom a { background: var(--panel-2) !important; color: var(--muted) !important; border-color: var(--border) !important; }
-        .leaflet-control-zoom a:hover { background: #1a2a3f !important; }
+        .leaflet-control-zoom a:hover { background: var(--panel) !important; }
       `}</style>
     </div>
   );

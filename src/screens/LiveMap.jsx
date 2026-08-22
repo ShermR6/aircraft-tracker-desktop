@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plane, RefreshCw, Loader, Navigation } from 'lucide-react';
 import APIService from '../services/api';
 import { backgroundTracker } from '../services/backgroundTracker';
+import { PageHead, Stamp, Panel, PanelHead, Count, Button, Notice, Empty } from '../ui/kit';
 import { getColor, ensureLoaded } from '../services/aircraftColors';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -71,7 +72,7 @@ export default function LiveMap() {
 
     const airportIcon = L.divIcon({
       className: '',
-      html: `<div style="width:36px;height:36px;background:#0ea5e920;border:2px solid #0ea5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px #0ea5e960;">
+      html: `<div style="width:36px;height:36px;background:var(--accent-soft);border:2px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px #0ea5e960;">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="3"/></svg>
              </div>`,
       iconSize: [36, 36],
@@ -84,6 +85,8 @@ export default function LiveMap() {
 
     const ringDistances = [...(airportConfig.alert_distances_nm || ['2.0', '5.0', '10.0'])]
       .sort((a, b) => parseFloat(b) - parseFloat(a)); // largest first so smallest rings sit on top
+    // Leaflet circle strokes are SVG presentation attributes — var() does not
+    // resolve there, so these stay literal. They mirror --bad / --warn / --accent.
     const ringColors = ['#ef4444', '#f59e0b', '#38bdf8'];
     ringsRef.current = ringDistances.map((dist, i) => {
       const nm = parseFloat(dist);
@@ -156,7 +159,7 @@ export default function LiveMap() {
         color: 'var(--accent)', weight: 1.5, opacity: 0.5,
         fillColor: 'var(--accent)', fillOpacity: 0.04, dashArray: '8 5',
       }).bindPopup(
-        `<span style="font-size:12px;color:#a855f7;">SDR reception range — max ${maxRange.toFixed(0)} nm</span><br/>` +
+        `<span style="font-size:12px;color:var(--accent);">SDR reception range — max ${maxRange.toFixed(0)} nm</span><br/>` +
         `<span style="color:var(--faint);font-size:10px;">Best range achieved per direction · expands as aircraft are received · not a live coverage indicator</span>`
       ).addTo(map);
     } catch {
@@ -318,46 +321,44 @@ export default function LiveMap() {
   };
 
   return (
-    <div style={{ padding: '28px 32px', fontFamily: 'var(--font-sans)', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px', paddingRight: window.electronAPI?.platform === 'win32' ? 110 : 0 }}>
-        <div>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 4px 0' }}>Live Map</h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', margin: 0 }}>
-            Real-time aircraft positions · Positions update every 30s
-            {lastUpdate && <span style={{ marginLeft: '8px', color: 'var(--faint)' }}>· Last update: {lastUpdate.toLocaleTimeString()}</span>}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={handleRecenter} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--muted)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Navigation size={12} /> Recenter
-          </button>
-          <button onClick={() => fetchAircraft(mapRef.current, backgroundTracker.getData())} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--muted)', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <RefreshCw size={12} /> Refresh
-          </button>
-        </div>
-      </div>
+    <div style={{
+      padding: '24px 28px 32px', fontFamily: 'var(--font-sans)',
+      display: 'flex', flexDirection: 'column', height: '100%',
+      boxSizing: 'border-box', overflowY: 'auto',
+    }}>
+      <PageHead
+        title="Live Map"
+        subtitle="Real-time aircraft positions, updated every 30 seconds"
+        right={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {lastUpdate && <Stamp>Updated {lastUpdate.toLocaleTimeString()}</Stamp>}
+            <Button variant="ghost" onClick={handleRecenter}
+              style={{ padding: '5px 11px', fontSize: 12 }} icon={<Navigation size={13} />}>
+              Recenter
+            </Button>
+            <Button variant="ghost"
+              onClick={() => fetchAircraft(mapRef.current, backgroundTracker.getData())}
+              style={{ padding: '5px 11px', fontSize: 12 }} icon={<RefreshCw size={13} />}>
+              Refresh
+            </Button>
+          </span>
+        }
+      />
 
-      {error && (
-        <div style={{ padding: '16px', background: '#ef444415', border: '1px solid #ef444430', borderRadius: '12px', color: 'var(--bad)', fontSize: '13px', marginBottom: '16px' }}>
-          {error}
-        </div>
-      )}
+      {error && <Notice t="bad">{error}</Notice>}
 
-      <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)', marginBottom: '16px' }}>
+      <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 14 }}>
         {(loading && !error) && (
           <div style={{ position: 'absolute', inset: 0, background: 'var(--panel)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, gap: '10px', color: 'var(--faint)', fontSize: '14px' }}>
             <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading map...
           </div>
         )}
-        <div ref={mapContainerRef} style={{ height: 'calc(100vh - 320px)', minHeight: '360px', width: '100%' }} />
+        <div ref={mapContainerRef} style={{ height: 'calc(100vh - 330px)', minHeight: 340, width: '100%' }} />
       </div>
 
-      <div style={{ background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px' }}>
-        <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)', margin: '0 0 14px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plane size={14} color="var(--muted)" />
-          Aircraft in Range
-          <span style={{ fontSize: '11px', fontWeight: '400', color: 'var(--faint)', marginLeft: '4px' }}>({aircraft.length} detected)</span>
-        </p>
+      <Panel>
+        <PanelHead title="Aircraft in range" right={<Count>{aircraft.length} detected</Count>} />
+        <div style={{ padding: 17 }}>
 
         {aircraft.length === 0 ? (
           <p style={{ color: 'var(--faint)', fontSize: '13px', margin: 0 }}>No aircraft with position data right now. Start the tracker to see live data.</p>
@@ -393,17 +394,18 @@ export default function LiveMap() {
             })}
           </div>
         )}
-      </div>
+        </div>
+      </Panel>
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .leaflet-container { background: var(--panel) !important; }
-        .leaflet-control-zoom a { background: #1e2538 !important; color: var(--muted) !important; border-color: var(--border) !important; }
+        .leaflet-control-zoom a { background: var(--panel-2) !important; color: var(--muted) !important; border-color: var(--border) !important; }
         .leaflet-control-zoom a:hover { background: var(--panel-2) !important; color: var(--text) !important; }
-        .leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: var(--faint) !important; font-size: 10px !important; }
+        .leaflet-control-attribution { background: rgba(0,0,0,0.55) !important; color: var(--faint) !important; font-size: 10px !important; }
         .leaflet-control-attribution a { color: var(--faint) !important; }
-        .leaflet-popup-content-wrapper { background: #1e2538 !important; border: 1px solid #2d3748 !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; color: var(--text) !important; }
-        .leaflet-popup-tip { background: #1e2538 !important; }
+        .leaflet-popup-content-wrapper { background: var(--panel) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; color: var(--text) !important; }
+        .leaflet-popup-tip { background: var(--panel) !important; }
         .leaflet-popup-content { margin: 14px 16px !important; }
       `}</style>
     </div>

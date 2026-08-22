@@ -409,7 +409,7 @@ export default function Dashboard({ onLogout }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: 'var(--panel)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '28px 28px 24px', width: '320px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <LogOut size={18} color='#f87171' />
+              <LogOut size={18} color='var(--bad)' />
               <span style={{ color: 'var(--text)', fontSize: '15px', fontWeight: 700 }}>Log out</span>
             </div>
             <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '0 0 22px' }}>Are you sure you want to log out of FinalPing?</p>
@@ -491,12 +491,12 @@ export default function Dashboard({ onLogout }) {
             style={s.logoutBtn}
             onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/docs')}
             onMouseEnter={e => {
-              e.currentTarget.style.color = '#0ea5e9';
-              e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
-              e.currentTarget.style.background = 'rgba(14,165,233,0.06)';
+              e.currentTarget.style.color = 'var(--accent)';
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.background = 'var(--accent-soft)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.color = 'var(--faint)';
               e.currentTarget.style.borderColor = 'transparent';
               e.currentTarget.style.background = 'none';
             }}
@@ -507,12 +507,12 @@ export default function Dashboard({ onLogout }) {
             style={s.logoutBtn}
             onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/contact')}
             onMouseEnter={e => {
-              e.currentTarget.style.color = '#0ea5e9';
-              e.currentTarget.style.borderColor = 'rgba(14,165,233,0.2)';
-              e.currentTarget.style.background = 'rgba(14,165,233,0.06)';
+              e.currentTarget.style.color = 'var(--accent)';
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.background = 'var(--accent-soft)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.color = 'var(--faint)';
               e.currentTarget.style.borderColor = 'transparent';
               e.currentTarget.style.background = 'none';
             }}
@@ -523,12 +523,12 @@ export default function Dashboard({ onLogout }) {
             style={s.logoutBtn}
             onClick={handleLogout}
             onMouseEnter={e => {
-              e.currentTarget.style.color = '#f87171';
-              e.currentTarget.style.borderColor = 'rgba(248,113,113,0.2)';
-              e.currentTarget.style.background = 'rgba(248,113,113,0.06)';
+              e.currentTarget.style.color = 'var(--bad)';
+              e.currentTarget.style.borderColor = 'var(--bad)';
+              e.currentTarget.style.background = 'var(--bad-bg)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.color = 'var(--faint)';
               e.currentTarget.style.borderColor = 'transparent';
               e.currentTarget.style.background = 'none';
             }}

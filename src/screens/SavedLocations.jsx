@@ -42,7 +42,7 @@ const s = {
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' },
   saveBtn: {
     padding: '10px 20px', borderRadius: '8px', border: 'none',
-    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+    background: 'var(--good)',
     color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
   },
   cancelBtn: {
@@ -293,7 +293,7 @@ export default function SavedLocations({ isViewOnly = false }) {
           {locations.map(loc => (
             <div key={loc.id} style={s.locationCard(loc.is_active)}>
               <div style={s.iconBox(loc.is_active)}>
-                <MapPin size={18} color={loc.is_active ? '#3b82f6' : '#4b5563'} />
+                <MapPin size={18} color={loc.is_active ? 'var(--accent)' : 'var(--faint)'} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
@@ -308,14 +308,14 @@ export default function SavedLocations({ isViewOnly = false }) {
                 {!isViewOnly && (
                   <>
                     {!loc.is_active && (
-                      <button style={s.actionBtn('#34d399')} onClick={() => handleActivate(loc.id)} disabled={activating === loc.id}>
+                      <button style={s.actionBtn('var(--good)')} onClick={() => handleActivate(loc.id)} disabled={activating === loc.id}>
                         <Check size={12} /> {activating === loc.id ? '...' : 'Set Active'}
                       </button>
                     )}
                     <button style={s.actionBtn('var(--accent)')} onClick={() => handleEdit(loc)}>
                       <Edit2 size={12} /> Edit
                     </button>
-                    <button style={s.actionBtn('#f87171')} onClick={() => handleDelete(loc.id)}>
+                    <button style={s.actionBtn('var(--bad)')} onClick={() => handleDelete(loc.id)}>
                       <Trash2 size={12} />
                     </button>
                   </>

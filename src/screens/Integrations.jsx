@@ -298,7 +298,7 @@ export default function Integrations({ isViewOnly = false }) {
             >
               <div style={{
                 width: 20, height: 20, minWidth: 20, borderRadius: 4, marginTop: 1,
-                border: chargesAccepted ? '2px solid #3b82f6' : '2px solid #4b5563',
+                border: chargesAccepted ? '2px solid var(--accent)' : '2px solid var(--border)',
                 background: chargesAccepted ? 'var(--accent)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.15s',
@@ -328,7 +328,7 @@ export default function Integrations({ isViewOnly = false }) {
                 style={{
                   flex: 1, padding: '11px', borderRadius: 8,
                   background: chargesAccepted ? 'var(--accent)' : 'var(--panel-2)',
-                  border: chargesAccepted ? 'none' : '1px solid #374151',
+                  border: chargesAccepted ? 'none' : '1px solid var(--border)',
                   color: chargesAccepted ? '#fff' : 'var(--faint)',
                   fontSize: 14, fontWeight: 600,
                   cursor: chargesAccepted ? 'pointer' : 'not-allowed',
@@ -475,8 +475,8 @@ export default function Integrations({ isViewOnly = false }) {
                     value={integration.config[field.key] || ''}
                     placeholder={field.placeholder}
                     onChange={e => handleUpdateConfig(integration.id, field.key, e.target.value)}
-                    onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                    onBlur={e => e.target.style.borderColor = '#374151'}
+                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
                   />
                 </div>
               ))}

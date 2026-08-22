@@ -58,8 +58,8 @@ function CheckboxDropdown({ label, options, selected, onChange, formatLabel }) {
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} style={{
         padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600',
-        background: active ? 'rgba(59,130,246,0.15)' : '#111827',
-        border: active ? '1px solid rgba(59,130,246,0.4)' : '1px solid #374151',
+        background: active ? 'var(--accent-soft)' : 'var(--input)',
+        border: active ? '1px solid var(--accent)' : '1px solid var(--border)',
         color: active ? 'var(--accent)' : 'var(--muted)',
         cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '6px',
       }}>
@@ -76,7 +76,7 @@ function CheckboxDropdown({ label, options, selected, onChange, formatLabel }) {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
               <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)}
-                style={{ accentColor: '#3b82f6', width: '14px', height: '14px', flexShrink: 0 }} />
+                style={{ accentColor: 'var(--accent)', width: '14px', height: '14px', flexShrink: 0 }} />
               {formatLabel ? formatLabel(opt) : opt}
             </label>
           ))}

@@ -246,8 +246,8 @@ function MembersTab({ members, onInvite, onRemove }) {
                 <button
                   onClick={() => onRemove(m.id)}
                   style={{ background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--bad)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--border)'}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -299,8 +299,8 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
                     background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
                     color: 'var(--faint)', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(14,165,233,0.3)'; e.currentTarget.style.color = '#0ea5e9'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#6b7280'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(14,165,233,0.3)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'var(--faint)'; }}
                 >
                   <Plus size={12} /> Add
                 </button>
@@ -331,8 +331,8 @@ function ChannelsTab({ channels, onAddChannel, onRemoveChannel }) {
                       <button
                         onClick={() => onRemoveChannel(key, ch.id)}
                         style={{ background: 'none', border: 'none', color: 'var(--faint)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#374151'}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--bad)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--border)'}
                       >
                         <Trash2 size={13} />
                       </button>
