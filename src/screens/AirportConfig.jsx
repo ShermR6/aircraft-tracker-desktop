@@ -627,6 +627,14 @@ export default function AirportConfig({ isViewOnly = false }) {
             </div>
           )}
         </div>
+        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 12, padding: '10px 12px', background: '#0d1117', border: '1px solid #1e2a3a', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          Missing a runway at your airport?
+          <button
+            onClick={() => window.electronAPI?.openExternal('https://finalpingapp.com/contact')}
+            style={{ fontSize: 12, fontWeight: 600, color: '#38bdf8', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+          >Contact us</button>
+          and we'll add it to the next update.
+        </div>
       </div>
 
       <style>{`

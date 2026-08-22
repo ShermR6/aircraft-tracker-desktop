@@ -1,62 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, RefreshCw, ChevronLeft, ChevronRight, Filter, CheckCircle, XCircle, Plane, Download } from 'lucide-react';
+import { Bell, RefreshCw, Filter, CheckCircle, XCircle, Plane, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import APIService from '../services/api';
+import { getColor, ensureLoaded } from '../services/aircraftColors';
 
-const s = {
-  page: { maxWidth: '900px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" },
-  header: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' },
-  title: { fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' },
-  sub: { fontSize: '14px', color: '#9ca3af', margin: 0 },
-  card: { background: 'linear-gradient(135deg, #1e2538 0%, #1a2030 100%)', border: '1px solid #2d3748', borderRadius: '16px', padding: '24px' },
-  filterRow: { display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' },
-  select: {
-    background: '#111827', border: '1px solid #374151', borderRadius: '8px',
-    color: '#9ca3af', padding: '7px 12px', fontSize: '12px', cursor: 'pointer', outline: 'none',
-  },
-  refreshBtn: { background: 'none', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', padding: '7px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: { fontSize: '11px', fontWeight: '700', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 12px 12px', textAlign: 'left', borderBottom: '1px solid #1f2937' },
-  tr: (i) => ({ background: i % 2 === 0 ? 'transparent' : '#ffffff04', borderBottom: '1px solid #1f293750' }),
-  td: { padding: '12px', fontSize: '13px', color: '#e5e7eb', verticalAlign: 'middle' },
-  tail: { fontWeight: '700', color: '#f9fafb', display: 'flex', alignItems: 'center', gap: '8px' },
-  typeBadge: (type) => {
-    const isLanding = type === 'landing';
-    return {
-      display: 'inline-block', fontSize: '11px', fontWeight: '600',
-      padding: '2px 8px', borderRadius: '6px',
-      background: isLanding ? '#34d39920' : '#38bdf820',
-      color: isLanding ? '#34d399' : '#38bdf8',
-      border: `1px solid ${isLanding ? '#34d39930' : '#38bdf830'}`,
-    };
-  },
-  statusBadge: (status) => ({
-    display: 'inline-flex', alignItems: 'center', gap: '4px',
-    fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '6px',
-    background: status === 'sent' ? '#34d39915' : '#ef444415',
-    color: status === 'sent' ? '#34d399' : '#f87171',
-    border: `1px solid ${status === 'sent' ? '#34d39930' : '#ef444430'}`,
-  }),
-  integIcon: { fontSize: '13px' },
-  message: { fontSize: '12px', color: '#6b7280', maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  pagination: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' },
-  pageInfo: { fontSize: '13px', color: '#6b7280' },
-  pageBtn: (disabled) => ({
-    display: 'flex', alignItems: 'center', gap: '4px',
-    padding: '6px 12px', borderRadius: '8px', border: '1px solid #374151',
-    background: 'none', color: disabled ? '#374151' : '#9ca3af',
-    fontSize: '12px', cursor: disabled ? 'not-allowed' : 'pointer',
-  }),
-  empty: { textAlign: 'center', padding: '48px 24px', color: '#4b5563' },
-  loading: { textAlign: 'center', padding: '48px 24px', color: '#6b7280', fontSize: '13px' },
-  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' },
-  statCard: (color) => ({ background: '#111827', border: `1px solid ${color}20`, borderRadius: '10px', padding: '14px', textAlign: 'center' }),
-  statVal: { fontSize: '22px', fontWeight: '700', color: '#f9fafb', margin: '0 0 2px 0' },
-  statLabel: { fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 },
-};
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-function integrationIcon(type) {
-  const icons = { discord: '🎮', slack: '💬', teams: '🟦', email: '📧' };
-  return icons[type] || '🔔';
+function aircraftCardColor(tail) {
+  const hex = getColor(tail);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return {
+    border: hex,
+    bg: `rgba(${r},${g},${b},0.06)`,
+    badge: hex,
+    badgeBg: `rgba(${r},${g},${b},0.14)`,
+  };
 }
 
 function alertTypeLabel(type) {
@@ -65,60 +24,51 @@ function alertTypeLabel(type) {
   return type || 'Alert';
 }
 
-function formatTime(iso) {
-  try {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short', day: 'numeric',
-      hour: 'numeric', minute: '2-digit', hour12: true,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
+function integrationIcon(type) {
+  const icons = { discord: '🎮', slack: '💬', teams: '🟦', email: '📧', sms: '📱', whatsapp: '🟢' };
+  return icons[type] || '🔔';
 }
 
-function LocalTime({ iso }) {
-  const [formatted, setFormatted] = React.useState('—');
-  React.useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const utcIso = iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z';
-    try {
-      setFormatted(new Intl.DateTimeFormat('en-US', {
-        month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit', hour12: true,
-        timeZone: tz,
-      }).format(new Date(utcIso)));
-    } catch {
-      setFormatted(iso);
-    }
-  }, [iso]);
-  return React.createElement(React.Fragment, null, formatted);
+function formatDateGroup(iso) {
+  const d = new Date(iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z');
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return 'Today';
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
+}
+
+function formatTime(iso) {
+  try {
+    const utc = iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z';
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }).format(new Date(utc));
+  } catch { return iso; }
 }
 
 function CheckboxDropdown({ label, options, selected, onChange, formatLabel }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
-
   React.useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, []);
-
   const toggle = (val) => onChange(selected.includes(val) ? selected.filter(v => v !== val) : [...selected, val]);
-
-  const btnStyle = {
-    padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600',
-    background: selected.length > 0 ? 'rgba(59,130,246,0.15)' : '#111827',
-    border: selected.length > 0 ? '1px solid rgba(59,130,246,0.4)' : '1px solid #374151',
-    color: selected.length > 0 ? '#60a5fa' : '#9ca3af',
-    cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '6px',
-  };
-
+  const active = selected.length > 0;
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button style={btnStyle} onClick={() => setOpen(o => !o)}>
-        {label}{selected.length > 0 ? ` (${selected.length})` : ''} ▾
+      <button onClick={() => setOpen(o => !o)} style={{
+        padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+        background: active ? 'rgba(59,130,246,0.15)' : '#111827',
+        border: active ? '1px solid rgba(59,130,246,0.4)' : '1px solid #374151',
+        color: active ? '#60a5fa' : '#9ca3af',
+        cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '6px',
+      }}>
+        {label}{active ? ` (${selected.length})` : ''} ▾
       </button>
       {open && (
         <div style={{
@@ -147,250 +97,237 @@ export default function Logs() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [selectedAircraft, setSelectedAircraft] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [aircraft, setAircraft] = useState([]);
+  const [pageSize, setPageSize] = useState(20);
 
-  // Build filters object from multi-select arrays (API still takes single values, so we filter client-side)
-  const filters = {
-    aircraft: selectedAircraft.join(','),
-    alert_type: selectedTypes.join(','),
-    integration: selectedChannels.join(','),
-  };
-
-  const loadLogs = useCallback(async (p = page, f = filters, isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+  const loadLogs = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
-      // Load all logs and filter client-side for multi-select support
-      const params = new URLSearchParams({ page: 1, limit: 500 });
-      const data = await APIService.client.get(`/api/notifications/logs?${params}`);
+      const data = await APIService.client.get('/api/notifications/logs?page=1&limit=500');
       setLogs(data.data.logs || []);
-      setTotal(data.data.total || 0);
-      setTotalPages(data.data.pages || 1);
-    } catch (err) {
-      console.error('Failed to load logs:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [page]);
-
-  const loadStats = async () => {
-    try {
-      const data = await APIService.getNotificationStats();
-      setStats(data);
-    } catch {}
-  };
-
-  const loadAircraft = async () => {
-    try {
-      const data = await APIService.getAircraft();
-      setAircraft(data || []);
-    } catch {}
-  };
-
-  useEffect(() => {
-    loadStats();
-    loadAircraft();
+    } catch (err) { console.error('Failed to load logs:', err); }
+    finally { setLoading(false); setRefreshing(false); }
   }, []);
 
   useEffect(() => {
-    loadLogs(page);
-  }, [page]);
+    ensureLoaded();
+    loadLogs();
+    APIService.getNotificationStats().then(setStats).catch(() => {});
+    APIService.getAircraft().then(d => setAircraft(d || [])).catch(() => {});
+  }, []);
 
-  const clearFilters = () => { setSelectedAircraft([]); setSelectedTypes([]); setSelectedChannels([]); setPage(1); };
   const hasFilters = selectedAircraft.length > 0 || selectedTypes.length > 0 || selectedChannels.length > 0;
+  const clearFilters = () => { setSelectedAircraft([]); setSelectedTypes([]); setSelectedChannels([]); setPage(1); };
 
-  // Client-side filtering for multi-select
   const filteredLogs = logs.filter(l =>
     (selectedAircraft.length === 0 || selectedAircraft.includes(l.aircraft_tail)) &&
     (selectedTypes.length === 0 || selectedTypes.includes(l.alert_type)) &&
     (selectedChannels.length === 0 || selectedChannels.includes(l.integration_type))
   );
 
-  const downloadLogs = async () => {
-    try {
-      const exportLogs = filteredLogs;
-      const formatTime = (iso) => new Date(iso).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: 'numeric', minute: '2-digit',
-      });
-      const header = 'FinalPing Alert History Export\n' +
-        `Exported: ${new Date().toLocaleString()}\n` +
-        `Total Alerts: ${exportLogs.length}\n` +
-        '='.repeat(80) + '\n\n';
-      const rows = exportLogs.map(log =>
-        `[${formatTime(log.sent_at)}] ${log.aircraft_tail} — ${log.alert_type} — ${log.integration_type} — ${log.status}\n  ${log.message}`
-      ).join('\n\n');
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageSlice = filteredLogs.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-      const blob = new Blob([header + rows], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `finalping-alerts-${new Date().toISOString().slice(0, 10)}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Failed to download logs:', err);
+  // Group page slice by date
+  const groups = [];
+  let currentGroup = null;
+  for (const log of pageSlice) {
+    const label = formatDateGroup(log.sent_at);
+    if (!currentGroup || currentGroup.label !== label) {
+      currentGroup = { label, items: [] };
+      groups.push(currentGroup);
     }
+    currentGroup.items.push(log);
+  }
+
+  const downloadLogs = () => {
+    const header = `FinalPing Alert History Export\nExported: ${new Date().toLocaleString()}\nTotal: ${filteredLogs.length}\n${'='.repeat(80)}\n\n`;
+    const rows = filteredLogs.map(l =>
+      `[${new Date(l.sent_at).toLocaleString()}] ${l.aircraft_tail} — ${l.alert_type} — ${l.integration_type} — ${l.status}\n  ${l.message}`
+    ).join('\n\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([header + rows], { type: 'text/plain' }));
+    a.download = `finalping-alerts-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+  };
+
+  const btnStyle = {
+    background: 'none', border: '1px solid #374151', borderRadius: '8px',
+    color: '#9ca3af', padding: '7px 12px', fontSize: '12px',
+    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
   };
 
   return (
-    <div style={s.page}>
+    <div style={{ maxWidth: '860px', margin: '0 auto', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       {/* Header */}
-      <div style={s.header}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h2 style={s.title}>Alert Logs</h2>
-          <p style={s.sub}>Full history of every notification sent · {hasFilters ? `${filteredLogs.length} of ${total}` : total} total</p>
+          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#f9fafb', margin: '0 0 4px 0' }}>Alert Logs</h2>
+          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+            Full history of every notification sent · {hasFilters ? `${filteredLogs.length} of ${logs.length}` : logs.length} total
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button style={s.refreshBtn} onClick={downloadLogs}
+          <button style={btnStyle} onClick={downloadLogs}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
             <Download size={12} /> Export .txt
           </button>
-          <button style={s.refreshBtn} onClick={() => loadLogs(page, filters, true)}
+          <button style={btnStyle} onClick={() => loadLogs(true)}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#4b5563'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#374151'}>
-            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-            Refresh
+            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} /> Refresh
           </button>
         </div>
       </div>
 
       {/* Stats */}
       {stats && (
-        <div style={s.statsRow}>
-          {[
-            { label: 'Today', value: stats.today, color: '#38bdf8' },
-            { label: 'This Week', value: stats.this_week, color: '#a78bfa' },
-            { label: 'All Time', value: stats.total, color: '#34d399' },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={s.statCard(color)}>
-              <p style={{ ...s.statVal, color }}>{value ?? '—'}</p>
-              <p style={s.statLabel}>{label}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+          {[{ label: 'Today', value: stats.today, color: '#38bdf8' }, { label: 'This Week', value: stats.this_week, color: '#a78bfa' }, { label: 'All Time', value: stats.total, color: '#34d399' }].map(({ label, value, color }) => (
+            <div key={label} style={{ background: '#111827', border: `1px solid ${color}20`, borderRadius: '10px', padding: '14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '22px', fontWeight: '700', color, margin: '0 0 2px 0' }}>{value ?? '—'}</p>
+              <p style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
             </div>
           ))}
         </div>
       )}
 
-      <div style={s.card}>
-        {/* Filters */}
-        <div style={s.filterRow}>
-          <Filter size={13} color="#4b5563" />
-          <CheckboxDropdown
-            label="Aircraft"
-            options={aircraft.map(a => a.tail_number)}
-            selected={selectedAircraft}
-            onChange={v => { setSelectedAircraft(v); setPage(1); }}
-          />
-          <CheckboxDropdown
-            label="Alert Types"
-            options={['2nm', '5nm', '10nm', '15nm', 'landing']}
-            selected={selectedTypes}
-            onChange={v => { setSelectedTypes(v); setPage(1); }}
-            formatLabel={t => t === 'landing' ? '🛬 Landing' : `📍 ${t} out`}
-          />
-          <CheckboxDropdown
-            label="Channels"
-            options={['discord', 'slack', 'teams', 'email', 'sms', 'whatsapp']}
-            selected={selectedChannels}
-            onChange={v => { setSelectedChannels(v); setPage(1); }}
-            formatLabel={c => c.charAt(0).toUpperCase() + c.slice(1)}
-          />
-          {hasFilters && (
-            <button style={{ ...s.refreshBtn, marginLeft: 0, color: '#f87171', borderColor: '#f8717130' }}
-              onClick={clearFilters}>
-              ✕ Clear
-            </button>
-          )}
-        </div>
-
-        {/* Table */}
-        {loading ? (
-          <div style={s.loading}>Loading logs...</div>
-        ) : filteredLogs.length === 0 ? (
-          <div style={s.empty}>
-            <Bell size={28} color="#2d3748" style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
-            <p style={{ margin: '0 0 4px', fontSize: '14px' }}>No alerts found</p>
-            <p style={{ margin: 0, fontSize: '12px' }}>
-              {hasFilters ? 'Try adjusting your filters' : 'Alerts will appear here once the tracker sends notifications'}
-            </p>
-          </div>
-        ) : (
-          <table style={s.table}>
-            <thead>
-              <tr>
-                <th style={s.th}>Aircraft</th>
-                <th style={s.th}>Alert</th>
-                <th style={s.th}>Channel</th>
-                <th style={s.th}>Message</th>
-                <th style={s.th}>Status</th>
-                <th style={s.th}>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.map((log, i) => (
-                <tr key={log.id} style={s.tr(i)}>
-                  <td style={s.td}>
-                    <div style={s.tail}>
-                      <Plane size={12} color="#38bdf8" />
-                      {log.aircraft_tail}
-                    </div>
-                  </td>
-                  <td style={s.td}>
-                    <span style={s.typeBadge(log.alert_type)}>
-                      {alertTypeLabel(log.alert_type)}
-                    </span>
-                  </td>
-                  <td style={s.td}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#9ca3af' }}>
-                      <span style={s.integIcon}>{integrationIcon(log.integration_type)}</span>
-                      {log.integration_type}
-                    </span>
-                  </td>
-                  <td style={s.td}>
-                    <span style={s.message} title={log.message}>{log.message}</span>
-                  </td>
-                  <td style={s.td}>
-                    <span style={s.statusBadge(log.status)}>
-                      {log.status === 'sent'
-                        ? <CheckCircle size={10} />
-                        : <XCircle size={10} />
-                      }
-                      {log.status}
-                    </span>
-                  </td>
-                  <td style={{ ...s.td, color: '#6b7280', fontSize: '12px', whiteSpace: 'nowrap' }}>
-                    <LocalTime iso={log.sent_at} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div style={s.pagination}>
-            <span style={s.pageInfo}>
-              Page {page} of {totalPages} · {total} total
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={s.pageBtn(page === 1)} disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-                <ChevronLeft size={13} /> Prev
-              </button>
-              <button style={s.pageBtn(page === totalPages)} disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
-                Next <ChevronRight size={13} />
-              </button>
-            </div>
-          </div>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <Filter size={13} color="#4b5563" />
+        <CheckboxDropdown label="Aircraft" options={aircraft.map(a => a.tail_number)} selected={selectedAircraft}
+          onChange={v => { setSelectedAircraft(v); setPage(1); }} />
+        <CheckboxDropdown label="Alert Types" options={['2nm', '5nm', '10nm', '15nm', 'landing']} selected={selectedTypes}
+          onChange={v => { setSelectedTypes(v); setPage(1); }}
+          formatLabel={t => t === 'landing' ? '🛬 Landing' : `📍 ${t} out`} />
+        <CheckboxDropdown label="Channels" options={['discord', 'slack', 'teams', 'email', 'sms', 'whatsapp']} selected={selectedChannels}
+          onChange={v => { setSelectedChannels(v); setPage(1); }}
+          formatLabel={c => c.charAt(0).toUpperCase() + c.slice(1)} />
+        {hasFilters && (
+          <button style={{ ...btnStyle, color: '#f87171', borderColor: '#f8717130' }} onClick={clearFilters}>✕ Clear</button>
         )}
       </div>
+
+      {/* Content */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280', fontSize: '13px' }}>Loading logs...</div>
+      ) : filteredLogs.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px', color: '#4b5563' }}>
+          <Bell size={28} color="#2d3748" style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
+          <p style={{ margin: '0 0 4px', fontSize: '14px' }}>No alerts found</p>
+          <p style={{ margin: 0, fontSize: '12px', color: '#374151' }}>
+            {hasFilters ? 'Try adjusting your filters' : 'Alerts will appear here once the tracker sends notifications'}
+          </p>
+        </div>
+      ) : (
+        <>
+          {groups.map(group => (
+            <div key={group.label} style={{ marginBottom: '28px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4b5563', marginBottom: '10px', paddingLeft: '2px' }}>
+                {group.label}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {group.items.map(log => {
+                  const c = aircraftCardColor(log.aircraft_tail);
+                  return (
+                    <div key={log.id} style={{
+                      background: c.bg,
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderLeft: `4px solid ${c.border}`,
+                      borderRadius: '10px',
+                      padding: '12px 16px',
+                    }}>
+                      {/* Top row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '13px', color: '#f9fafb' }}>
+                          <Plane size={11} color={c.border} />
+                          {log.aircraft_tail}
+                        </span>
+                        <span style={{
+                          fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '999px',
+                          background: c.badgeBg, color: c.badge, border: `1px solid ${c.border}30`,
+                        }}>
+                          {alertTypeLabel(log.alert_type)}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#6b7280' }}>
+                          <span>{integrationIcon(log.integration_type)}</span>
+                          {log.integration_type}
+                        </span>
+                        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {log.status === 'sent'
+                            ? <CheckCircle size={11} color="#34d399" />
+                            : <XCircle size={11} color="#f87171" />}
+                          <span style={{ fontSize: '11px', color: '#6b7280' }}>{formatTime(log.sent_at)}</span>
+                        </span>
+                      </div>
+                      {/* Message */}
+                      <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: 1.5, paddingLeft: '2px' }}>
+                        {log.message}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Pagination */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid #1f2937', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '13px', color: '#6b7280' }}>
+                {filteredLogs.length === 0 ? 'No results' : `Showing ${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filteredLogs.length)} of ${filteredLogs.length}`}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '12px', color: '#4b5563' }}>Per page:</span>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {PAGE_SIZE_OPTIONS.map(n => (
+                    <button key={n} onClick={() => { setPageSize(n); setPage(1); }} style={{
+                      padding: '3px 8px', borderRadius: '6px', border: '1px solid',
+                      borderColor: pageSize === n ? 'rgba(14,165,233,0.4)' : '#374151',
+                      background: pageSize === n ? 'rgba(14,165,233,0.15)' : 'none',
+                      color: pageSize === n ? '#38bdf8' : '#6b7280',
+                      fontSize: '12px', fontWeight: pageSize === n ? '700' : '400',
+                      cursor: 'pointer',
+                    }}>{n}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button disabled={safePage === 1} onClick={() => setPage(p => p - 1)} style={{
+                  ...btnStyle, gap: '4px', opacity: safePage === 1 ? 0.3 : 1, cursor: safePage === 1 ? 'not-allowed' : 'pointer',
+                }}>
+                  <ChevronLeft size={13} /> Prev
+                </button>
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  const p = totalPages <= 7 ? i + 1 : safePage <= 4 ? i + 1 : safePage >= totalPages - 3 ? totalPages - 6 + i : safePage - 3 + i;
+                  return (
+                    <button key={p} onClick={() => setPage(p)} style={{
+                      width: '32px', height: '32px', borderRadius: '8px', border: '1px solid',
+                      borderColor: p === safePage ? 'rgba(14,165,233,0.4)' : '#374151',
+                      background: p === safePage ? 'rgba(14,165,233,0.15)' : 'none',
+                      color: p === safePage ? '#38bdf8' : '#6b7280',
+                      fontSize: '12px', fontWeight: p === safePage ? '700' : '400',
+                      cursor: 'pointer',
+                    }}>{p}</button>
+                  );
+                })}
+                <button disabled={safePage === totalPages} onClick={() => setPage(p => p + 1)} style={{
+                  ...btnStyle, gap: '4px', opacity: safePage === totalPages ? 0.3 : 1, cursor: safePage === totalPages ? 'not-allowed' : 'pointer',
+                }}>
+                  Next <ChevronRight size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
