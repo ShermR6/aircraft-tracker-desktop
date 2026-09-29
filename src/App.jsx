@@ -139,15 +139,16 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
-const CURRENT_VERSION = '1.1.1';
+const CURRENT_VERSION = '1.1.2';
 
 const CHANGELOG = [
-  { type: 'new', text: 'Two-factor authentication at sign-in — enter your code (authenticator app, email, or SMS) after your password' },
-  { type: 'new', text: 'Your account display name now shows in the app, synced from your account' },
-  { type: 'new', text: 'Updates now install on a splash screen at launch, so you always open on the latest version' },
-  { type: 'fix', text: 'Live map now flags stale aircraft correctly for the 30-second update interval' },
-  { type: 'fix', text: 'Alert-ring clicks fixed so the smaller inner rings are selectable' },
-  { type: 'improved', text: 'Sharper app and tray icons' },
+  { type: 'improved', text: 'Every screen rebuilt on one design system — consistent panels, tables and buttons throughout' },
+  { type: 'new', text: 'Inbound now shows approaching aircraft with distance, altitude, ETA and the alert ring they crossed' },
+  { type: 'new', text: 'Alert delivery groups recent notifications by channel, so a failing integration is obvious' },
+  { type: 'improved', text: 'Calmer palette and a dark live map that matches the rest of the app' },
+  { type: 'improved', text: 'Real Discord, Slack and Microsoft Teams marks on the Integrations screen' },
+  { type: 'fix', text: 'Aircraft type is editable again, so a bad ICAO lookup can be corrected in place' },
+  { type: 'fix', text: 'The loading screen no longer appears unstyled' },
 ];
 
 const TAG = {
