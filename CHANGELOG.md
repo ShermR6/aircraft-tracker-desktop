@@ -2,6 +2,20 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.2] — 2026-09-28
+
+### Changed
+- **Rebuilt interface.** Every screen was rebuilt on a shared design system: a single set of colour tokens, a self-hosted typeface, and one component kit used across Dashboard, Aircraft, Live Map, Airport Config, Alerts, Integrations, Logs and Ground Station. Panels, tables, buttons and badges now look and behave the same everywhere.
+- **New dashboard.** The old "Recent Alerts" list is replaced by two panels built for the job: **Inbound now**, which shows approaching aircraft with distance, altitude, ETA and which alert ring they have crossed, and **Alert delivery**, which groups recent notifications by channel so a failing integration is obvious at a glance.
+- **Darker, quieter palette.** The navy gradients are gone in favour of a flat neutral ground, so aircraft colours and alert states are the only things competing for attention.
+- **Icons instead of emoji** throughout the interface, and real brand marks for Discord, Slack and Microsoft Teams on the Integrations screen.
+- **Live map** now uses a dark basemap that matches the rest of the app.
+
+### Fixed
+- The loading screen rendered unstyled because its stylesheet was never compiled.
+- Aircraft type is editable again, so a bad ICAO lookup can be corrected without deleting and re-adding the aircraft.
+- Two colours in the 2FA sign-in step were left over from the old theme and did not follow the app palette.
+
 ## [1.1.1] — 2026-08-01
 
 ### Added
