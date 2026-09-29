@@ -680,7 +680,7 @@ export default function ActivationScreen({ onSuccess }) {
                 <div style={s.fieldGroup}>
                   <label style={s.label}>Verification Code</label>
                   <div style={s.inputWrap}>
-                    <div style={s.inputIcon}><Shield size={15} color="#4b5563" /></div>
+                    <div style={s.inputIcon}><Shield size={15} color="var(--faint)" /></div>
                     <input style={s.input} type="text" inputMode="numeric" autoComplete="one-time-code"
                       placeholder="123456" maxLength={6} value={twoFACode}
                       onChange={e => setTwoFACode(e.target.value.replace(/\D/g, ''))}
@@ -698,7 +698,7 @@ export default function ActivationScreen({ onSuccess }) {
               {twoFA.method !== 'totp' && (
                 <p style={{ ...s.formFooter, marginTop: 16 }}>
                   {twoFAResent
-                    ? <span style={{ color: '#34d399' }}>A new code has been sent.</span>
+                    ? <span style={{ color: 'var(--good)' }}>A new code has been sent.</span>
                     : <span style={s.tosLink} onClick={handleResend2FA}>Didn&apos;t get a code? Resend</span>}
                 </p>
               )}
