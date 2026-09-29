@@ -130,11 +130,19 @@ class APIService {
   }
 
   // Auth & License
-  async login(email, password) {
-    const response = await this.client.post('/api/auth/login', {
-      email: email,
-      password: password,
-    });
+  // Returns { requires_2fa, methods, method } when a second factor is needed
+  // (no token set in that case); otherwise sets the token and returns the login
+  // payload. Pass `code`/`method` on the follow-up call to complete 2FA.
+  async login(email, password, code = null, method = null) {
+    const payload = { email, password };
+    if (code) {
+      payload.code = code;
+      if (method) payload.method = method;
+    }
+    const response = await this.client.post('/api/auth/login', payload);
+    if (response.data && response.data.requires_2fa) {
+      return response.data;
+    }
     this.setToken(response.data.access_token);
     return response.data;
   }

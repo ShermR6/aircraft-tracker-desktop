@@ -11,12 +11,22 @@ if (isPackaged) {
   Sentry.init({
     dsn: 'https://2eaef290bb8846c7d4fb1fd25436c345@o4511365849874432.ingest.us.sentry.io/4511365852954624',
     environment: 'production',
+    beforeSend(event, hint) {
+      // Drop transient connectivity errors — these are the user's internet
+      // dropping (or DNS/connection resets), not app bugs.
+      const msg = String(hint?.originalException?.message || event.exception?.values?.[0]?.value || '');
+      if (/ERR_INTERNET_DISCONNECTED|ERR_NETWORK_CHANGED|ERR_NAME_NOT_RESOLVED|ERR_CONNECTION_(REFUSED|RESET|TIMED_OUT|CLOSED)|ERR_TIMED_OUT|ETIMEDOUT|ENOTFOUND|ECONNRESET|ECONNREFUSED/i.test(msg)) {
+        return null;
+      }
+      return event;
+    },
   });
 }
 
 const store = new Store();
 
 let mainWindow;
+let splashWindow = null;
 let tray = null;
 let forceQuit = false;
 
@@ -74,6 +84,24 @@ if (!gotLock) {
 
 // ─── Auto-updater (production only) ──────────────────────────────────────────
 let autoUpdater = null;
+let appLaunched = false;   // true once we leave the splash and open the main app
+let downloading = false;   // an update is actively downloading on the splash
+
+// Drive the splash window's status text + progress bar from the main process.
+function splashStatus(text, percent) {
+  if (!splashWindow || splashWindow.isDestroyed()) return;
+  const pct = percent == null ? null : Math.round(percent);
+  const js =
+    '(function(){' +
+    'var s=document.getElementById("status"); if(s)s.textContent=' + JSON.stringify(text) + ';' +
+    'var b=document.getElementById("bar"),f=document.getElementById("fill");' +
+    (pct == null
+      ? 'if(b)b.classList.remove("show");'
+      : 'if(b)b.classList.add("show"); if(f)f.style.width=' + pct + '+"%";') +
+    '})();';
+  splashWindow.webContents.executeJavaScript(js).catch(() => {});
+}
+
 if (isPackaged) {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
@@ -81,13 +109,26 @@ if (isPackaged) {
   if (process.platform === 'darwin') {
     autoUpdater.verifyUpdateCodeSignature = false;
   }
+
+  autoUpdater.on('checking-for-update', () => splashStatus('Checking for updates…', null));
+  autoUpdater.on('update-available', () => { downloading = true; splashStatus('Downloading update…', 0); });
+  autoUpdater.on('download-progress', (p) => { if (!appLaunched) splashStatus('Downloading update…', p.percent); });
   autoUpdater.on('update-downloaded', (info) => {
+    if (!appLaunched) {
+      // Still on the splash → install and relaunch straight into the new version.
+      splashStatus('Installing update…', 100);
+      setTimeout(() => autoUpdater.quitAndInstall(), 700);
+      return;
+    }
+    // Already in the app (hourly check) → let the user click Restart when ready.
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('update-downloaded', info.version);
     }
   });
+  autoUpdater.on('update-not-available', () => { if (!appLaunched) launchMainApp(); });
   autoUpdater.on('error', (err) => {
     console.error('Auto-updater error:', err.message);
+    if (!appLaunched) launchMainApp();   // never block startup on an updater error
   });
 }
 
@@ -96,9 +137,12 @@ function createTray() {
   // Use the app icon — falls back to empty image if not found
   let trayIcon;
   try {
+    // Packaged: main runs as build/electron.js, so favicon.ico sits next to it
+    // (CRA copies public/ -> build/, bundled into app.asar). Dev: main runs from
+    // src/main, so the repo-root public/ is two levels up.
     const iconPath = isPackaged
-      ? path.join(process.resourcesPath, 'app', 'build', 'favicon.ico')
-      : path.join(__dirname, '..', 'public', 'favicon.ico');
+      ? path.join(__dirname, 'favicon.ico')
+      : path.join(__dirname, '..', '..', 'public', 'favicon.ico');
     trayIcon = nativeImage.createFromPath(iconPath);
     if (trayIcon.isEmpty()) trayIcon = nativeImage.createEmpty();
   } catch {
@@ -204,6 +248,7 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
     mainWindow.show();
+    if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
   });
 
   // Fix Electron input focus bug — restore focus on window show/focus
@@ -217,10 +262,6 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.focus();
-    if (isPackaged) {
-      setTimeout(() => autoUpdater.checkForUpdates(), 1000);
-      setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
-    }
     // Handle OAuth callback that arrived before the window was ready
     if (pendingOAuthUrl) {
       handleOAuthCallback(pendingOAuthUrl);
@@ -239,6 +280,53 @@ function createWindow() {
   });
 }
 
+// ─── Splash + startup ─────────────────────────────────────────────────────────
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 340,
+    height: 400,
+    frame: false,
+    resizable: false,
+    center: true,
+    show: false,
+    backgroundColor: '#0d1117',
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  });
+  const splashPath = isPackaged
+    ? path.join(__dirname, 'splash.html')
+    : path.join(__dirname, '..', '..', 'public', 'splash.html');
+  splashWindow.loadFile(splashPath).catch(() => launchMainApp());
+  splashWindow.once('ready-to-show', () => { if (splashWindow) splashWindow.show(); });
+  splashWindow.on('closed', () => { splashWindow = null; });
+}
+
+// Open the real app window (once). The splash closes itself when the main
+// window is ready to show.
+function launchMainApp() {
+  if (appLaunched) return;
+  appLaunched = true;
+  createWindow();
+  createTray();
+  if (isPackaged && autoUpdater) {
+    // 24/7 hourly checks — these surface the Restart button (appLaunched is true).
+    setInterval(() => autoUpdater.checkForUpdates(), 60 * 60 * 1000);
+  }
+}
+
+// Discord-style launch: show the splash, check for updates, then either open the
+// app (nothing new) or download + relaunch straight into the new version.
+function startWithSplash() {
+  createSplash();
+  setTimeout(() => {
+    try { autoUpdater.checkForUpdates(); } catch (e) { launchMainApp(); }
+  }, 500);
+  // Safety nets so we can never get stuck on the splash:
+  //  - 15s with no download started -> the check stalled, so just go in.
+  setTimeout(() => { if (!downloading) launchMainApp(); }, 15000);
+  //  - 120s absolute ceiling, even mid-download (very slow / hung network).
+  setTimeout(() => { launchMainApp(); }, 120000);
+}
+
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.on('ready', () => {
   // Enable launch at startup
@@ -247,8 +335,11 @@ app.on('ready', () => {
     openAsHidden: true, // start minimized to tray on login
   });
 
-  createWindow();
-  createTray();
+  if (isPackaged && autoUpdater) {
+    startWithSplash();   // check for updates on a splash, then open the app
+  } else {
+    launchMainApp();     // dev: no updater — straight into the app
+  }
 });
 
 app.on('window-all-closed', () => {
