@@ -139,9 +139,10 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
-const CURRENT_VERSION = '1.1.2';
+const CURRENT_VERSION = '1.1.3';
 
 const CHANGELOG = [
+  { type: 'improved', text: 'The app and its installer are now digitally signed, so security software is less likely to interrupt an update' },
   { type: 'improved', text: 'Every screen rebuilt on one design system — consistent panels, tables and buttons throughout' },
   { type: 'new', text: 'Inbound now shows approaching aircraft with distance, altitude, ETA and the alert ring they crossed' },
   { type: 'new', text: 'Alert delivery groups recent notifications by channel, so a failing integration is obvious' },

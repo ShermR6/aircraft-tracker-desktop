@@ -2,6 +2,14 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.3] — 2026-09-30
+
+### Changed
+- **Signed builds.** The application, its installer, and its uninstaller now carry a digital
+  signature. Unsigned installers were being intercepted by security software during automatic
+  updates, which turned a silent background update into a manual reinstall — or stopped it
+  entirely, with no visible error.
+
 ## [1.1.2] — 2026-09-28
 
 ### Changed
