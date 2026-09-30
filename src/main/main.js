@@ -117,7 +117,9 @@ if (isPackaged) {
     if (!appLaunched) {
       // Still on the splash → install and relaunch straight into the new version.
       splashStatus('Installing update…', 100);
-      setTimeout(() => autoUpdater.quitAndInstall(), 700);
+      // (true, true) = install silently, then relaunch. electron-updater defaults
+      // isSilent to false, which runs the NSIS wizard instead of updating in place.
+      setTimeout(() => autoUpdater.quitAndInstall(true, true), 700);
       return;
     }
     // Already in the app (hourly check) → let the user click Restart when ready.
@@ -385,7 +387,7 @@ ipcMain.handle('focus-window', () => {
 // ─── Auto-updater IPC ─────────────────────────────────────────────────────────
 ipcMain.handle('update-restart', () => {
   forceQuit = true;
-  if (autoUpdater) autoUpdater.quitAndInstall();
+  if (autoUpdater) autoUpdater.quitAndInstall(true, true);
 });
 
 ipcMain.handle('get-app-version', () => app.getVersion());

@@ -2,6 +2,11 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.5] — 2026-09-30
+
+### Fixed
+- **Updates install silently again.** The updater was launching the full installer wizard instead of updating in place, so every update asked you to click through Next and Finish. electron-updater's `quitAndInstall()` defaults to a non-silent install; it is now called with the silent flags, so an update downloads, installs and relaunches on its own.
+
 ## [1.1.4] — 2026-09-30
 
 ### Changed
