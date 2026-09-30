@@ -2,3 +2,9 @@ node_modules/
 dist/
 build/
 .env
+
+# Code signing — never commit certificates or their passwords
+*.pfx
+*.p12
+*.pem
+.env.local
