@@ -2,6 +2,11 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.4] — 2026-09-30
+
+### Changed
+- Signed build, unchanged from 1.1.3 apart from the version. Published to verify the silent update path end to end.
+
 ## [1.1.3] — 2026-09-30
 
 ### Changed
