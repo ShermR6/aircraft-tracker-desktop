@@ -2,6 +2,11 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.6] — 2026-09-30
+
+### Changed
+- First release delivered by the silent updater. The fix shipped in 1.1.5, but the update that delivered it was performed by 1.1.4's code, so that one still opened the installer wizard.
+
 ## [1.1.5] — 2026-09-30
 
 ### Fixed
