@@ -2,6 +2,11 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.7] — 2026-09-30
+
+### Changed
+- Returns to unsigned builds. 1.1.3–1.1.6 were signed with a test certificate while the update pipeline was being debugged; that certificate is trusted only on the build machine, so those builds could not deliver updates to anyone else. This release is signed one last time so existing installs accept it, and removes the signature requirement going forward.
+
 ## [1.1.6] — 2026-09-30
 
 ### Changed
