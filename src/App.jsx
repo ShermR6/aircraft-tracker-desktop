@@ -142,7 +142,6 @@ function LicenseExpiredOverlay({ onActivateNew }) {
 const CURRENT_VERSION = '1.1.3';
 
 const CHANGELOG = [
-  { type: 'improved', text: 'The app and its installer are now digitally signed, so security software is less likely to interrupt an update' },
   { type: 'improved', text: 'Every screen rebuilt on one design system — consistent panels, tables and buttons throughout' },
   { type: 'new', text: 'Inbound now shows approaching aircraft with distance, altitude, ETA and the alert ring they crossed' },
   { type: 'new', text: 'Alert delivery groups recent notifications by channel, so a failing integration is obvious' },
@@ -150,6 +149,7 @@ const CHANGELOG = [
   { type: 'improved', text: 'Real Discord, Slack and Microsoft Teams marks on the Integrations screen' },
   { type: 'fix', text: 'Aircraft type is editable again, so a bad ICAO lookup can be corrected in place' },
   { type: 'fix', text: 'The loading screen no longer appears unstyled' },
+  { type: 'fix', text: 'Updates install on their own again instead of opening the installer and asking you to click through it' },
 ];
 
 const TAG = {

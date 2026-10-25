@@ -2,33 +2,12 @@
 
 All notable changes to the FinalPing desktop app.
 
-## [1.1.7] — 2026-09-30
-
-### Changed
-- Returns to unsigned builds. 1.1.3–1.1.6 were signed with a test certificate while the update pipeline was being debugged; that certificate is trusted only on the build machine, so those builds could not deliver updates to anyone else. This release is signed one last time so existing installs accept it, and removes the signature requirement going forward.
-
-## [1.1.6] — 2026-09-30
-
-### Changed
-- First release delivered by the silent updater. The fix shipped in 1.1.5, but the update that delivered it was performed by 1.1.4's code, so that one still opened the installer wizard.
-
-## [1.1.5] — 2026-09-30
+## [1.1.3] — 2026-10-25
 
 ### Fixed
-- **Updates install silently again.** The updater was launching the full installer wizard instead of updating in place, so every update asked you to click through Next and Finish. electron-updater's `quitAndInstall()` defaults to a non-silent install; it is now called with the silent flags, so an update downloads, installs and relaunches on its own.
-
-## [1.1.4] — 2026-09-30
-
-### Changed
-- Signed build, unchanged from 1.1.3 apart from the version. Published to verify the silent update path end to end.
-
-## [1.1.3] — 2026-09-30
-
-### Changed
-- **Signed builds.** The application, its installer, and its uninstaller now carry a digital
-  signature. Unsigned installers were being intercepted by security software during automatic
-  updates, which turned a silent background update into a manual reinstall — or stopped it
-  entirely, with no visible error.
+- **Updates install on their own again.** The updater was opening the full installer and asking
+  you to click through it on every update. It now downloads, installs and relaunches by itself,
+  which is what the update-on-launch splash was always meant to do.
 
 ## [1.1.2] — 2026-09-28
 
