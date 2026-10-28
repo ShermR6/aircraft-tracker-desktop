@@ -139,7 +139,7 @@ function LicenseExpiredOverlay({ onActivateNew }) {
   );
 }
 
-const CURRENT_VERSION = '1.1.3';
+const CURRENT_VERSION = '1.1.4';
 
 const CHANGELOG = [
   { type: 'improved', text: 'Every screen rebuilt on one design system — consistent panels, tables and buttons throughout' },
@@ -150,6 +150,7 @@ const CHANGELOG = [
   { type: 'fix', text: 'Aircraft type is editable again, so a bad ICAO lookup can be corrected in place' },
   { type: 'fix', text: 'The loading screen no longer appears unstyled' },
   { type: 'fix', text: 'Updates install on their own again instead of opening the installer and asking you to click through it' },
+  { type: 'fix', text: 'Turning off "start with Windows" now sticks — updating the app no longer switches it back on' },
 ];
 
 const TAG = {

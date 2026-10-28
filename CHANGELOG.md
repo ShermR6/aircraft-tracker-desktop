@@ -2,6 +2,14 @@
 
 All notable changes to the FinalPing desktop app.
 
+## [1.1.4] — 2026-10-27
+
+### Fixed
+- **"Start with Windows" stays off once you turn it off.** The app re-registered itself for
+  startup on every launch, which overwrote the setting whenever you disabled it in Windows.
+  Because an update relaunches the app, it looked like updating was switching startup back on.
+  The default is now applied once, on first run, and never again.
+
 ## [1.1.3] — 2026-10-25
 
 ### Fixed
