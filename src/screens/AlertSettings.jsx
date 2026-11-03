@@ -5,7 +5,7 @@ import {
   PageHead, Panel, PanelHead, PanelBody, Count, Button, IconButton, Field,
   Input, Textarea, Toggle as KitToggle, Notice,
 } from '../ui/kit';
-import { getLimits } from '../config/tierLimits';
+import { getLimits, getLimitDisplay } from '../config/tierLimits';
 
 const s = {
   varChip: {
@@ -84,7 +84,7 @@ export default function AlertSettings({ isViewOnly = false }) {
   const handleAddAlert = () => {
     const limits = getLimits(tier);
     if (alerts.length >= limits.zones) {
-      setMessage({ type: 'error', text: `Your ${tier} plan allows up to ${limits.zones} approach zones. Upgrade to add more.` });
+      setMessage({ type: 'error', text: `Your ${tier} plan allows up to ${getLimitDisplay(limits.zones)} approach zones. Upgrade to add more.` });
       return;
     }
     const newId = Math.max(...alerts.map(a => a.id), 0) + 1;
@@ -197,7 +197,7 @@ export default function AlertSettings({ isViewOnly = false }) {
           title="Distance alerts"
           right={
             <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <Count>{alerts.length} / {zoneLimit} zones</Count>
+              <Count>{alerts.length} / {getLimitDisplay(zoneLimit)} zones</Count>
               {!isViewOnly && (
                 <Button
                   variant="ghost" onClick={handleAddAlert} disabled={atZoneLimit}
