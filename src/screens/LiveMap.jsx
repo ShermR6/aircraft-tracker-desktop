@@ -5,6 +5,7 @@ import { backgroundTracker } from '../services/backgroundTracker';
 import { PageHead, Stamp, Panel, PanelHead, Count, Button, Notice, Empty } from '../ui/kit';
 import { getColor, ensureLoaded } from '../services/aircraftColors';
 import L from 'leaflet';
+import { addBaseLayers } from '../config/mapTiles';
 import 'leaflet/dist/leaflet.css';
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -62,11 +63,7 @@ export default function LiveMap() {
 
     const map = L.map(mapContainerRef.current, { center: [lat, lng], zoom: 10, zoomControl: true });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap contributors © CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
+    addBaseLayers(L, map);
 
     mapRef.current = map;
 

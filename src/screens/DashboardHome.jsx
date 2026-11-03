@@ -75,13 +75,14 @@ export default function DashboardHome() {
   const [live, setLive] = useState([]);
   const [stats, setStats] = useState(null);
   const [notifs, setNotifs] = useState([]);
+  const [airportRings, setAirportRings] = useState(null);
   const [backendOnline, setBackendOnline] = useState(null);
   const [gsOnline, setGsOnline] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
 
   const load = useCallback(async () => {
     const settle = (p) => p.then(v => v).catch(() => null);
-    const [u, ac, lv, st, nt, hc, gs] = await Promise.all([
+    const [u, ac, lv, st, nt, hc, gs, cfg] = await Promise.all([
       settle(APIService.getCurrentUser()),
       settle(APIService.getAircraft()),
       settle(APIService.getLiveAircraft()),
@@ -89,6 +90,7 @@ export default function DashboardHome() {
       settle(APIService.getRecentNotifications(60)),
       settle(APIService.healthCheck()),
       settle(APIService.getGroundStationStatus()),
+      settle(APIService.getAirportConfig()),
     ]);
 
     if (u) {
@@ -104,6 +106,7 @@ export default function DashboardHome() {
     if (Array.isArray(lv)) setLive(lv);
     if (st) setStats(st);
     if (Array.isArray(nt)) setNotifs(nt);
+    if (cfg?.alert_distances_nm?.length) setAirportRings(cfg.alert_distances_nm);
     setBackendOnline(hc !== null);
     setGsOnline(gs?.online === true);
     setUpdatedAt(new Date());
@@ -116,9 +119,14 @@ export default function DashboardHome() {
   }, [load]);
 
   // ── Inbound now: airborne, closing, nearest first ──
+  // Per-aircraft rings when set, otherwise the airport's default ladder.
+  // The field is `alert_distances` on an aircraft and `alert_distances_nm` on
+  // the airport config — this read the airport's name off an aircraft, got
+  // undefined every time, and so drew an empty stage bar and "Tracking" for
+  // every inbound aircraft regardless of how close it actually was.
   const ringsFor = (tail) => {
     const m = fleet.find(a => a.tail_number === tail);
-    return m?.alert_distances_nm;
+    return m?.alert_distances?.length ? m.alert_distances : airportRings;
   };
   const inbound = live
     .filter(a => !a.on_ground && a.is_approaching)
