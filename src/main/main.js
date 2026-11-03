@@ -331,12 +331,20 @@ function startWithSplash() {
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.on('ready', () => {
-  // Launch at startup is on by default, but applied only once. Re-applying it on
-  // every ready rewrote the Run key and undid the user turning startup off in
-  // Windows, which looked like the update switching it back on (an update
-  // relaunches the app, so that is when it showed up).
-  const loginItem = app.getLoginItemSettings();
-  if (!store.get('loginItemDefaultApplied') && !loginItem.openAtLogin) {
+  // Launch at startup is on by default, applied once on a genuine first run.
+  //
+  // Two earlier attempts got this wrong. Applying it on every 'ready' silently
+  // overwrote the user's choice. Guarding on getLoginItemSettings().openAtLogin
+  // then failed too: the Run key survives a Task Manager toggle, but an
+  // installer uninstalls before it installs and takes the key with it — so
+  // updating wiped the key and the guard happily re-applied the default.
+  //
+  // Neither the Run key nor the flag alone is trustworthy, because a flag set
+  // by a newer build is absent on the build that first carries it. A store that
+  // already holds data means this app has run here before, whatever the flag
+  // says, and a returning user's startup choice is theirs to keep.
+  const everRunHere = store.size > 0;
+  if (!everRunHere && !store.get('loginItemDefaultApplied')) {
     app.setLoginItemSettings({
       openAtLogin: true,
       openAsHidden: true, // start minimized to tray on login
