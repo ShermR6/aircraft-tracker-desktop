@@ -8,16 +8,33 @@ on:
 jobs:
   build:
     strategy:
+      # One platform failing must not cancel the other. Windows is the platform
+      # that actually ships, and it should always report its own result.
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
-    steps:
-      - uses: actions/checkout@v4
+    # GitHub's hosted macOS arm64 pool regularly fails to hand out a runner
+    # ("The job was not acquired by Runner of type hosted even after multiple
+    # attempts"), which marked pushes as failed after ~15 minutes of queueing
+    # while the Windows build had already passed in under three.
+    #
+    # macOS has never been released: every tag ships FinalPingSetup.exe alone,
+    # and the mac build would bundle resources/tracker.exe — a Windows binary —
+    # inside the .dmg, so the artifact could not work as-is. Until that is
+    # sorted out the mac leg is a smoke test, not a gate.
+    continue-on-error: ${{ matrix.os == 'macos-latest' }}
+    timeout-minutes: 25
 
-      - uses: actions/setup-node@v4
+    steps:
+      # v4 targets Node 20, which the runners now force onto Node 24 and warn
+      # about on every run.
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
 
       - name: Install dependencies
